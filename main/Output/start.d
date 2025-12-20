@@ -170,4 +170,6 @@
 ..\..\output\start.o: ..\..\Hardware\inc\stmflash.h
 ..\..\output\start.o: ..\..\Hardware\inc\bsp_usart2.h
 ..\..\output\start.o: ..\..\Hardware\inc\bsp_relay.h
+..\..\output\start.o: ..\..\Hardware\inc\bsp_key.h
+..\..\output\start.o: ..\..\Hardware\inc\bsp_rtc.h
 ..\..\output\start.o: ..\..\APP\./USER/inc/start.h

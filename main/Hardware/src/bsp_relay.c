@@ -8,10 +8,35 @@
          继电器3：    PE12
          继电器4：    PE13	 
 */
-#define RELAY1_CTRL   PEout(10)
-#define RELAY2_CTRL   PEout(11)
-#define RELAY3_CTRL   PEout(12)
-#define RELAY4_CTRL   PEout(13)
+/******************************************************************************************/
+/* 引脚 定义 */
+
+#define RELAY1_GPIO_PORT     GPIOB
+#define RELAY1_GPIO_PIN      GPIO_PIN_8
+
+#define RELAY2_GPIO_PORT     GPIOB
+#define RELAY2_GPIO_PIN      GPIO_PIN_9
+
+#define RELAY3_GPIO_PORT     GPIOB
+#define RELAY3_GPIO_PIN      GPIO_PIN_0
+
+#define RELAY4_GPIO_PORT     GPIOE
+#define RELAY4_GPIO_PIN      GPIO_PIN_8
+/******************************************************************************************/
+
+#define RELAY1_CTRL(x)  x ? \
+												HAL_GPIO_WritePin(RELAY1_GPIO_PORT, RELAY1_GPIO_PIN, GPIO_PIN_SET) : \
+												HAL_GPIO_WritePin(RELAY1_GPIO_PORT, RELAY1_GPIO_PIN, GPIO_PIN_RESET);  
+#define RELAY2_CTRL(x)  x ? \
+												HAL_GPIO_WritePin(RELAY2_GPIO_PORT, RELAY2_GPIO_PIN, GPIO_PIN_SET) : \
+												HAL_GPIO_WritePin(RELAY2_GPIO_PORT, RELAY2_GPIO_PIN, GPIO_PIN_RESET);  
+#define RELAY3_CTRL(x)  x ? \
+												HAL_GPIO_WritePin(RELAY3_GPIO_PORT, RELAY3_GPIO_PIN, GPIO_PIN_SET) : \
+												HAL_GPIO_WritePin(RELAY3_GPIO_PORT, RELAY3_GPIO_PIN, GPIO_PIN_RESET);  
+#define RELAY4_CTRL(x)  x ? \
+												HAL_GPIO_WritePin(RELAY4_GPIO_PORT, RELAY4_GPIO_PIN, GPIO_PIN_SET) : \
+												HAL_GPIO_WritePin(RELAY4_GPIO_PORT, RELAY4_GPIO_PIN, GPIO_PIN_RESET);  
+
 
 typedef struct
 {
@@ -52,22 +77,22 @@ void relay_control(RELAY_DEV dev, RELAY_STATUS state)
 	{
 		case RELAY_1:
 			sg_relay_t.relay[RELAY_1] = state;
-			RELAY1_CTRL = (state?0:1);
+			RELAY1_CTRL(state);
 			break;
 			
 		case RELAY_2:
 			sg_relay_t.relay[RELAY_2] = state;
-			RELAY2_CTRL = (state?0:1);
+			RELAY2_CTRL(state);
 			break;
 
 		case RELAY_3:
 			sg_relay_t.relay[RELAY_3] = state;
-			RELAY3_CTRL = (state?0:1);
+			RELAY3_CTRL(state);
 			break;
 
 		case RELAY_4:
 			sg_relay_t.relay[RELAY_4] = state;
-			RELAY4_CTRL = (state?0:1);
+			RELAY4_CTRL(state);
 			break;
 		default:	break;
 	}

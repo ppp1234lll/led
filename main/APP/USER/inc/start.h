@@ -16,7 +16,7 @@ typedef struct
 } ChipID_t;
 
 /* 提供给其他C文件调用的函数 */
-void PVD_Init(void);  // 初始化PVD 
+
 void start_system_init_function(void);  // 系统初始化函数
 void start_get_device_id_function(void);  // 获取本机ID
 void start_get_device_id_str(uint8_t *str); // 获取本机ID

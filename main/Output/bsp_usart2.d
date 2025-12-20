@@ -116,3 +116,5 @@
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_iwdg.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\stmflash.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_relay.h
+..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_key.h
+..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_rtc.h

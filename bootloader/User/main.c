@@ -79,13 +79,13 @@ static void update_check_function(void)
 	uint8_t count = 30;
 	////
 
-	while(count--)
-	{
-    iwdg_feed();
-		delay_ms(100);
-		if(PWR_TST_READ == 0) 
-			break; 
-	}
+//	while(count--)
+//	{
+//    iwdg_feed();
+//		delay_ms(100);
+//		if(PWR_TST_READ == 0) 
+//			break; 
+//	}
   count = 200;
   while(count--)
 	{

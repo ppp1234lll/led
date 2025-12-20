@@ -116,3 +116,5 @@
 ..\..\output\bsp_led.o: ..\..\Hardware\inc\stmflash.h
 ..\..\output\bsp_led.o: ..\..\Hardware\inc\bsp_usart2.h
 ..\..\output\bsp_led.o: ..\..\Hardware\inc\bsp_relay.h
+..\..\output\bsp_led.o: ..\..\Hardware\inc\bsp_key.h
+..\..\output\bsp_led.o: ..\..\Hardware\inc\bsp_rtc.h

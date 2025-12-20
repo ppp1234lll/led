@@ -34,6 +34,8 @@ int main(void)
 	delay_init(480);                         /* 延时初始化 */
 	usart_init(115200);                      /* 串口初始化 */
 
+	start_system_init_function();
+	
 	while(1)
 	{
 		printf("usrt1\n");

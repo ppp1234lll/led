@@ -29,7 +29,7 @@ void start_system_init_function(void)
 	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
 	
-	
+	RTC_Get_Time_Test();
 }
 
 /*
@@ -69,7 +69,7 @@ void start_get_device_id(uint32_t *id)
 	id[2] = g_chipid_t.id[2];
 }
 
-
+#if 0
 /* APP线程 */
 #define APP_TASK_PRIO		6
 #define APP_STK_SIZE		512
@@ -198,4 +198,6 @@ void storagestack_task(void *p_arg)
 {
 
 }
+#endif
+
 

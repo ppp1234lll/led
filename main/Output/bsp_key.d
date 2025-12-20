@@ -171,4 +171,5 @@
 ..\..\output\bsp_key.o: ..\..\Hardware\inc\stmflash.h
 ..\..\output\bsp_key.o: ..\..\Hardware\inc\bsp_usart2.h
 ..\..\output\bsp_key.o: ..\..\Hardware\inc\bsp_relay.h
+..\..\output\bsp_key.o: ..\..\Hardware\inc\bsp_rtc.h
 ..\..\output\bsp_key.o: ..\..\APP\./USER/inc/start.h

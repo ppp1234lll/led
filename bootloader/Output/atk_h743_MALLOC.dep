@@ -1,7 +1,7 @@
 Dependencies for Project 'atk_h743', Target 'MALLOC': (DO NOT MODIFY !)
 CompilerVersion: 5060960::V5.06 update 7 (build 960)::.\ARMCC
 F (..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s)(0x681C5B8D)(--cpu Cortex-M7.fp.dp -g --apcs=interwork -ID:\Keil_v5\Local\Arm\Packs\Keil\STM32H7xx_DFP\4.1.3\Drivers\CMSIS\Device\ST\STM32H7xx\Include--pd "__UVISION_VERSION SETA 536" --pd "STM32H743xx SETA 1"--list ..\..\output\startup_stm32h743xx.lst --xref -o ..\..\output\startup_stm32h743xx.o --depend ..\..\output\startup_stm32h743xx.d)
-F (..\..\User\main.c)(0x69461587)(--c99 -c --cpu Cortex-M7.fp.dp -g -O0 --apcs=interwork --split_sections -I ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include -I ..\..\Drivers\STM32H7xx_HAL_Driver\Inc -I ..\..\Drivers\CMSIS\Include -I ..\..\Middlewares -I ..\..\Drivers -I ..\..\User -I ..\..\Hardware\inc-ID:\Keil_v5\Local\Arm\Packs\Keil\STM32H7xx_DFP\4.1.3\Drivers\CMSIS\Device\ST\STM32H7xx\Include-D__UVISION_VERSION="536" -DSTM32H743xx -DUSE_HAL_DRIVER -DSTM32H743xx-o ..\..\output\main.o --depend ..\..\output\main.d)
+F (..\..\User\main.c)(0x69466018)(--c99 -c --cpu Cortex-M7.fp.dp -g -O0 --apcs=interwork --split_sections -I ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include -I ..\..\Drivers\STM32H7xx_HAL_Driver\Inc -I ..\..\Drivers\CMSIS\Include -I ..\..\Middlewares -I ..\..\Drivers -I ..\..\User -I ..\..\Hardware\inc-ID:\Keil_v5\Local\Arm\Packs\Keil\STM32H7xx_DFP\4.1.3\Drivers\CMSIS\Device\ST\STM32H7xx\Include-D__UVISION_VERSION="536" -DSTM32H743xx -DUSE_HAL_DRIVER -DSTM32H743xx-o ..\..\output\main.o --depend ..\..\output\main.d)
 I (..\..\User\main.h)(0x69460B47)
 I (D:\Keil_v5\ARM\ARMCC\include\stdbool.h)(0x6025237C)
 I (D:\Keil_v5\ARM\ARMCC\include\string.h)(0x6025237E)
