@@ -1,0 +1,248 @@
+/**
+ ****************************************************************************************************
+ * @file        sys.c
+ * @author      正点原子团队(ALIENTEK)
+ * @version     V1.1
+ * @date        2022-09-06
+ * @brief       系统初始化代码(包括时钟配置/中断管理/GPIO设置等)
+ * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
+ ****************************************************************************************************
+ * @attention
+ *
+ * 实验平台:正点原子 阿波罗 H743开发板
+ * 在线视频:www.yuanzige.com
+ * 技术论坛:www.openedv.com
+ * 公司网址:www.alientek.com
+ * 购买地址:openedv.taobao.com
+ *
+ * 修改说明
+ * V1.0 20220906
+ * 第一次发布
+ * V1.0 20220906
+ * 1, 将头文件包含路径改成相对路径,避免重复设置包含路径的麻烦
+ ****************************************************************************************************
+ */
+
+#include "./SYSTEM/sys/sys.h"
+
+/**
+ * @brief       判断I_Cache是否打开
+ * @param       无
+ * @retval      返回值:0 关闭，1 打开
+ */
+uint8_t get_icahce_sta(void)
+{
+    uint8_t sta;
+    sta = ((SCB->CCR)>>17) & 0X01;
+    return sta;
+}
+
+/**
+ * @brief       判断D_Cache是否打开
+ * @param       无
+ * @retval      返回值:0 关闭，1 打开
+ */
+uint8_t get_dcahce_sta(void)
+{
+    uint8_t sta;
+    sta = ((SCB->CCR)>>16) & 0X01;
+    return sta;
+}
+
+/**
+ * @brief       设置中断向量表偏移地址
+ * @param       baseaddr: 基址
+ * @param       offset: 偏移量
+ * @retval      无
+ */
+void sys_nvic_set_vector_table(uint32_t baseaddr, uint32_t offset)
+{
+    /* 设置NVIC的向量表偏移寄存器,VTOR低9位保留,即[8:0]保留 */
+    SCB->VTOR = baseaddr | (offset & (uint32_t)0xFFFFFE00);
+}
+
+/**
+ * @brief       执行: WFI指令(执行完该指令进入低功耗状态, 等待中断唤醒)
+ * @param       无
+ * @retval      无
+ */
+void sys_wfi_set(void)
+{
+    __ASM volatile("wfi");
+}
+
+/**
+ * @brief       关闭所有中断(但是不包括fault和NMI中断)
+ * @param       无
+ * @retval      无
+ */
+void sys_intx_disable(void)
+{
+    __ASM volatile("cpsid i");
+}
+
+/**
+ * @brief       开启所有中断
+ * @param       无
+ * @retval      无
+ */
+void sys_intx_enable(void)
+{
+    __ASM volatile("cpsie i");
+}
+
+/**
+ * @brief       设置栈顶地址
+ * @note        左侧的红X, 属于MDK误报, 实际是没问题的
+ * @param       addr: 栈顶地址
+ * @retval      无
+ */
+void sys_msr_msp(uint32_t addr)
+{
+    __set_MSP(addr);        /* 设置栈顶地址 */
+}
+
+/**
+ * @brief       使能STM32H7的L1-Cache, 同时开启D cache的强制透写
+ * @param       无
+ * @retval      无
+ */
+void sys_cache_enable(void)
+{
+    SCB_EnableICache();     /* 使能I-Cache,函数在core_cm7.h里面定义 */
+    SCB_EnableDCache();     /* 使能D-Cache,函数在core_cm7.h里面定义 */
+    SCB->CACR |= 1 << 2;    /* 强制D-Cache透写,如不开启透写,实际使用中可能遇到各种问题 */
+}
+
+/**
+ * @brief       时钟设置函数
+ * @param       plln: PLL1倍频系数(PLL倍频), 取值范围: 4~512.
+ * @param       pllm: PLL1预分频系数(进PLL之前的分频), 取值范围: 2~63.
+ * @param       pllp: PLL1的p分频系数(PLL之后的分频), 分频后作为系统时钟, 取值范围: 2~128.(且必须是2的倍数)
+ * @param       pllq: PLL1的q分频系数(PLL之后的分频), 取值范围: 1~128.
+ * @note
+ *
+ *              Fvco: VCO频率
+ *              Fsys: 系统时钟频率, 也是PLL1的p分频输出时钟频率
+ *              Fq:   PLL1的q分频输出时钟频率
+ *              Fs:   PLL输入时钟频率, 可以是HSI, CSI, HSE等.
+ *              Fvco = Fs * (plln / pllm);
+ *              Fsys = Fvco / pllp = Fs * (plln / (pllm * pllp));
+ *              Fq   = Fvco / pllq = Fs * (plln / (pllm * pllq));
+ *
+ *              外部晶振为25M的时候, 推荐值: plln = 160, pllm = 5, pllp = 2, pllq = 4.
+ *              得到:Fvco = 25 * (160 / 5) = 800Mhz
+ *                   Fsys = pll1_p_ck = 800 / 2 = 400Mhz
+ *                   Fq   = pll1_q_ck = 800 / 4 = 200Mhz
+ *
+ *              H743默认需要配置的频率如下:
+ *              CPU频率(rcc_c_ck) = sys_d1cpre_ck = 400Mhz
+ *              rcc_aclk = rcc_hclk3 = 200Mhz
+ *              AHB1/2/3/4(rcc_hclk1/2/3/4) = 200Mhz
+ *              APB1/2/3/4(rcc_pclk1/2/3/4) = 100Mhz
+ *              pll2_p_ck = (25 / 25) * 440 / 2) = 220Mhz
+ *              pll2_r_ck = FMC时钟频率 = ((25 / 25) * 440 / 2) = 220Mhz
+ *
+ * @retval      错误代码: 0, 成功; 1, 错误;
+ */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+	MODIFY_REG(PWR->CR3, PWR_CR3_SCUEN, 0);                         /*使能供电配置更新 */
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);  /* VOS = 1, Scale1, 1.2V内核电压,FLASH访问可以得到最高性能 */
+	while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY){};     /* 等待电压稳定 */
+
+  /* 使能HSE，并选择HSE作为PLL时钟源，配置PLL1 */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 5;
+  RCC_OscInitStruct.PLL.PLLN = 192;
+  RCC_OscInitStruct.PLL.PLLP = 2;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
+  RCC_OscInitStruct.PLL.PLLR = 2;
+  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_2;
+  RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
+  RCC_OscInitStruct.PLL.PLLFRACN = 0;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler(__FILE__, __LINE__);
+  }
+
+	/*
+	 *  选择PLL的输出作为系统时钟
+	 *  配置RCC_CLOCKTYPE_SYSCLK系统时钟,400M
+	 *  配置RCC_CLOCKTYPE_HCLK 时钟,200Mhz,对应AHB1，AHB2，AHB3和AHB4总线
+	 *  配置RCC_CLOCKTYPE_PCLK1时钟,100Mhz,对应APB1总线
+	 *  配置RCC_CLOCKTYPE_PCLK2时钟,100Mhz,对应APB2总线
+	 *  配置RCC_CLOCKTYPE_D1PCLK1时钟,100Mhz,对应APB3总线
+	 *  配置RCC_CLOCKTYPE_D3PCLK1时钟,100Mhz,对应APB4总线
+	 */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2;
+  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV2;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    Error_Handler(__FILE__, __LINE__);
+  }
+
+	/*
+		使用IO的高速模式，要使能IO补偿，即调用下面三个函数 
+		（1）使能CSI clock
+		（2）使能SYSCFG clock
+		（3）使能I/O补偿单元， 设置SYSCFG_CCCSR寄存器的bit0
+	*/
+	__HAL_RCC_CSI_ENABLE() ;
+	__HAL_RCC_SYSCFG_CLK_ENABLE() ;
+	HAL_EnableCompensationCell();
+
+   /* AXI SRAM的时钟是上电自动使能的，而D2域的SRAM1，SRAM2和SRAM3要单独使能 */	
+#if 1
+	__HAL_RCC_D2SRAM1_CLK_ENABLE();
+	__HAL_RCC_D2SRAM2_CLK_ENABLE();
+	__HAL_RCC_D2SRAM3_CLK_ENABLE();
+#endif
+}
+
+
+/*
+*********************************************************************************************************
+*	函 数 名: Error_Handler
+*	形    参: file : 源代码文件名称。关键字 __FILE__ 表示源代码文件名。
+*			  line ：代码行号。关键字 __LINE__ 表示源代码行号
+*	返 回 值: 无
+*		Error_Handler(__FILE__, __LINE__);
+*********************************************************************************************************
+*/
+void Error_Handler(char *file, uint32_t line)
+{
+	/* 
+		用户可以添加自己的代码报告源代码文件名和代码行号，比如将错误文件和行号打印到串口
+		printf("Wrong parameters value: file %s on line %d\r\n", file, line) 
+	*/
+	
+	/* 这是一个死循环，断言失败时程序会在此处死机，以便于用户查错 */
+	if (line == 0)
+	{
+		return;
+	}
+	
+	while(1)
+	{
+	}
+}
+
+
+
+

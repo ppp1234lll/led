@@ -1,0 +1,88 @@
+<html>
+<body>
+<pre>
+<h1>礦ision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: μVision V5.36.0.0
+Copyright (C) 2021 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: DED Think, EEE, LIC=NQQMA-158KE-UHH8H-WTB11-K4DU8-EZSFN
+ 
+Tool Versions:
+Toolchain:       MDK-ARM Plus  Version: 5.36.0.0
+Toolchain Path:  D:\Keil_v5\ARM\ARMCC\Bin
+C Compiler:      Armcc.exe V5.06 update 7 (build 960)
+Assembler:       Armasm.exe V5.06 update 7 (build 960)
+Linker/Locator:  ArmLink.exe V5.06 update 7 (build 960)
+Library Manager: ArmAr.exe V5.06 update 7 (build 960)
+Hex Converter:   FromElf.exe V5.06 update 7 (build 960)
+CPU DLL:         SARMCM3.DLL V5.36.0.0
+Dialog DLL:      DCM.DLL V1.17.3.0
+Target DLL:      CMSIS_AGDI.dll V1.33.0.0
+Dialog DLL:      TCM.DLL V1.53.0.0
+ 
+<h2>Project:</h2>
+F:\调试\红绿灯\main\Projects\MDK-ARM\atk_h743.uvprojx
+Project File Date:  12/20/2025
+
+<h2>Output:</h2>
+*** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'lwIP'
+Note: source file '..\..\Middlewares\lwip\src\core\sys.c' - object file renamed from '..\..\Output\sys.o' to '..\..\Output\sys_1.o'.
+Note: source file '..\..\Middlewares\lwip\src\netif\ethernet.c' - object file renamed from '..\..\Output\ethernet.o' to '..\..\Output\ethernet_1.o'.
+compiling start.c...
+..\..\APP\USER\src\start.c(70): error:  #260-D: explicit type is missing ("int" assumed)
+  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
+..\..\APP\USER\src\start.c(70): error:  #65: expected a ";"
+  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
+..\..\APP\USER\src\start.c(76): error:  #260-D: explicit type is missing ("int" assumed)
+  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
+..\..\APP\USER\src\start.c(76): error:  #65: expected a ";"
+  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
+..\..\APP\USER\src\start.c(82): error:  #260-D: explicit type is missing ("int" assumed)
+  __align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
+..\..\APP\USER\src\start.c(82): error:  #65: expected a ";"
+  __align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
+..\..\APP\USER\src\start.c(88): error:  #757: variable "CCMRAM"  is not a type name
+  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
+..\..\APP\USER\src\start.c(88): error:  #65: expected a ";"
+  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
+..\..\APP\USER\src\start.c(94): error:  #757: variable "CCMRAM"  is not a type name
+  CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
+..\..\APP\USER\src\start.c(94): error:  #65: expected a ";"
+  CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
+..\..\APP\USER\src\start.c(100): error:  #757: variable "OS_STK"  is not a type name
+  OS_STK STORAGESTACK_STK[STORAGESTACK_STK_SIZE];
+..\..\APP\USER\src\start.c(127): warning:  #223-D: function "OSStatInit" declared implicitly
+  	OSStatInit();	  	// 初始化统计任务
+..\..\APP\USER\src\start.c(128): warning:  #223-D: function "app_task_function" declared implicitly
+  	app_task_function();
+..\..\APP\USER\src\start.c(141): warning:  #223-D: function "eth_network_line_status_detection_function" declared implicitly
+  	eth_network_line_status_detection_function();
+..\..\APP\USER\src\start.c(154): warning:  #223-D: function "det_task_function" declared implicitly
+  	det_task_function();
+..\..\APP\USER\src\start.c(167): warning:  #223-D: function "gsm_task_function" declared implicitly
+  	gsm_task_function();
+..\..\APP\USER\src\start.c(180): warning:  #223-D: function "print_task_function" declared implicitly
+  	print_task_function();
+..\..\APP\USER\src\start.c: 6 warnings, 11 errors
+compiling malloc.c...
+compiling ethernet.c...
+compiling bsp_key.c...
+compiling lwip_comm.c...
+"..\..\Output\atk_h743.axf" - 11 Error(s), 6 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: Keil
+                https://www.keil.com/pack/Keil.STM32H7xx_DFP.4.1.3.pack
+                Keil.STM32H7xx_DFP.4.1.3
+                STMicroelectronics STM32H7 Series Device Support
+
+<h2>Collection of Component include folders:</h2>
+
+<h2>Collection of Component Files used:</h2>
+Target not created.
+Build Time Elapsed:  00:00:02
+</pre>
+</body>
+</html>
