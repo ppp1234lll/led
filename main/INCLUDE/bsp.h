@@ -28,7 +28,7 @@
 #include "bsp_iwdg.h"
 #include "stmflash.h"
 #include "bsp_usart2.h"
-
+#include "bsp_relay.h"
 
 
 

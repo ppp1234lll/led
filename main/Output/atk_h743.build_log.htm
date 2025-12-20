@@ -21,7 +21,7 @@ Target DLL:      CMSIS_AGDI.dll V1.33.0.0
 Dialog DLL:      TCM.DLL V1.53.0.0
  
 <h2>Project:</h2>
-F:\调试\红绿灯\main\Projects\MDK-ARM\atk_h743.uvprojx
+F:\调试\single_led\main\Projects\MDK-ARM\atk_h743.uvprojx
 Project File Date:  12/20/2025
 
 <h2>Output:</h2>
@@ -29,47 +29,60 @@ Project File Date:  12/20/2025
 Build target 'lwIP'
 Note: source file '..\..\Middlewares\lwip\src\core\sys.c' - object file renamed from '..\..\Output\sys.o' to '..\..\Output\sys_1.o'.
 Note: source file '..\..\Middlewares\lwip\src\netif\ethernet.c' - object file renamed from '..\..\Output\ethernet.o' to '..\..\Output\ethernet_1.o'.
+compiling bsp_relay.c...
+..\..\Hardware\src\bsp_relay.c(55): warning:  #223-D: function "PEout" declared implicitly
+  			RELAY1_CTRL = (state?0:1);
+..\..\Hardware\src\bsp_relay.c(55): error:  #137: expression must be a modifiable lvalue
+  			RELAY1_CTRL = (state?0:1);
+..\..\Hardware\src\bsp_relay.c(60): error:  #137: expression must be a modifiable lvalue
+  			RELAY2_CTRL = (state?0:1);
+..\..\Hardware\src\bsp_relay.c(65): error:  #137: expression must be a modifiable lvalue
+  			RELAY3_CTRL = (state?0:1);
+..\..\Hardware\src\bsp_relay.c(70): error:  #137: expression must be a modifiable lvalue
+  			RELAY4_CTRL = (state?0:1);
+..\..\Hardware\src\bsp_relay.c: 1 warning, 4 errors
 compiling start.c...
-..\..\APP\USER\src\start.c(70): error:  #260-D: explicit type is missing ("int" assumed)
-  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
-..\..\APP\USER\src\start.c(70): error:  #65: expected a ";"
-  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
+..\..\APP\USER\src\start.c(28): warning:  #223-D: function "bsp_InitKey" declared implicitly
+  	bsp_InitKey();				         // 按键初始化	
+..\..\APP\USER\src\start.c(30): warning:  #223-D: function "bsp_InitRTC" declared implicitly
+  	bsp_InitRTC();								   // RTC初始化 (已测试)
 ..\..\APP\USER\src\start.c(76): error:  #260-D: explicit type is missing ("int" assumed)
-  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
+  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
 ..\..\APP\USER\src\start.c(76): error:  #65: expected a ";"
-  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
+  __align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
 ..\..\APP\USER\src\start.c(82): error:  #260-D: explicit type is missing ("int" assumed)
-  __align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
+  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
 ..\..\APP\USER\src\start.c(82): error:  #65: expected a ";"
+  __align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
+..\..\APP\USER\src\start.c(88): error:  #260-D: explicit type is missing ("int" assumed)
   __align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
-..\..\APP\USER\src\start.c(88): error:  #757: variable "CCMRAM"  is not a type name
-  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
 ..\..\APP\USER\src\start.c(88): error:  #65: expected a ";"
-  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
+  __align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
 ..\..\APP\USER\src\start.c(94): error:  #757: variable "CCMRAM"  is not a type name
-  CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
+  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
 ..\..\APP\USER\src\start.c(94): error:  #65: expected a ";"
+  CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
+..\..\APP\USER\src\start.c(100): error:  #757: variable "CCMRAM"  is not a type name
   CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
-..\..\APP\USER\src\start.c(100): error:  #757: variable "OS_STK"  is not a type name
+..\..\APP\USER\src\start.c(100): error:  #65: expected a ";"
+  CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
+..\..\APP\USER\src\start.c(106): error:  #757: variable "OS_STK"  is not a type name
   OS_STK STORAGESTACK_STK[STORAGESTACK_STK_SIZE];
-..\..\APP\USER\src\start.c(127): warning:  #223-D: function "OSStatInit" declared implicitly
+..\..\APP\USER\src\start.c(133): warning:  #223-D: function "OSStatInit" declared implicitly
   	OSStatInit();	  	// 初始化统计任务
-..\..\APP\USER\src\start.c(128): warning:  #223-D: function "app_task_function" declared implicitly
+..\..\APP\USER\src\start.c(134): warning:  #223-D: function "app_task_function" declared implicitly
   	app_task_function();
-..\..\APP\USER\src\start.c(141): warning:  #223-D: function "eth_network_line_status_detection_function" declared implicitly
+..\..\APP\USER\src\start.c(147): warning:  #223-D: function "eth_network_line_status_detection_function" declared implicitly
   	eth_network_line_status_detection_function();
-..\..\APP\USER\src\start.c(154): warning:  #223-D: function "det_task_function" declared implicitly
+..\..\APP\USER\src\start.c(160): warning:  #223-D: function "det_task_function" declared implicitly
   	det_task_function();
-..\..\APP\USER\src\start.c(167): warning:  #223-D: function "gsm_task_function" declared implicitly
+..\..\APP\USER\src\start.c(173): warning:  #223-D: function "gsm_task_function" declared implicitly
   	gsm_task_function();
-..\..\APP\USER\src\start.c(180): warning:  #223-D: function "print_task_function" declared implicitly
+..\..\APP\USER\src\start.c(186): warning:  #223-D: function "print_task_function" declared implicitly
   	print_task_function();
-..\..\APP\USER\src\start.c: 6 warnings, 11 errors
-compiling malloc.c...
-compiling ethernet.c...
+..\..\APP\USER\src\start.c: 8 warnings, 11 errors
 compiling bsp_key.c...
-compiling lwip_comm.c...
-"..\..\Output\atk_h743.axf" - 11 Error(s), 6 Warning(s).
+"..\..\Output\atk_h743.axf" - 15 Error(s), 9 Warning(s).
 
 <h2>Software Packages used:</h2>
 

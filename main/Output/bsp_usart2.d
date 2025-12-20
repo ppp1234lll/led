@@ -115,3 +115,4 @@
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_led.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_iwdg.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\stmflash.h
+..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_relay.h
