@@ -214,22 +214,33 @@ uint8_t sys_stm32_clock_init(uint32_t plln, uint32_t pllm, uint32_t pllp, uint32
     return 0;
 }
 
-
-#ifdef  USE_FULL_ASSERT
-
-/**
- * @brief       当编译提示出错的时候此函数用来报告错误的文件和所在行
- * @param       file：指向源文件
- * @param       line：指向在文件中的行数
- * @retval      无
- */
-void assert_failed(uint8_t* file, uint32_t line)
-{ 
-    while (1)
-    {
-    }
+/*
+*********************************************************************************************************
+*	函 数 名: Error_Handler
+*	形    参: file : 源代码文件名称。关键字 __FILE__ 表示源代码文件名。
+*			  line ：代码行号。关键字 __LINE__ 表示源代码行号
+*	返 回 值: 无
+*		Error_Handler(__FILE__, __LINE__);
+*********************************************************************************************************
+*/
+void Error_Handler(char *file, uint32_t line)
+{
+	/* 
+		用户可以添加自己的代码报告源代码文件名和代码行号，比如将错误文件和行号打印到串口
+		printf("Wrong parameters value: file %s on line %d\r\n", file, line) 
+	*/
+	
+	/* 这是一个死循环，断言失败时程序会在此处死机，以便于用户查错 */
+	if (line == 0)
+	{
+		return;
+	}
+	
+	while(1)
+	{
+	}
 }
-#endif
+
 
 
 

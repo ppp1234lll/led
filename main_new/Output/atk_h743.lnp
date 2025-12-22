@@ -10,9 +10,10 @@
 "..\..\output\bsp_relay.o"
 "..\..\output\bsp_key.o"
 "..\..\output\bsp_rtc.o"
+"..\..\output\bsp_usart2.o"
+"..\..\output\bsp_usart1.o"
 "..\..\output\delay.o"
 "..\..\output\sys.o"
-"..\..\output\usart.o"
 "..\..\output\stm32h7xx_hal.o"
 "..\..\output\stm32h7xx_hal_cortex.o"
 "..\..\output\stm32h7xx_hal_dma.o"
@@ -105,7 +106,11 @@
 "..\..\output\timers.o"
 "..\..\output\heap_4.o"
 "..\..\output\port.o"
---strict --scatter "..\..\User\stm32-v7.sct"
+"..\..\output\segger_rtt.o"
+"..\..\output\segger_rtt_printf.o"
+"..\..\output\eventrecorder.o"
+"..\..\output\retarget_io.o"
+--library_type=microlib --strict --scatter "..\..\User\stm32-v7.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "..\..\Output\atk_h743.map" -o ..\..\Output\atk_h743.axf

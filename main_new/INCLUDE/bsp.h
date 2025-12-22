@@ -20,6 +20,20 @@
 #include  <stdio.h>
 #include  <string.h>
 
+#include "EventRecorder.h"
+#include "SEGGER_RTT.h"
+
+//#define Enable_EventRecorder // 选择使用EVR
+#define Enable_RTTViewer   // 选择使用RTT
+
+#ifdef Enable_EventRecorder
+
+#elif defined Enable_RTTViewer
+#define printf(...) do { SEGGER_RTT_SetTerminal(0);   \
+		                        SEGGER_RTT_printf(0, __VA_ARGS__); \
+                                }while(0);
+#endif
+
 #include "./SYSTEM/sys/sys.h"
 #include "./SYSTEM/usart/usart.h"
 #include "./SYSTEM/delay/delay.h"
@@ -31,7 +45,7 @@
 #include "bsp_relay.h"
 #include "bsp_key.h"
 #include "bsp_rtc.h"
-
+#include "bsp_usart1.h"
 
 
 

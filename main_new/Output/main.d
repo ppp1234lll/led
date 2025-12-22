@@ -169,6 +169,9 @@
 ..\..\output\main.o: ..\..\Middlewares\lwip\arch/sys_arch.h
 ..\..\output\main.o: ..\..\Middlewares\lwip\src\include\lwip/snmp.h
 ..\..\output\main.o: ..\..\INCLUDE\bsp.h
+..\..\output\main.o: D:\Keil_v5\Local\Arm\Packs\Keil\ARM_Compiler\1.7.2\Include\EventRecorder.h
+..\..\output\main.o: ..\..\Middlewares\RTT\SEGGER_RTT.h
+..\..\output\main.o: ..\..\Middlewares\RTT\SEGGER_RTT_Conf.h
 ..\..\output\main.o: ..\..\Drivers\./SYSTEM/delay/delay.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_led.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_iwdg.h
@@ -177,5 +180,6 @@
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_relay.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_key.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_rtc.h
+..\..\output\main.o: ..\..\Hardware\inc\bsp_usart1.h
 ..\..\output\main.o: ..\..\APP\./USER/inc/start.h
 ..\..\output\main.o: ..\..\User\freertos_demo.h

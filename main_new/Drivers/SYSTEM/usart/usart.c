@@ -37,7 +37,7 @@
 /******************************************************************************************/
 /* 加入以下代码, 支持printf函数, 而不需要选择use MicroLIB */
 
-#if 1
+#if 0
 #if (__ARMCC_VERSION >= 6010050)            /* 使用AC6编译器时 */
 __asm(".global __use_no_semihosting\n\t");  /* 声明不使用半主机模式 */
 __asm(".global __ARM_use_no_argv \n\t");    /* AC6下需要声明main函数为无参数格式，否则部分例程可能出现半主机模式 */
@@ -166,64 +166,64 @@ void HAL_UART_MspInit(UART_HandleTypeDef *huart)
  * @param       huart: UART句柄类型指针
  * @retval      无
  */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-    if(huart->Instance == USART_UX)                           /* 如果是串口1 */
-    {
-        if((g_usart_rx_sta & 0x8000) == 0)                    /* 接收未完成 */
-        {
-            if(g_usart_rx_sta & 0x4000)                       /* 接收到了0x0d */
-            {
-                if(g_rx_buffer[0] != 0x0a) 
-                {
-                    g_usart_rx_sta = 0;                       /* 接收错误,重新开始 */
-                }
-                else 
-                {
-                    g_usart_rx_sta |= 0x8000;                 /* 接收完成了 */
-                }
-            }
-            else                                              /* 还没收到0X0D */
-            {
-                if(g_rx_buffer[0] == 0x0d)
-                {
-                    g_usart_rx_sta |= 0x4000;
-                }
-                else
-                {
-                    g_usart_rx_buf[g_usart_rx_sta & 0X3FFF] = g_rx_buffer[0] ;
-                    g_usart_rx_sta++;
-                    if(g_usart_rx_sta > (USART_REC_LEN - 1))
-                    {
-                        g_usart_rx_sta = 0;                   /* 接收数据错误,重新开始接收 */
-                    }
-                }
-            }
-        }
-        HAL_UART_Receive_IT(&g_uart1_handle, (uint8_t *)g_rx_buffer, RXBUFFERSIZE);
-    }
-}
+//void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+//{
+//    if(huart->Instance == USART_UX)                           /* 如果是串口1 */
+//    {
+//        if((g_usart_rx_sta & 0x8000) == 0)                    /* 接收未完成 */
+//        {
+//            if(g_usart_rx_sta & 0x4000)                       /* 接收到了0x0d */
+//            {
+//                if(g_rx_buffer[0] != 0x0a) 
+//                {
+//                    g_usart_rx_sta = 0;                       /* 接收错误,重新开始 */
+//                }
+//                else 
+//                {
+//                    g_usart_rx_sta |= 0x8000;                 /* 接收完成了 */
+//                }
+//            }
+//            else                                              /* 还没收到0X0D */
+//            {
+//                if(g_rx_buffer[0] == 0x0d)
+//                {
+//                    g_usart_rx_sta |= 0x4000;
+//                }
+//                else
+//                {
+//                    g_usart_rx_buf[g_usart_rx_sta & 0X3FFF] = g_rx_buffer[0] ;
+//                    g_usart_rx_sta++;
+//                    if(g_usart_rx_sta > (USART_REC_LEN - 1))
+//                    {
+//                        g_usart_rx_sta = 0;                   /* 接收数据错误,重新开始接收 */
+//                    }
+//                }
+//            }
+//        }
+//        HAL_UART_Receive_IT(&g_uart1_handle, (uint8_t *)g_rx_buffer, RXBUFFERSIZE);
+//    }
+//}
 
-/**
- * @brief       串口1中断服务函数
- * @param       无
- * @retval      无
- */
-void USART_UX_IRQHandler(void)
-{ 
-    
-#if SYS_SUPPORT_OS                        /* 使用OS */
-//    OSIntEnter();    
-#endif
+///**
+// * @brief       串口1中断服务函数
+// * @param       无
+// * @retval      无
+// */
+//void USART_UX_IRQHandler(void)
+//{ 
+//    
+//#if SYS_SUPPORT_OS                        /* 使用OS */
+////    OSIntEnter();    
+//#endif
 
-    HAL_UART_IRQHandler(&g_uart1_handle); /* 调用HAL库中断处理公用函数 */
+//    HAL_UART_IRQHandler(&g_uart1_handle); /* 调用HAL库中断处理公用函数 */
 
 
-#if SYS_SUPPORT_OS                  /* 使用OS */
-//    OSIntExit();
-#endif
+//#if SYS_SUPPORT_OS                  /* 使用OS */
+////    OSIntExit();
+//#endif
 
-}
+//}
 
 #endif
 

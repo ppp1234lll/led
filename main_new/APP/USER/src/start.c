@@ -26,14 +26,15 @@ void start_system_init_function(void)
 	bsp_InitLed();                   // LED初始化（已测试）
 	bsp_InitRelay();				         // 继电器初始化（未测试）	
 	bsp_InitKey();				         // 按键初始化	
-	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
+	bsp_InitUsart1(115200);
+	bsp_InitUsart2(115200);
+//	usart1_test();
+//	usart_init(115200);    
 	
-	RTC_Get_Time_Test();
-//	bsp_InitUsart2(115200);
-//	usart2_test();
+//	printf("app start..\n");	
 	
-//	RTC_Get_Time_Test();
+	usart1_test();
 }
 
 /*
