@@ -284,3 +284,15 @@ void *myrealloc(uint8_t memx, void *ptr, uint32_t size)
     }
 }
 
+void *mymalloc_sramin(uint32_t size)
+{
+	return mymalloc(SRAMIN,size);
+}
+
+void myfree_sramin(void *ptr)
+{
+	myfree(SRAMIN,ptr);
+}
+
+
+

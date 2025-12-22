@@ -116,7 +116,8 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     ETH_TXD0_GPIO_CLK_ENABLE();         /* 开启ETH_TXD0时钟 */
     ETH_TXD1_GPIO_CLK_ENABLE();         /* 开启ETH_TXD1时钟 */
     ETH_RESET_GPIO_CLK_ENABLE();        /* 开启ETH_RESET时钟 */  
-	  ETH_ADDR_GPIO_CLK_ENABLE();         /* 开启ETH_RESET时钟 */  
+	  ETH_ADDR_GPIO_CLK_ENABLE();         /* 开启ETH_RESET时钟 */ 
+	
     /* Enable Ethernet clocks */
     __HAL_RCC_ETH1MAC_CLK_ENABLE();
     __HAL_RCC_ETH1TX_CLK_ENABLE();

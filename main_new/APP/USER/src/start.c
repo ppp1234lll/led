@@ -24,11 +24,13 @@ void start_system_init_function(void)
 	cJSON_InitHooks(&hook);          // 初始化自定义的内存分配和释放函数
 	
 	bsp_InitLed();                   // LED初始化（已测试）
-	bsp_InitRelay();				         // 继电器初始化（未测试）	
-	bsp_InitKey();				         // 按键初始化	
+	led_test();
 	
-	bsp_InitRTC();								   // RTC初始化 (已测试)
-	bsp_InitUsart2(115200);
+//	bsp_InitRelay();				         // 继电器初始化（未测试）	
+//	bsp_InitKey();				         // 按键初始化	
+//	
+//	bsp_InitRTC();								   // RTC初始化 (已测试)
+//	bsp_InitUsart2(115200);
 //	usart2_test();
 	
 //	RTC_Get_Time_Test();

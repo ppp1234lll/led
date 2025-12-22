@@ -3,52 +3,39 @@
 
 /*
 	2、指示灯（原理图）：
-		外接电源指示灯  POWER_OUT  : PE8
-		外接网口指示灯  LAN_OUT    : PE9
-		
-		系统状态指示灯  STATE      : PB8
-		网口指示灯      LAN        : PB9
-		4G指示灯        GPRS       : PE0
+		系统状态指示灯  STATE      : PE6
+		网口指示灯      LAN        : PE5
+		4G指示灯        GPRS       : PE4
 */
 /******************************************************************************************/
 /* 引脚 定义 */
 
-#define LED_STATE_GPIO_PORT				GPIOB
-#define LED_STATE_GPIO_PIN				GPIO_PIN_8
+#define LED_STATE_GPIO_PORT						GPIOE
+#define LED_STATE_GPIO_PIN						GPIO_PIN_6
+#define LED_STATE_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOE_CLK_ENABLE();
 
-#define LED_LAN_GPIO_PORT				  GPIOB
-#define LED_LAN_GPIO_PIN				  GPIO_PIN_9
+#define LED_LAN_GPIO_PORT				  		GPIOE
+#define LED_LAN_GPIO_PIN				  		GPIO_PIN_5
+#define LED_LAN_GPIO_CLK_ENABLE()  	  __HAL_RCC_GPIOE_CLK_ENABLE();
 
-#define LED_GPRS_GPIO_PORT				GPIOB
-#define LED_GPRS_GPIO_PIN					GPIO_PIN_0
-
-#define LED_LAN_OUT_GPIO_PORT			GPIOE
-#define LED_LAN_OUT_GPIO_PIN			GPIO_PIN_8
-
-#define LED_PWR_OUT_GPIO_PORT			GPIOE
-#define LED_PWR_OUT_GPIO_PIN			GPIO_PIN_9
+#define LED_GPRS_GPIO_PORT						GPIOE
+#define LED_GPRS_GPIO_PIN							GPIO_PIN_3
+#define LED_GPRS_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOE_CLK_ENABLE();
 /******************************************************************************************/
 
 #define LED_STATE(x)  	x ? \
-												HAL_GPIO_WritePin(LED_STATE_GPIO_PORT, LED_STATE_GPIO_PIN, GPIO_PIN_SET) : \
-												HAL_GPIO_WritePin(LED_STATE_GPIO_PORT, LED_STATE_GPIO_PIN, GPIO_PIN_RESET);  
+												HAL_GPIO_WritePin(LED_STATE_GPIO_PORT, LED_STATE_GPIO_PIN, GPIO_PIN_RESET) : \
+												HAL_GPIO_WritePin(LED_STATE_GPIO_PORT, LED_STATE_GPIO_PIN, GPIO_PIN_SET);  
 #define LED_LAN(x)    	x ? \
-												HAL_GPIO_WritePin(LED_LAN_GPIO_PORT, LED_LAN_GPIO_PIN, GPIO_PIN_SET) : \
-												HAL_GPIO_WritePin(LED_LAN_GPIO_PORT, LED_LAN_GPIO_PIN, GPIO_PIN_RESET);  
+												HAL_GPIO_WritePin(LED_LAN_GPIO_PORT, LED_LAN_GPIO_PIN, GPIO_PIN_RESET) : \
+												HAL_GPIO_WritePin(LED_LAN_GPIO_PORT, LED_LAN_GPIO_PIN, GPIO_PIN_SET);  
 #define LED_GPRS(x)   	x ? \
-												HAL_GPIO_WritePin(LED_GPRS_GPIO_PORT, LED_GPRS_GPIO_PIN, GPIO_PIN_SET) : \
-												HAL_GPIO_WritePin(LED_GPRS_GPIO_PORT, LED_GPRS_GPIO_PIN, GPIO_PIN_RESET);  
-#define LED_LAN_OUT(x)  x ? \
-												HAL_GPIO_WritePin(LED_LAN_OUT_GPIO_PORT, LED_LAN_OUT_GPIO_PIN, GPIO_PIN_SET) : \
-												HAL_GPIO_WritePin(LED_LAN_OUT_GPIO_PORT, LED_LAN_OUT_GPIO_PIN, GPIO_PIN_RESET);  
-#define LED_PWR_OUT(x)  x ? \
-												HAL_GPIO_WritePin(LED_PWR_OUT_GPIO_PORT, LED_PWR_OUT_GPIO_PIN, GPIO_PIN_SET) : \
-												HAL_GPIO_WritePin(LED_PWR_OUT_GPIO_PORT, LED_PWR_OUT_GPIO_PIN, GPIO_PIN_RESET);  
+												HAL_GPIO_WritePin(LED_GPRS_GPIO_PORT, LED_GPRS_GPIO_PIN, GPIO_PIN_RESET) : \
+												HAL_GPIO_WritePin(LED_GPRS_GPIO_PORT, LED_GPRS_GPIO_PIN, GPIO_PIN_SET);  
 
 #define LED_STATE_TOG()   HAL_GPIO_TogglePin(LED_STATE_GPIO_PORT,LED_STATE_GPIO_PIN) 
 #define LED_LAN_STA()     HAL_GPIO_TogglePin(LED_LAN_GPIO_PORT,LED_LAN_GPIO_PIN) 
 #define LED_GPRS_TOG()    HAL_GPIO_TogglePin(LED_GPRS_GPIO_PORT,LED_GPRS_GPIO_PIN) 
-#define LED_LAN_O_TOG()   HAL_GPIO_TogglePin(LED_LAN_OUT_GPIO_PORT,LED_LAN_OUT_GPIO_PIN) 
 
 /* 指示灯闪烁时间*/
 #define FLICKER_TIME_Q	(200)
@@ -77,7 +64,27 @@ led_flicker_t sg_ledflicker_t = {0};
 */
 void bsp_InitLed(void)
 {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	
+	LED_STATE_GPIO_CLK_ENABLE();
+	LED_LAN_GPIO_CLK_ENABLE();
+	LED_GPRS_GPIO_CLK_ENABLE();
+	
+	HAL_GPIO_WritePin(LED_STATE_GPIO_PORT,LED_STATE_GPIO_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED_LAN_GPIO_PORT,LED_LAN_GPIO_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(LED_GPRS_GPIO_PORT,LED_GPRS_GPIO_PIN, GPIO_PIN_SET);
+	
+  GPIO_InitStruct.Pin = LED_STATE_GPIO_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED_STATE_GPIO_PORT, &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = LED_LAN_GPIO_PIN;
+  HAL_GPIO_Init(LED_LAN_GPIO_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = LED_GPRS_GPIO_PIN;
+  HAL_GPIO_Init(LED_GPRS_GPIO_PORT, &GPIO_InitStruct);	
 }
 
 /*
@@ -129,35 +136,6 @@ void led_control_function(LD_DEV dev, LED_STATUS state)
 
 /*
 *********************************************************************************************************
-*	函 数 名: led_out_control_function
-*	功能说明: 点亮外部LED指示灯。
-*	形    参:  dev  : 指示灯序号
-*	           state: 指示灯状态
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void led_out_control_function(LD_DEV dev, LED_STATUS state)
-{
-	switch(dev)
-	{
-		case LD_PWR_O:	
-			LED_PWR_OUT(state) ;
-		break;
-		case LD_LAN_O:
-			sg_ledflicker_t.lan_out = state;
-			switch(state) 
-			{
-				case LD_ON:			LED_LAN_OUT(0);break;
-				case LD_OFF:		LED_LAN_OUT(1);break;
-				default:break;
-			}
-			break;
-		default:			break;
-	}
-}
-
-/*
-*********************************************************************************************************
 *	函 数 名: led_flicker_control_timer_function
 *	功能说明: led闪动
 *	形    参: 无
@@ -187,10 +165,6 @@ void led_flicker_control_timer_function(void)
 		{
 			LED_STATE_TOG();
 		}
-		if(sg_ledflicker_t.lan_out == LD_FLICKER) 	/* 外部主网络状态 */
-		{
-			LED_LAN_O_TOG();
-		}
 	}
 
 	count3++;
@@ -217,13 +191,9 @@ void led_test(void)
 {
 	while(1)
 	{
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_SET);
-//		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE,GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
 		delay_ms(1000);
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
-//		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOE,GPIO_PIN_3|GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_SET);
 		delay_ms(1000);	
 	}
 }
