@@ -9,8 +9,8 @@
 #include <time.h>
 
 // 闹钟相关宏定义
-#define ALARM_HOURS               7          // 0~23
-#define ALARM_MINUTES             14          // 0~59
+#define ALARM_HOURS               12          // 0~23
+#define ALARM_MINUTES             10          // 0~59
 #define ALARM_SECONDS             00          // 0~59
 
 #define RTC_BKP_DATA_LSI         0x32F2 

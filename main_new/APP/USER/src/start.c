@@ -27,7 +27,9 @@ void start_system_init_function(void)
 	bsp_InitRelay();				         // 继电器初始化（未测试）	
 	bsp_InitKey();				         // 按键初始化	
 	
-//	bsp_InitRTC();								   // RTC初始化 (已测试)
+	bsp_InitRTC();								   // RTC初始化 (已测试)
+	
+	RTC_Get_Time_Test();
 //	bsp_InitUsart2(115200);
 //	usart2_test();
 	
