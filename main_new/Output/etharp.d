@@ -35,11 +35,6 @@
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/prot/etharp.h
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/snmp.h
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/dhcp.h
-..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/udp.h
-..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/ip.h
-..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/ip6.h
-..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/prot/ip.h
-..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/prot/udp.h
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/autoip.h
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\lwip/prot/iana.h
 ..\..\output\etharp.o: ..\..\Middlewares\lwip\src\include\netif/ethernet.h

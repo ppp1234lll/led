@@ -51,4 +51,3 @@
 ..\..\output\netif.o: ..\..\Middlewares\lwip\src\include\lwip/sys.h
 ..\..\output\netif.o: ..\..\Middlewares\lwip\arch/sys_arch.h
 ..\..\output\netif.o: ..\..\Middlewares\lwip\src\include\netif/ethernet.h
-..\..\output\netif.o: ..\..\Middlewares\lwip\src\include\lwip/dhcp.h

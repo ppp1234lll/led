@@ -49,8 +49,6 @@
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/prot/ieee.h
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/prot/etharp.h
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/dhcp.h
-..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/udp.h
-..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/prot/udp.h
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/autoip.h
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/igmp.h
 ..\..\output\timeouts.o: ..\..\Middlewares\lwip\src\include\lwip/dns.h

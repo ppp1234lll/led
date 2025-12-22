@@ -943,6 +943,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1\port.c</FilePath>
             </File>
+            <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\User\FreeRTOSConfig.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -153,11 +153,6 @@
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/prot/etharp.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\netif/ethernet.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/dhcp.h
-..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/udp.h
-..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/ip.h
-..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/ip6.h
-..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/prot/ip.h
-..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/prot/udp.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\arch\ethernetif.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/tcpip.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/timeouts.h
