@@ -3,25 +3,30 @@
 
 /*
 	3、继电器
-         继电器1：    PE10 (左下)
-         继电器2：    PE11
-         继电器3：    PE12
-         继电器4：    PE13	 
+         继电器1：    PA4 
+         继电器2：    PA5
+         继电器3：    PB1
+         继电器4：    PE11	
 */
 /******************************************************************************************/
 /* 引脚 定义 */
 
-#define RELAY1_GPIO_PORT     GPIOB
-#define RELAY1_GPIO_PIN      GPIO_PIN_8
+#define RELAY1_GPIO_PORT     				GPIOA
+#define RELAY1_GPIO_PIN      				GPIO_PIN_4
+#define RELAY1_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-#define RELAY2_GPIO_PORT     GPIOB
-#define RELAY2_GPIO_PIN      GPIO_PIN_9
+#define RELAY2_GPIO_PORT     				GPIOA
+#define RELAY2_GPIO_PIN      				GPIO_PIN_5
+#define RELAY2_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOA_CLK_ENABLE();
 
-#define RELAY3_GPIO_PORT     GPIOB
-#define RELAY3_GPIO_PIN      GPIO_PIN_0
+#define RELAY3_GPIO_PORT     				GPIOB
+#define RELAY3_GPIO_PIN      				GPIO_PIN_1
+#define RELAY3_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOB_CLK_ENABLE();
 
-#define RELAY4_GPIO_PORT     GPIOE
-#define RELAY4_GPIO_PIN      GPIO_PIN_8
+#define RELAY4_GPIO_PORT     				GPIOE
+#define RELAY4_GPIO_PIN      				GPIO_PIN_11
+#define RELAY4_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOE_CLK_ENABLE();
+
 /******************************************************************************************/
 
 #define RELAY1_CTRL(x)  x ? \
@@ -55,7 +60,33 @@ relay_t sg_relay_t;
 */
 void bsp_InitRelay(void)
 {
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	
+	RELAY1_GPIO_CLK_ENABLE();
+	RELAY2_GPIO_CLK_ENABLE();
+	RELAY3_GPIO_CLK_ENABLE();
+	RELAY4_GPIO_CLK_ENABLE();	
+	
+	HAL_GPIO_WritePin(RELAY1_GPIO_PORT,RELAY1_GPIO_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY2_GPIO_PORT,RELAY2_GPIO_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY3_GPIO_PORT,RELAY3_GPIO_PIN, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(RELAY4_GPIO_PORT,RELAY4_GPIO_PIN, GPIO_PIN_SET);
+	
+  GPIO_InitStruct.Pin = RELAY1_GPIO_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RELAY1_GPIO_PORT, &GPIO_InitStruct);
 
+  GPIO_InitStruct.Pin = RELAY2_GPIO_PIN;
+  HAL_GPIO_Init(RELAY2_GPIO_PORT, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = RELAY3_GPIO_PIN;
+  HAL_GPIO_Init(RELAY3_GPIO_PORT, &GPIO_InitStruct);
+	
+  GPIO_InitStruct.Pin = RELAY4_GPIO_PIN;
+  HAL_GPIO_Init(RELAY4_GPIO_PORT, &GPIO_InitStruct);	
+		
 	relay_control(RELAY_1,RELAY_ON);
 	relay_control(RELAY_2,RELAY_ON);
 	relay_control(RELAY_3,RELAY_ON);

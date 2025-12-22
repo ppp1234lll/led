@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON</IncludePath>
+              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -452,6 +452,16 @@
               <FileName>bsp_led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_led.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_relay.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_relay.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_key.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -647,6 +657,36 @@
               <FileName>mycJSON.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\CJSON\mycJSON.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/ebtn</GroupName>
+          <Files>
+            <File>
+              <FileName>ebtn.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\easybutton\ebtn.c</FilePath>
+            </File>
+            <File>
+              <FileName>ebtn_app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\easybutton\ebtn_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>ebtn_APP_Event.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\easybutton\ebtn_APP_Event.c</FilePath>
+            </File>
+            <File>
+              <FileName>ebtn_APP_HAL.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\easybutton\ebtn_APP_HAL.c</FilePath>
+            </File>
+            <File>
+              <FileName>ebtn_APP_Keys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\easybutton\ebtn_APP_Keys.c</FilePath>
             </File>
           </Files>
         </Group>

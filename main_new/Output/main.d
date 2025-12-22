@@ -112,9 +112,13 @@
 ..\..\output\main.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_ll_usb.h
 ..\..\output\main.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\main.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
-..\..\output\main.o: ..\..\Hardware\inc\mpu.h
+..\..\output\main.o: ..\..\Middlewares\easybutton\ebtn_APP.h
+..\..\output\main.o: ..\..\Middlewares\easybutton\ebtn_APP_Keys.h
+..\..\output\main.o: ..\..\Middlewares\easybutton\ebtn.h
+..\..\output\main.o: ..\..\Middlewares\easybutton\bit_array.h
 ..\..\output\main.o: ..\..\Drivers\./SYSTEM/sys/sys.h
 ..\..\output\main.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
+..\..\output\main.o: ..\..\Hardware\inc\mpu.h
 ..\..\output\main.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\main.o: ..\..\User\FreeRTOSConfig.h
 ..\..\output\main.o: ..\..\Drivers\./SYSTEM/usart/usart.h
