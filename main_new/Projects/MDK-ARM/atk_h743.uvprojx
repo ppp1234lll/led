@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app</IncludePath>
+              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -414,6 +414,27 @@
               <FilePath>..\..\User\freertos_demo.c</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>Include</GroupName>
+          <Files>
+            <File>
+              <FileName>appconfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\INCLUDE\appconfig.h</FilePath>
+            </File>
+            <File>
+              <FileName>bsp.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\INCLUDE\bsp.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>App/User</GroupName>
+        </Group>
+        <Group>
+          <GroupName>Hardware</GroupName>
         </Group>
         <Group>
           <GroupName>Drivers/SYSTEM</GroupName>
@@ -602,6 +623,21 @@
               <FileName>myiic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\IIC\myiic.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/cjson</GroupName>
+          <Files>
+            <File>
+              <FileName>cJSON.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\CJSON\cJSON.c</FilePath>
+            </File>
+            <File>
+              <FileName>mycJSON.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\CJSON\mycJSON.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -39,6 +39,8 @@
 "..\..\output\ethernet_chip.o"
 "..\..\output\pcf8574.o"
 "..\..\output\myiic.o"
+"..\..\output\cjson.o"
+"..\..\output\mycjson.o"
 "..\..\output\malloc.o"
 "..\..\output\api_lib.o"
 "..\..\output\api_msg.o"
