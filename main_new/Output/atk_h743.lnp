@@ -4,6 +4,9 @@
 "..\..\output\stm32h7xx_it.o"
 "..\..\output\system_stm32h7xx.o"
 "..\..\output\freertos_demo.o"
+"..\..\output\start.o"
+"..\..\output\bsp_iwdg.o"
+"..\..\output\bsp_led.o"
 "..\..\output\delay.o"
 "..\..\output\sys.o"
 "..\..\output\usart.o"
@@ -30,10 +33,8 @@
 "..\..\output\stm32h7xx_hal_eth.o"
 "..\..\output\stm32h7xx_hal_eth_ex.o"
 "..\..\output\led.o"
-"..\..\output\lcd.o"
 "..\..\output\key.o"
 "..\..\output\sdram.o"
-"..\..\output\ltdc.o"
 "..\..\output\mpu.o"
 "..\..\output\ethernet.o"
 "..\..\output\ethernet_chip.o"
@@ -93,7 +94,7 @@
 "..\..\output\timers.o"
 "..\..\output\heap_4.o"
 "..\..\output\port.o"
---strict --scatter "..\..\Output\atk_h743.sct"
+--strict --scatter "..\..\User\stm32-v7.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
 --list "..\..\Output\atk_h743.map" -o ..\..\Output\atk_h743.axf

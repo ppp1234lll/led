@@ -275,7 +275,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
+                <StartAddress>0x8020000</StartAddress>
                 <Size>0x200000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -361,7 +361,7 @@
             </VariousControls>
           </Aads>
           <LDads>
-            <umfTarg>1</umfTarg>
+            <umfTarg>0</umfTarg>
             <Ropi>0</Ropi>
             <Rwpi>0</Rwpi>
             <noStLib>0</noStLib>
@@ -370,7 +370,7 @@
             <TextAddressRange>0x08000000</TextAddressRange>
             <DataAddressRange>0x20000000</DataAddressRange>
             <pXoBase></pXoBase>
-            <ScatterFile></ScatterFile>
+            <ScatterFile>..\..\User\stm32-v7.sct</ScatterFile>
             <IncludeLibs></IncludeLibs>
             <IncludeLibsPath></IncludeLibsPath>
             <Misc></Misc>
@@ -432,9 +432,28 @@
         </Group>
         <Group>
           <GroupName>App/User</GroupName>
+          <Files>
+            <File>
+              <FileName>start.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\USER\src\start.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Hardware</GroupName>
+          <Files>
+            <File>
+              <FileName>bsp_iwdg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_iwdg.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_led.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Drivers/SYSTEM</GroupName>
@@ -580,11 +599,6 @@
               <FilePath>..\..\Drivers\BSP\LED\led.c</FilePath>
             </File>
             <File>
-              <FileName>lcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\BSP\LCD\lcd.c</FilePath>
-            </File>
-            <File>
               <FileName>key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\KEY\key.c</FilePath>
@@ -593,11 +607,6 @@
               <FileName>sdram.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\SDRAM\sdram.c</FilePath>
-            </File>
-            <File>
-              <FileName>ltdc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\BSP\LCD\ltdc.c</FilePath>
             </File>
             <File>
               <FileName>mpu.c</FileName>
@@ -884,6 +893,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\lwip\arch\sys_arch.c</FilePath>
             </File>
+            <File>
+              <FileName>lwipopts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Middlewares\lwip\arch\lwipopts.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -939,6 +953,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1\port.c</FilePath>
             </File>
+            <File>
+              <FileName>FreeRTOSConfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\User\FreeRTOSConfig.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -948,6 +967,11 @@
               <FileName>readme.txt</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\readme.txt</FilePath>
+            </File>
+            <File>
+              <FileName>Doc.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Doc.txt</FilePath>
             </File>
           </Files>
         </Group>

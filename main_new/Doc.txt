@@ -1,0 +1,102 @@
+硬件资源:
+
+	1,MCU:STM32F407VGT6 (FLAH:1024K, RAM:196K, 系统运行时钟频率: 168 MHz)
+		晶振：25M
+
+	2、指示灯（原理图）：
+		
+		系统状态指示灯  STATE      : PE6
+		网口指示灯      LAN        : PE5
+		4G指示灯        GPRS       : PE4
+
+	3、继电器
+         继电器1：    PA4 
+         继电器2：    PA5
+         继电器3：    PB1
+         继电器4：    PE11	 
+
+	4、输入检测
+		按键(恢复出厂设置):    PD4
+		12V电源输入监测:       PD0
+		箱门检测1:             PD14
+		箱门检测2:             PC8
+		箱门检测3:             PA11
+		箱门检测4:             PA12
+		水浸1 :                PD11
+        水浸2 :                PD14		
+
+        空开前220输入检测 :    PE15
+
+	5、485通信：串口3 ,波特率115200	
+			485_TX : PD8
+			485_RX : PD9
+			485_RE : PD10	
+			
+	6、BL0910单相计量芯片: 硬件SPI3
+	   引脚分配为： BL_SCLK：  PE12
+                    BL_MISO： PE13 
+                    BL_MOSI： PE14
+
+	7、BL0942单相计量芯片: 软件SPI
+	   引脚分配为： RCD_SCLK： PB10
+                    RCD_MISO： PB14		
+                    RCD_MOSI： PB15
+
+	8、3轴加速度计LIS3DH: (模拟IIC)，引脚分配为：  
+		SCL:   PE10
+		SDA:   PE9
+ 	
+	9、AHT20温湿度传感器：(模拟IIC方式)，引脚分配为：  
+		SCL:	PA8
+		SDA:    PC9
+
+		SCL:	PD12
+		SDA:    PD13
+
+	10、W25Q128存储芯片：(硬件SPI1)，引脚分配为：	
+		MOSI:   PB5
+		MISO:   PB4
+		CLK:    PB3
+		CS:     PD7
+
+	12、ML307（4G模块）：串口2，波特率115200，引脚分配为：   
+        4G-TXD：    PD5
+        4G-RXD：    PD6
+        4G_PWRK:    PE3
+        4G_NRST:    PE2
+		4G_CTRL:    PD1
+		SIM-Sel:    PC13     选择SIM
+		
+	13、GPS(4G模块)： 串口6， 波特率：9600，引脚分配为： 
+	    BDS_TX：    PC6
+        BDS_RX：    PC7	
+		
+	14、RTC时钟芯片： 硬件IIC3，引脚分配为： 
+	    RTC_SCL：    PB8
+        RTC_SDA：    PB9	
+
+	15、LORA： 串口1， 波特率：115200，引脚分配为：
+	    TX：    PE7
+        RX：    PE8	
+
+	15、采集板串口： ， 波特率：115200，引脚分配为：
+	    串口1   TX：    PA9   
+                RX：    PA10	
+
+	    串口4   TX：    PC10
+                RX：    PC11	
+		
+	    串口5   TX：    PD2
+                RX：    PC12			
+		
+	    串口8   TX：    PE0
+                RX：    PE1	
+
+	16、输出控制：
+        硬件看门狗:    PA0
+		
+
+	19、232通信：串口3 ,波特率115200	
+			232_TX : PB6
+			232_RX : PB7
+
