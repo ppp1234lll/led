@@ -115,6 +115,7 @@
 ..\..\output\bsp_key.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\..\output\bsp_key.o: ..\..\Middlewares\CJSON\cJSON.h
 ..\..\output\bsp_key.o: ..\..\Middlewares\CJSON\mycJSON.h
+..\..\output\bsp_key.o: ..\..\Hardware\inc\mpu.h
 ..\..\output\bsp_key.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\bsp_key.o: ..\..\User\FreeRTOSConfig.h
 ..\..\output\bsp_key.o: ..\..\Drivers\./SYSTEM/usart/usart.h

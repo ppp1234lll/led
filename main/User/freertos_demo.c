@@ -67,7 +67,40 @@ void led_task(void *pvParameters);          /* 任务函数 */
  */
 void lwip_test_ui(uint8_t mode)
 {
-
+   uint8_t speed;
+    uint8_t buf[30];
+    
+    if (mode & 1<< 0)
+    {
+			printf("STM32\n");
+			printf("lwIP Ping Test\n");
+			printf("ATOM@ALIENTEK\n");
+    }
+    
+    if (mode & 1 << 1)
+    {
+        printf("lwIP Init Successed\n");
+        if (g_lwipdev.dhcpstatus == 2)
+        {
+            sprintf((char*)buf,"DHCP IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);     /* 显示动态IP地址 */
+        }
+        else
+        {
+            sprintf((char*)buf,"Static IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);    /* 打印静态IP地址 */
+        }
+        printf("%s\n",buf);
+       
+        speed = ethernet_chip_get_speed();      /* 得到网速 */
+        
+        if (speed)
+        {
+					printf("Ethernet Speed:100M\n");
+        }
+        else
+        {
+					printf("Ethernet Speed:10M\n");
+        }
+    }
     
 }
 

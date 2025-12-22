@@ -28,8 +28,10 @@ void start_system_init_function(void)
 	bsp_InitKey();				         // 按键初始化	
 	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
+	bsp_InitUsart2(115200);
+//	usart2_test();
 	
-	RTC_Get_Time_Test();
+//	RTC_Get_Time_Test();
 }
 
 /*

@@ -28,7 +28,7 @@
 #define MEM_ALIGNMENT                   4
 
 /* 堆内存的大小，如果需要更大的堆内存，那么设置高一点 */
-#define MEM_SIZE                        (20*1024)
+#define MEM_SIZE                        (32*1024)
 
 /* MEMP_NUM_PBUF: 设置内存池的数量  */
 #define MEMP_NUM_PBUF                   15

@@ -115,7 +115,8 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     ETH_TX_EN_GPIO_CLK_ENABLE();        /* 开启ETH_TX_EN时钟 */
     ETH_TXD0_GPIO_CLK_ENABLE();         /* 开启ETH_TXD0时钟 */
     ETH_TXD1_GPIO_CLK_ENABLE();         /* 开启ETH_TXD1时钟 */
-    
+    ETH_RESET_GPIO_CLK_ENABLE();        /* 开启ETH_RESET时钟 */
+	
     /* Enable Ethernet clocks */
     __HAL_RCC_ETH1MAC_CLK_ENABLE();
     __HAL_RCC_ETH1TX_CLK_ENABLE();
@@ -129,8 +130,11 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
      * ETH_RMII_RXD0 --------------------> PC4
      * ETH_RMII_RXD1 --------------------> PC5
      * ETH_RMII_TX_EN -------------------> PB11
-     * ETH_RMII_TXD0 --------------------> PG13
-     * ETH_RMII_TXD1 --------------------> PG14
+     * ETH_RMII_TXD0 --------------------> PB12
+     * ETH_RMII_TXD1 --------------------> PB13
+		 
+		 * ETH_RESET     --------------------> PA8
+		 * ETH_EXER      --------------------> PB0
      */
 
     /* PA1,2,7 */
@@ -169,7 +173,16 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     
     gpio_init_struct.Pin = ETH_TXD1_GPIO_PIN; 
     HAL_GPIO_Init(ETH_TXD1_GPIO_PORT, &gpio_init_struct);   /* ETH_TXD1初始化 */
-    
+
+    /* 高电平，不使能复位 */
+    HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET);
+    /* 复位引脚配置 */
+    gpio_init_struct.Pin = ETH_RESET_GPIO_PIN;
+    gpio_init_struct.Mode = GPIO_MODE_OUTPUT_PP;
+    gpio_init_struct.Pull = GPIO_NOPULL;
+    gpio_init_struct.Speed = GPIO_SPEED_FREQ_HIGH;
+    HAL_GPIO_Init(ETH_RESET_GPIO_PORT, &gpio_init_struct);  
+
     uint32_t regval;
 
     sys_intx_disable();                                     /* 关闭所有中断，复位过程不能被打断！ */
@@ -178,23 +191,23 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     
     if (regval && 0xFFF == 0xFFF)                           /* 旧板卡（LAN8720A）引脚复位 */
     {
-        pcf8574_write_bit(ETH_RESET_IO,1);                  /* 硬件复位 */
-        delay_ms(100);
-        pcf8574_write_bit(ETH_RESET_IO,0);                  /* 复位结束 */
-        delay_ms(100);
+      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
+      delay_ms(100);
+      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
+      delay_ms(100);
     }
     else                                                    /* 新板卡（YT8512C）引脚复位 */
     {
-        pcf8574_write_bit(ETH_RESET_IO,0);                  /* 硬件复位 */
-        delay_ms(100);
-        pcf8574_write_bit(ETH_RESET_IO,1);                  /* 复位结束 */
-        delay_ms(100);
+      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
+      delay_ms(100);
+      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
+      delay_ms(100);
     }
     
-    sys_intx_enable();                                      /* 开启所有中断 */
+    sys_intx_enable();	/* 开启所有中断 */
     
     /* Enable the Ethernet global Interrupt */
-    HAL_NVIC_SetPriority(ETH_IRQn, 0x07, 0);
+    HAL_NVIC_SetPriority(ETH_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(ETH_IRQn);
 }
 

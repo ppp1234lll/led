@@ -9,17 +9,8 @@
  ****************************************************************************************************
  */
 
-#include "./SYSTEM/sys/sys.h"
-#include "./SYSTEM/usart/usart.h"
-#include "./SYSTEM/delay/delay.h"
-#include "./BSP/LED/led.h"
-#include "./BSP/LCD/lcd.h"
-#include "./BSP/KEY/key.h"
-#include "./BSP/MPU/mpu.h"
-#include "./BSP/LCD/ltdc.h"
-#include "./BSP/PCF8574/pcf8574.h"
-#include "lwip_comm.h"
-#include "lwipopts.h"
+#include "appconfig.h"
+
 #include "freertos_demo.h"
 
 
@@ -35,6 +26,8 @@ int main(void)
 	usart_init(115200);                      /* ´®¿Ú³õÊ¼»¯ */
 
 	start_system_init_function();
+	
+	 freertos_demo();
 	
 	while(1)
 	{

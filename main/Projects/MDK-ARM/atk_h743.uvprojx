@@ -478,6 +478,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_rtc.c</FilePath>
             </File>
+            <File>
+              <FileName>mpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\mpu.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -512,11 +517,6 @@
               <FileName>key.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\KEY\key.c</FilePath>
-            </File>
-            <File>
-              <FileName>mpu.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\BSP\MPU\mpu.c</FilePath>
             </File>
             <File>
               <FileName>ethernet.c</FileName>
@@ -882,6 +882,11 @@
               <FileName>sys_arch.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\lwip\arch\sys_arch.c</FilePath>
+            </File>
+            <File>
+              <FileName>lwipopts.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Middlewares\lwip\arch\lwipopts.h</FilePath>
             </File>
           </Files>
         </Group>

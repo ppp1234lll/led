@@ -37,6 +37,7 @@ void bsp_InitUsart2(uint32_t bound)
 	/* USART2 clock enable */
 	__HAL_RCC_USART2_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
+	
 	/**USART2 GPIO Configuration
 	PA2     ------> USART2_TX
 	PA3     ------> USART2_RX
@@ -47,7 +48,6 @@ void bsp_InitUsart2(uint32_t bound)
 	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;       /* 高速 */
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;   /* 复用为USART2 */
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);        /* 初始化PA2,3 */
-
 
 	/* USART 初始化设置 */
 	huart2.Instance = USART2;                         /* USART2 */
@@ -65,7 +65,6 @@ void bsp_InitUsart2(uint32_t bound)
 	HAL_NVIC_EnableIRQ(USART2_IRQn);                          /* 使能USART1中断 */
 	HAL_NVIC_SetPriority(USART2_IRQn, 3, 3);                  /* 抢占优先级3，子优先级3 */
 
-	
 }
 
 /**
@@ -87,11 +86,15 @@ void usart2_send_data(uint8_t *buf, uint8_t len)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void USART2_IRQHandler(void)
+void USART2_IRQHandler(UART_HandleTypeDef *huart)
 {
+	uint8_t ucTemp;
 	if ((__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) != RESET))  /* 接收中断 */
 	{
+		HAL_UART_Receive_IT(&huart2, (uint8_t *)&ucTemp, 1);
+		printf("%d\n",ucTemp);
 	} 
+	HAL_UART_IRQHandler(&g_uart1_handle); /* 调用HAL库中断处理公用函数 */
 }
 
 /*

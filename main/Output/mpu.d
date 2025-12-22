@@ -1,5 +1,5 @@
-..\..\output\mpu.o: ..\..\Drivers\BSP\MPU\mpu.c
-..\..\output\mpu.o: ..\..\Drivers\./BSP/MPU/mpu.h
+..\..\output\mpu.o: ..\..\Hardware\src\mpu.c
+..\..\output\mpu.o: ..\..\Hardware\inc\mpu.h
 ..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/sys/sys.h
 ..\..\output\mpu.o: ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h7xx.h
 ..\..\output\mpu.o: ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include\stm32h743xx.h
@@ -107,7 +107,15 @@
 ..\..\output\mpu.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\mpu.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\mpu.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\mpu.o: ..\..\Drivers\./BSP/LED/led.h
-..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/usart/usart.h
+..\..\output\mpu.o: ..\..\INCLUDE\bsp.h
 ..\..\output\mpu.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+..\..\output\mpu.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/delay/delay.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_led.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_iwdg.h
+..\..\output\mpu.o: ..\..\Hardware\inc\stmflash.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_usart2.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_relay.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_key.h
+..\..\output\mpu.o: ..\..\Hardware\inc\bsp_rtc.h

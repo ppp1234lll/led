@@ -112,10 +112,11 @@
 ..\..\output\start.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_ll_usb.h
 ..\..\output\start.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\start.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
-..\..\output\start.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
-..\..\output\start.o: ..\..\User\FreeRTOSConfig.h
+..\..\output\start.o: ..\..\Hardware\inc\mpu.h
 ..\..\output\start.o: ..\..\Drivers\./SYSTEM/sys/sys.h
 ..\..\output\start.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
+..\..\output\start.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
+..\..\output\start.o: ..\..\User\FreeRTOSConfig.h
 ..\..\output\start.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\start.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\start.o: ..\..\Middlewares\FreeRTOS\include\portable.h

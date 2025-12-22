@@ -9,8 +9,8 @@
 #include <time.h>
 
 // 闹钟相关宏定义
-#define ALARM_HOURS               14          // 0~23
-#define ALARM_MINUTES             00          // 0~59
+#define ALARM_HOURS               7          // 0~23
+#define ALARM_MINUTES             14          // 0~59
 #define ALARM_SECONDS             00          // 0~59
 
 #define RTC_BKP_DATA_LSI         0x32F2 
@@ -104,6 +104,8 @@ uint8_t bsp_InitRTC(void)
 		RTC_Set_Time(6, 59, 56, RTC_HOURFORMAT12_AM);   /* 设置时间, 根据实际时间修改 */
 		RTC_Set_Date(20, 4, 22, 3);                     /* 设置日期 */
 	}
+	
+	RTC_AlarmSet();
 	return 0;
 }
 
