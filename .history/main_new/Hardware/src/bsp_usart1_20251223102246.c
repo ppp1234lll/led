@@ -85,6 +85,10 @@ void bsp_InitUsart1(uint32_t baudrate)
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+	/* USART1 interrupt Init */
+	HAL_NVIC_SetPriority(USART1_IRQn, 8, 0);
+	HAL_NVIC_EnableIRQ(USART1_IRQn);
+
   huart1.Instance = USART1;
   huart1.Init.BaudRate = baudrate;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -101,43 +105,7 @@ void bsp_InitUsart1(uint32_t baudrate)
     Error_Handler(__FILE__, __LINE__);
   }
 
-#if UART1_RX_DMA
-		/*##-3- 配置DMA ##################################################*/
-		/* 配置DMA发送 */
-    hdma_usart1_rx.Instance = DMA1_Stream0;
-    hdma_usart1_rx.Init.Request = DMA_REQUEST_USART1_RX;
-    hdma_usart1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_usart1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart1_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart1_rx.Init.Mode = DMA_NORMAL;
-    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_HIGH;
-    hdma_usart1_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK)
-    {
-      Error_Handler(__FILE__, __LINE__);
-    }
-    /* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
-    __HAL_LINKDMA(&huart1,hdmarx,hdma_usart1_rx);
 
-    /* USART1_TX Init */
-    hdma_usart1_tx.Instance = DMA1_Stream1;
-    hdma_usart1_tx.Init.Request = DMA_REQUEST_USART1_TX;
-    hdma_usart1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_usart1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart1_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart1_tx.Init.Mode = DMA_NORMAL;
-    hdma_usart1_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_usart1_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK)
-    {
-      Error_Handler(__FILE__, __LINE__);
-    }
-    __HAL_LINKDMA(&huart1,hdmatx,hdma_usart1_tx);
-#endif
 
 	
 #if UART1_RX_NE
@@ -145,19 +113,6 @@ void bsp_InitUsart1(uint32_t baudrate)
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)g_U1RxBuffer, U1_RX_SIZE);
 #endif
 	
-		
-#if UART1_RX_DMA
-  // 启动 DMA 接收
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart1, g_U1RxBuffer, U1_RX_SIZE);
-	__HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);  // 禁用半满中断
-	__HAL_UART_CLEAR_IDLEFLAG(&huart1); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
-#endif
-		
-	/* USART1 interrupt Init */
-	HAL_NVIC_SetPriority(USART1_IRQn, 8, 0);
-	HAL_NVIC_EnableIRQ(USART1_IRQn);
-		
-		
 }
 
 /*
@@ -170,67 +125,15 @@ void bsp_InitUsart1(uint32_t baudrate)
 */
 void Usart1_SendString(uint8_t *str)
 {
-#if UART1_RX_DMA
-	
-#else
 	unsigned int k=0;
   do 
   {
       HAL_UART_Transmit( &huart1,(uint8_t *)(str + k) ,1,1000);
       k++;
   } while(*(str + k)!='\0');
-#endif  
+  
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: Usart1_Send_Data
-*	功能说明: 发送数据
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void Usart1_Send_Data(uint8_t *buf, uint16_t len)
-{
-#if UART1_RX_DMA
-	
-#else
-	HAL_UART_Transmit(&huart1,(uint8_t *)buf ,len,1000);
-#endif  
-}
-/*
-*********************************************************************************************************
-*	函 数 名: HAL_UART_DMAStopRx
-*	功能说明: 复位DMA重新开始接收数据
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-HAL_StatusTypeDef HAL_UART_DMAStopRx(UART_HandleTypeDef *huart)
-{
-  /* Stop UART DMA Rx request if ongoing */
-  if ((huart->RxState == HAL_UART_STATE_BUSY_RX) &&
-      (HAL_IS_BIT_SET(huart->Instance->CR3, USART_CR3_DMAR)))
-  {
-    CLEAR_BIT(huart->Instance->CR3, USART_CR3_DMAR);
-
-    /* Abort the UART DMA Rx channel */
-    if(huart->hdmarx != NULL)
-    {
-      HAL_DMA_Abort(huart->hdmarx);
-    }
-
-    //UART_EndRxTransfer(huart);
-    /* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
-	CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
-	CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
-
-	/* At end of Rx process, restore huart->RxState to Ready */
-	huart->RxState = HAL_UART_STATE_READY;
-  }
-
-  return HAL_OK;
-}
 
 /*
 *********************************************************************************************************
@@ -271,27 +174,6 @@ void USART1_IRQHandler(void)
 		}
   }
 #endif
-
-#if UART1_RX_DMA
-	uint32_t isrflags   = huart1.Instance->ISR;
-	uint32_t cr1its     = huart1.Instance->CR1;
-
-	if ((isrflags & USART_ISR_IDLE) != 0 && (cr1its & USART_CR1_IDLEIE) != 0)
-	{
-		__HAL_UART_CLEAR_IDLEFLAG(&huart1);
-		
-		HAL_UART_DMAStopRx(&huart1);
-		uint32_t total_len = U1_RX_SIZE - __HAL_DMA_GET_COUNTER(huart1.hdmarx);
-		
-		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
-		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U1RxBuffer, U1_RX_SIZE);		
-		Usart1_SendString("\r\n您发送的消息为:\r\n");
-		HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, g_U1RxBuffer, U1_RX_SIZE);
-	}
-#endif
-
 	/* 清除中断标志 */
 	SET_BIT(USART1->ICR, UART_CLEAR_PEF);
 	SET_BIT(USART1->ICR, UART_CLEAR_FEF);
@@ -304,22 +186,6 @@ void USART1_IRQHandler(void)
 	SET_BIT(USART1->ICR, UART_CLEAR_CMF);
 	SET_BIT(USART1->ICR, UART_CLEAR_WUF);
 	SET_BIT(USART1->ICR, UART_CLEAR_TXFECF);
-}
-
-/**
-  * @brief This function handles DMA1 stream0 global interrupt.
-  */
-void DMA1_Stream0_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(&hdma_usart1_rx);
-}
-
-/**
-  * @brief This function handles DMA1 stream1 global interrupt.
-  */
-void DMA1_Stream1_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(&hdma_usart1_tx);
 }
 
 
@@ -364,7 +230,7 @@ void usart1_test(void)
 
             if (times % 30  == 0) 
             {
-//                Usart1_SendString("times\r\n");
+                Usart1_SendString("times\r\n");
             }
 
             delay_ms(10);
