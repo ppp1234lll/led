@@ -46,7 +46,7 @@
 #include "bsp_rtc.h"
 #include "bsp_usart1.h"
 #include "bsp_usart3.h"
-
+#include "bsp_usart4.h"
 
 #endif
 
