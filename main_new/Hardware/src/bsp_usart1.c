@@ -7,38 +7,23 @@
  * @brief       串口初始化代码(一般是串口1)，支持printf
  * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
  ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 STM32开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- * 修改说明
- * V1.0 20220420
- * 第一次发布
- * V1.1 20230607
- * 修改SYS_SUPPORT_OS部分代码, 包含头文件改成:"os.h"
- * 删除USART_UX_IRQHandler()函数的超时处理和修改HAL_UART_RxCpltCallback()
- *
- ****************************************************************************************************
  */
 
 #include "bsp.h"
 #include "bsp_usart1.h"
 
-#define UART1_RX_NE     0    // 使用串口中断
-#define UART1_RX_DMA    1    // 使用串口DMA
+#define UART1_RX_NE     1    // 使用串口中断
+#define UART1_RX_DMA    0    // 使用串口DMA
 
-#define U1_RX_SIZE  (32*4)
+#define U1_RX_SIZE  (2048)
 /*  接收状态
  *  bit15，      接收完成标志
  *  bit14，      接收到0x0d
  *  bit13~0，    接收到的有效字节数目
 */
 uint16_t g_usart1_rx_sta = 0;
-__ALIGNED(32) uint8_t g_U1RxBuffer[U1_RX_SIZE];
+
+__attribute__((section (".RAM_SRAMD2")))  uint8_t g_U1RxBuffer[U1_RX_SIZE];
 
 UART_HandleTypeDef huart1;          /* UART句柄 */
 
@@ -85,22 +70,6 @@ void bsp_InitUsart1(uint32_t baudrate)
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  huart1.Instance = USART1;
-  huart1.Init.BaudRate = baudrate;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart1) != HAL_OK)
-  {
-    Error_Handler(__FILE__, __LINE__);
-  }
-
 #if UART1_RX_DMA
 		/*##-3- 配置DMA ##################################################*/
 		/* 配置DMA发送 */
@@ -139,7 +108,23 @@ void bsp_InitUsart1(uint32_t baudrate)
     __HAL_LINKDMA(&huart1,hdmatx,hdma_usart1_tx);
 #endif
 
-	
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = baudrate;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler(__FILE__, __LINE__);
+  }
+		
 #if UART1_RX_NE
 	/* 该函数会开启接收中断：标志位UART_IT_RXNE，并且设置接收缓冲以及接收缓冲接收最大数据量 */
 	HAL_UART_Receive_IT(&huart1, (uint8_t *)g_U1RxBuffer, U1_RX_SIZE);
@@ -151,13 +136,22 @@ void bsp_InitUsart1(uint32_t baudrate)
 	HAL_UARTEx_ReceiveToIdle_DMA(&huart1, g_U1RxBuffer, U1_RX_SIZE);
 	__HAL_DMA_DISABLE_IT(&hdma_usart1_rx, DMA_IT_HT);  // 禁用半满中断
 	__HAL_UART_CLEAR_IDLEFLAG(&huart1); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
+
+	/*##-4- 配置中断 #########################################*/
+	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+	
 #endif
-		
+
+	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
+	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_IDLE);  // 清除空闲标志
+	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_RXNE);  // 清除接收非空标志
+	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_TC);     // 清除发送完成标志
+
 	/* USART1 interrupt Init */
 	HAL_NVIC_SetPriority(USART1_IRQn, 8, 0);
 	HAL_NVIC_EnableIRQ(USART1_IRQn);
-		
-		
+
 }
 
 /*
@@ -170,16 +164,12 @@ void bsp_InitUsart1(uint32_t baudrate)
 */
 void Usart1_SendString(uint8_t *str)
 {
-#if UART1_RX_DMA
-	
-#else
 	unsigned int k=0;
   do 
   {
       HAL_UART_Transmit( &huart1,(uint8_t *)(str + k) ,1,1000);
       k++;
   } while(*(str + k)!='\0');
-#endif  
 }
 
 /*
@@ -192,11 +182,13 @@ void Usart1_SendString(uint8_t *str)
 */
 void Usart1_Send_Data(uint8_t *buf, uint16_t len)
 {
-#if UART1_RX_DMA
-	
-#else
+//#if UART1_RX_DMA
+//		/* DMA发送时 cache的内容需要更新到SRAM中 */
+//		SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
+//		HAL_UART_Transmit_DMA(&huart1, buf, len);	
+//#else
 	HAL_UART_Transmit(&huart1,(uint8_t *)buf ,len,1000);
-#endif  
+//#endif  
 }
 /*
 *********************************************************************************************************
@@ -273,8 +265,8 @@ void USART1_IRQHandler(void)
 #endif
 
 #if UART1_RX_DMA
-	uint32_t isrflags   = huart1.Instance->ISR;
-	uint32_t cr1its     = huart1.Instance->CR1;
+	uint32_t isrflags = USART1->ISR;
+	uint32_t cr1its   = USART1->CR1;
 
 	if ((isrflags & USART_ISR_IDLE) != 0 && (cr1its & USART_CR1_IDLEIE) != 0)
 	{
@@ -285,9 +277,11 @@ void USART1_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U1RxBuffer, U1_RX_SIZE);		
-		Usart1_SendString("\r\n您发送的消息为:\r\n");
+		Usart1_SendString("\r\ndma_recv:\r\n");
 		HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 
+//		Usart1_Send_Data("123456789000\n",12);
+		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, g_U1RxBuffer, U1_RX_SIZE);
 	}
 #endif
@@ -306,23 +300,46 @@ void USART1_IRQHandler(void)
 	SET_BIT(USART1->ICR, UART_CLEAR_TXFECF);
 }
 
-/**
-  * @brief This function handles DMA1 stream0 global interrupt.
-  */
+#if UART1_RX_DMA
+/*
+*********************************************************************************************************
+*	函 数 名: USARTx_DMA_RX_IRQHandler
+*	功能说明: 串口中断的接收回调函数。
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 void DMA1_Stream0_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
 }
 
-/**
-  * @brief This function handles DMA1 stream1 global interrupt.
-  */
+/*
+*********************************************************************************************************
+*	函 数 名: USARTx_DMA_TX_IRQHandler
+*	功能说明: 串口发送DMA中断服务程序。
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 void DMA1_Stream1_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(&hdma_usart1_tx);
+	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
+	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5) != RESET) {
+		// 清除传输完成标志（必须：否则会反复触发中断）
+		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5);
+	}
+
+	// 2. 检测DMA传输错误标志（可选：处理发送异常）
+	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5) != RESET) {
+		// 清除错误标志
+		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5);
+
+		// 错误处理：停止DMA，重置状态
+		HAL_DMA_Abort(&hdma_usart1_tx);
+	}
 }
-
-
+#endif
 /*
 *********************************************************************************************************
 *	函 数 名: usart_debug_test

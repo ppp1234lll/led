@@ -29,12 +29,8 @@ void start_system_init_function(void)
 	bsp_InitRTC();								   // RTC≥ı ºªØ (“—≤‚ ‘)
 	bsp_InitUsart1(115200);
 	bsp_InitUsart2(115200);
-//	usart1_test();
-//	usart_init(115200);    
-	
-//	printf("app start..\n");	
-	
-	usart1_test();
+  bsp_InitUsart3(115200);
+	usart3_test();
 }
 
 /*

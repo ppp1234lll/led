@@ -42,12 +42,12 @@
 /* 定义内存管理表类型,当外扩SDRAM的时候，必须使用uint32_t类型，否则可以定义成uint16_t，以节省内存占用 */
 #define MT_TYPE     uint32_t
 
-#define SRAMBANK                6                               /* 定义支持的SRAM块数. */
+#define SRAMBANK                1                               /* 定义支持的SRAM块数. */
 
 
 /* mem1内存参数设定.mem1是H7内部的AXI内存. */
 #define MEM1_BLOCK_SIZE         64                              /* 内存块大小为64字节 */
-#define MEM1_MAX_SIZE           128 * 1024                      /* 最大管理内存 448K,H7的AXI内存总共512KB */
+#define MEM1_MAX_SIZE           64 * 1024                      /* 最大管理内存 448K,H7的AXI内存总共512KB */
 #define MEM1_ALLOC_TABLE_SIZE   MEM1_MAX_SIZE / MEM1_BLOCK_SIZE /* 内存表大小 */
 
 /* mem2内存参数设定.mem2是外部的SDRAM内存 */

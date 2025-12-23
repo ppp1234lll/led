@@ -45,7 +45,7 @@
 #include "bsp_key.h"
 #include "bsp_rtc.h"
 #include "bsp_usart1.h"
-
+#include "bsp_usart3.h"
 
 
 #endif

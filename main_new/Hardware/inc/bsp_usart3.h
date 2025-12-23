@@ -7,22 +7,10 @@
  * @brief       RS485 驱动代码
  * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
  ****************************************************************************************************
- * @attention
- * 实验平台:正点原子 阿波罗 H743开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- * 修改说明
- * V1.0 20220906
- * 第一次发布
- *
- ****************************************************************************************************
  */
 
-#ifndef __BSP_USART1_H
-#define __BSP_USART1_H
+#ifndef __BSP_USART3_H
+#define __BSP_USART3_H
 
 #include "./SYSTEM/sys/sys.h"
 
@@ -31,11 +19,9 @@
 
 /******************************************************************************************/
 
-void bsp_InitUsart1(uint32_t baudrate);
-void Usart1_Send_Data(uint8_t *buf, uint16_t len);
-
-HAL_StatusTypeDef HAL_UART_DMAStopRx(UART_HandleTypeDef *huart);
-
-void usart1_test(void);
+void bsp_InitUsart3(uint32_t bound);
+void usart3_send_data(uint8_t *buf, uint8_t len);
+ 
+void usart3_test(void);
 
 #endif
