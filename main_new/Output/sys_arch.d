@@ -131,7 +131,6 @@
 ..\..\output\sys_arch.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\sys_arch.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\sys_arch.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\sys_arch.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\sys_arch.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\sys_arch.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\sys_arch.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

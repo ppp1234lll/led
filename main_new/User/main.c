@@ -26,14 +26,6 @@ int main(void)
 {
 	uint32_t i = 0;	
 	system_setup();
-
-	while (1)
-	{
-			printf("大家好，世界你好，hellword = %d\r\n", i++);
-    delay_ms(1000);
-	}
-	
-	
 	
 	start_system_init_function();
 

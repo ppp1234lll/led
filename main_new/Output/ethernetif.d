@@ -150,7 +150,6 @@
 ..\..\output\ethernetif.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\..\output\ethernetif.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\ethernetif.o: ..\..\User\FreeRTOSConfig.h
-..\..\output\ethernetif.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\ethernetif.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\ethernetif.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\ethernetif.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

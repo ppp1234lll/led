@@ -23,11 +23,7 @@
  */
  
 #include "./BSP/MPU/mpu.h"
-#include "./BSP/LED/led.h"
-#include "./SYSTEM/usart/usart.h"
-#include "./SYSTEM/delay/delay.h"
- 
- 
+
  /**
  * @brief       设置某个区域的MPU保护
  * @param       baseaddr:MPU保护区域的基址(首地址)

@@ -153,7 +153,6 @@
 ..\..\output\lwip_comm.o: ..\..\Middlewares\lwip\src\include\lwip/tcpip.h
 ..\..\output\lwip_comm.o: ..\..\Middlewares\./MALLOC/malloc.h
 ..\..\output\lwip_comm.o: ..\..\Drivers\./SYSTEM/delay/delay.h
-..\..\output\lwip_comm.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\lwip_comm.o: ..\..\Drivers\./BSP/ETHERNET/ethernet_chip.h
 ..\..\output\lwip_comm.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\lwip_comm.o: ..\..\User\FreeRTOSConfig.h

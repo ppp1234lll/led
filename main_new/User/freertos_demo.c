@@ -21,7 +21,6 @@
 #include "freertos_demo.h"
 #include "./BSP/LED/led.h"
 #include "./BSP/LCD/lcd.h"
-#include "./SYSTEM/usart/usart.h"
 #include "./SYSTEM/delay/delay.h"
 #include "./MALLOC/malloc.h"
 #include "./BSP/KEY/key.h"

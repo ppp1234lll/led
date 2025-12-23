@@ -108,8 +108,6 @@
 ..\..\output\lwip_demo.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\lwip_demo.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\lwip_demo.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\lwip_demo.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h
@@ -127,6 +125,7 @@
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\src\include\lwip/arch.h
 ..\..\output\lwip_demo.o: ..\..\Middlewares\lwip\arch/cc.h
 ..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
 ..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
 ..\..\output\lwip_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h

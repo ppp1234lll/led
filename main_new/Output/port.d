@@ -108,8 +108,6 @@
 ..\..\output\port.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\port.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\port.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\port.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\port.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\port.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\port.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\port.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

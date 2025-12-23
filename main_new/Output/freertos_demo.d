@@ -110,8 +110,6 @@
 ..\..\output\freertos_demo.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
 ..\..\output\freertos_demo.o: ..\..\Drivers\./BSP/LCD/lcd.h
 ..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
-..\..\output\freertos_demo.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\freertos_demo.o: ..\..\Drivers\./SYSTEM/delay/delay.h
 ..\..\output\freertos_demo.o: ..\..\Middlewares\./MALLOC/malloc.h
 ..\..\output\freertos_demo.o: ..\..\Drivers\./BSP/KEY/key.h
@@ -124,6 +122,7 @@
 ..\..\output\freertos_demo.o: ..\..\Middlewares\lwip\src\include\lwip/debug.h
 ..\..\output\freertos_demo.o: ..\..\Middlewares\lwip\src\include\lwip/arch.h
 ..\..\output\freertos_demo.o: ..\..\Middlewares\lwip\arch/cc.h
+..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\inttypes.h
 ..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\limits.h
 ..\..\output\freertos_demo.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\ctype.h

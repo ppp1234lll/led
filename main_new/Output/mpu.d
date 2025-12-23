@@ -107,7 +107,3 @@
 ..\..\output\mpu.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\mpu.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\mpu.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\mpu.o: ..\..\Drivers\./BSP/LED/led.h
-..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\mpu.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-..\..\output\mpu.o: ..\..\Drivers\./SYSTEM/delay/delay.h

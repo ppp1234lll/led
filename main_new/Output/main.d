@@ -121,7 +121,6 @@
 ..\..\output\main.o: ..\..\Hardware\inc\mpu.h
 ..\..\output\main.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\main.o: ..\..\User\FreeRTOSConfig.h
-..\..\output\main.o: ..\..\Drivers\./SYSTEM/usart/usart.h
 ..\..\output\main.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\main.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\main.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

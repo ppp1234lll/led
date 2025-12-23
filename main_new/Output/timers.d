@@ -109,8 +109,6 @@
 ..\..\output\timers.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\timers.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\timers.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\timers.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\timers.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\timers.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\timers.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\timers.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

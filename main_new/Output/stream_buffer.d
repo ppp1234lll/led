@@ -109,8 +109,6 @@
 ..\..\output\stream_buffer.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\stream_buffer.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\stream_buffer.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\stream_buffer.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\stream_buffer.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\stream_buffer.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\stream_buffer.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\stream_buffer.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h

@@ -33,7 +33,6 @@
 #include "lwip/tcpip.h"
 #include "./MALLOC/malloc.h"
 #include "./SYSTEM/delay/delay.h"
-#include "./SYSTEM/usart/usart.h"
 #include "./BSP/ETHERNET/ethernet_chip.h"
 #include "FreeRTOS.h"
 #include "task.h"

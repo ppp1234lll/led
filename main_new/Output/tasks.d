@@ -110,8 +110,6 @@
 ..\..\output\tasks.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_pcd_ex.h
 ..\..\output\tasks.o: ..\..\Drivers\STM32H7xx_HAL_Driver\Inc\stm32h7xx_hal_hcd.h
 ..\..\output\tasks.o: ..\..\Drivers\CMSIS\Include\core_cm7.h
-..\..\output\tasks.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\tasks.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h
@@ -121,3 +119,4 @@
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\list.h
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\timers.h
 ..\..\output\tasks.o: ..\..\Middlewares\FreeRTOS\include\stack_macros.h
+..\..\output\tasks.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

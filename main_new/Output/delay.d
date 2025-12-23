@@ -109,8 +109,6 @@
 ..\..\output\delay.o: ..\..\Drivers\./SYSTEM/delay/delay.h
 ..\..\output\delay.o: ..\..\Middlewares\FreeRTOS\include\FreeRTOS.h
 ..\..\output\delay.o: ..\..\User\FreeRTOSConfig.h
-..\..\output\delay.o: ..\..\Drivers\./SYSTEM/usart/usart.h
-..\..\output\delay.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 ..\..\output\delay.o: ..\..\Middlewares\FreeRTOS\include\projdefs.h
 ..\..\output\delay.o: ..\..\Middlewares\FreeRTOS\include\portable.h
 ..\..\output\delay.o: ..\..\Middlewares\FreeRTOS\include\deprecated_definitions.h
