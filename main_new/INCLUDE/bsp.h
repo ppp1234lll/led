@@ -48,7 +48,7 @@
 #include "bsp_usart3.h"
 #include "bsp_usart4.h"
 #include "bsp_uart5.h"
-
+#include "bsp_usart6.h"
 
 
 #endif

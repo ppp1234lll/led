@@ -15,6 +15,7 @@
 "..\..\output\bsp_usart3.o"
 "..\..\output\bsp_usart4.o"
 "..\..\output\bsp_uart5.o"
+"..\..\output\bsp_usart6.o"
 "..\..\output\delay.o"
 "..\..\output\sys.o"
 "..\..\output\stm32h7xx_hal.o"

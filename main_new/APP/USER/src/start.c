@@ -32,10 +32,10 @@ void start_system_init_function(void)
   bsp_InitUsart3(115200);
 	bsp_InitUsart4(115200);
 	bsp_InitUart5(115200);
+	bsp_InitUsart6(115200);
 	
 	
-	
-	uart5_test();
+	usart6_test();
 }
 
 /*
