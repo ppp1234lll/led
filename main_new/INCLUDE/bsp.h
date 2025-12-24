@@ -50,7 +50,7 @@
 #include "bsp_uart5.h"
 #include "bsp_usart6.h"
 #include "bsp_uart7.h"
-
+#include "bsp_uart8.h"
 
 
 

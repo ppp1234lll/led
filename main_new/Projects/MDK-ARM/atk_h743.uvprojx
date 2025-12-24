@@ -503,6 +503,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_uart7.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_uart8.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_uart8.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
