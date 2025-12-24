@@ -508,6 +508,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_uart8.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_lpuart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_lpuart1.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

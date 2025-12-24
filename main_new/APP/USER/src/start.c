@@ -35,7 +35,9 @@ void start_system_init_function(void)
 	bsp_InitUsart6(115200);
 	bsp_InitUart7(115200);
 	bsp_InitUart8(115200);	
-	uart8_test();
+	bsp_InitLpuart1(115200);	
+	
+	lpuart1_test();
 }
 
 /*
