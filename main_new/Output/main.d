@@ -182,5 +182,6 @@
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_usart1.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_usart3.h
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_usart4.h
+..\..\output\main.o: ..\..\Hardware\inc\bsp_uart5.h
 ..\..\output\main.o: ..\..\APP\./USER/inc/start.h
 ..\..\output\main.o: ..\..\User\freertos_demo.h

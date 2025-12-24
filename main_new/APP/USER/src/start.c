@@ -31,7 +31,11 @@ void start_system_init_function(void)
 	bsp_InitUsart2(115200);
   bsp_InitUsart3(115200);
 	bsp_InitUsart4(115200);
-	usart4_test();
+	bsp_InitUart5(115200);
+	
+	
+	
+	uart5_test();
 }
 
 /*

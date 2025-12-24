@@ -293,15 +293,15 @@ void DMA1_Stream6_IRQHandler(void)
 void DMA1_Stream7_IRQHandler(void)
 {
 	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF3_7) != RESET) {
+	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF1_5) != RESET) {
 		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF3_7);
+		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF1_5);
 	}
 
 	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF3_7) != RESET) {
+	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF1_5) != RESET) {
 		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF3_7);
+		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF1_5);
 
 		// 错误处理：停止DMA，重置状态
 		HAL_DMA_Abort(&hdma_uart4_tx);
