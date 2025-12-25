@@ -483,7 +483,7 @@ void RTC_AlarmSet(void)
 	rtc_alarm_handle.Alarm = RTC_ALARM_A;                                   /* 闹钟A */
 	HAL_RTC_SetAlarm_IT(&g_rtc_handle, &rtc_alarm_handle, RTC_FORMAT_BIN);
 	
-	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 3, 3);                             /* 抢占优先级1,子优先级2 */
+	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 15, 0);                             /* 抢占优先级1,子优先级2 */
 	HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
 }
 /**

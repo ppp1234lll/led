@@ -513,6 +513,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_lpuart1.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_timers.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_timers.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -217,7 +217,7 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     sys_intx_enable();                                      /* 开启所有中断 */
     
     /* Enable the Ethernet global Interrupt */
-    HAL_NVIC_SetPriority(ETH_IRQn, 0x07, 0);
+    HAL_NVIC_SetPriority(ETH_IRQn, 0x01, 0);
     HAL_NVIC_EnableIRQ(ETH_IRQn);
 }
 

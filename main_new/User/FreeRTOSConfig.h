@@ -96,7 +96,7 @@ extern uint32_t FreeRTOSRunTimeTicks;
 #endif
 
 #define configLIBRARY_LOWEST_INTERRUPT_PRIORITY         15                  /* 中断最低优先级 */
-#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    5                   /* FreeRTOS可管理的最高中断优先级,中断优先级高于 5 的中断不受 FreeRTOS 影响 */
+#define configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY    1                   /* FreeRTOS可管理的最高中断优先级,中断优先级高于 5 的中断不受 FreeRTOS 影响 */
 #define configKERNEL_INTERRUPT_PRIORITY                 ( configLIBRARY_LOWEST_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY            ( configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY << (8 - configPRIO_BITS) )
 #define configMAX_API_CALL_INTERRUPT_PRIORITY           configMAX_SYSCALL_INTERRUPT_PRIORITY

@@ -25,6 +25,7 @@
 
 //#define Enable_EventRecorder // 选择使用EVR
 //#define Enable_RTTViewer   // 选择使用RTT
+#define Enable_USART   // 选择使用UART
 
 #ifdef Enable_EventRecorder
 
@@ -32,6 +33,9 @@
 #define printf(...) do { SEGGER_RTT_SetTerminal(0);   \
 		                     SEGGER_RTT_printf(0, __VA_ARGS__); \
                          }while(0)
+												 
+#elif defined Enable_USART
+
 #endif
 
 #include "./SYSTEM/sys/sys.h"
@@ -51,8 +55,8 @@
 #include "bsp_usart6.h"
 #include "bsp_uart7.h"
 #include "bsp_uart8.h"
-
-
+#include "bsp_lpuart1.h"
+#include "bsp_timers.h"
 
 
 

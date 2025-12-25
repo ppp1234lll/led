@@ -37,7 +37,12 @@ void start_system_init_function(void)
 	bsp_InitUart8(115200);	
 	bsp_InitLpuart1(115200);	
 	
-	lpuart1_test();
+	printf("\r\nCPU : STM32H743XIH6, BGA240, Ö÷Æµ: %dMHz\r\n", SystemCoreClock / 1000000);
+	printf("main run...\n");
+	
+	bsp_InitTimers(TIM6,1000,2,0);
+	
+//	usart1_test();
 }
 
 /*
