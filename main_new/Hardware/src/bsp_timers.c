@@ -218,6 +218,109 @@ void bsp_RCC_TIM_Disable(TIM_TypeDef* TIMx)
 		Error_Handler(__FILE__, __LINE__);
 	}
 }
+/*
+*********************************************************************************************************
+*	函 数 名: TIM2_IRQHandler
+*	功能说明: 定时器中断函数
+*	形    参: 无
+*	返 回 值: 无
+*	TIM定时中断服务程序范例，必须清中断标志
+*********************************************************************************************************
+*/
+void TIM2_IRQHandler(void)
+{
+	if((TIM2->SR & TIM_FLAG_UPDATE) != RESET)
+	{
+		TIM2->SR = ~ TIM_FLAG_UPDATE;
+		
+#ifdef TIMER_DEBUG
+		g_timer_test[0]++;
+		if(g_timer_test[0] >= 1000)
+		{
+			g_timer_test[0] = 0;
+			printf("TIM2 test\n");
+		}
+#endif		
+	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: TIM3_IRQHandler
+*	功能说明: 定时器中断函数
+*	形    参: 无
+*	返 回 值: 无
+*	TIM定时中断服务程序范例，必须清中断标志
+*********************************************************************************************************
+*/
+void TIM3_IRQHandler(void)
+{
+	if((TIM3->SR & TIM_FLAG_UPDATE) != RESET)
+	{
+		TIM3->SR = ~ TIM_FLAG_UPDATE;
+		
+#ifdef TIMER_DEBUG
+		g_timer_test[1]++;
+		if(g_timer_test[1] >= 1000)
+		{
+			g_timer_test[1] = 0;
+			printf("TIM3 test\n");
+		}
+#endif		
+	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: TIM4_IRQHandler
+*	功能说明: 定时器中断函数
+*	形    参: 无
+*	返 回 值: 无
+*	TIM定时中断服务程序范例，必须清中断标志
+*********************************************************************************************************
+*/
+void TIM4_IRQHandler(void)
+{
+	if((TIM4->SR & TIM_FLAG_UPDATE) != RESET)
+	{
+		TIM4->SR = ~ TIM_FLAG_UPDATE;
+		
+#ifdef TIMER_DEBUG
+		g_timer_test[2]++;
+		if(g_timer_test[2] >= 1000)
+		{
+			g_timer_test[2] = 0;
+			printf("TIM4 test\n");
+		}
+#endif		
+	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: TIM5_IRQHandler
+*	功能说明: 定时器中断函数
+*	形    参: 无
+*	返 回 值: 无
+*	TIM定时中断服务程序范例，必须清中断标志
+*********************************************************************************************************
+*/
+void TIM5_IRQHandler(void)
+{
+	if((TIM5->SR & TIM_FLAG_UPDATE) != RESET)
+	{
+		TIM5->SR = ~ TIM_FLAG_UPDATE;
+		
+#ifdef TIMER_DEBUG
+		g_timer_test[3]++;
+		if(g_timer_test[3] >= 1000)
+		{
+			g_timer_test[3] = 0;
+			printf("TIM5 test\n");
+		}
+#endif		
+	}
+}
 
 /*
 *********************************************************************************************************
@@ -235,11 +338,37 @@ void TIM6_DAC_IRQHandler(void)
 		TIM6->SR = ~ TIM_FLAG_UPDATE;
 		
 #ifdef TIMER_DEBUG
-		g_timer_test[0]++;
-		if(g_timer_test[0] >= 1000)
+		g_timer_test[4]++;
+		if(g_timer_test[4] >= 1000)
 		{
-			g_timer_test[0] = 0;
+			g_timer_test[4] = 0;
 			printf("TIM6 test\n");
+		}
+#endif		
+	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: TIM7_IRQHandler
+*	功能说明: 定时器中断函数
+*	形    参: 无
+*	返 回 值: 无
+*	TIM定时中断服务程序范例，必须清中断标志
+*********************************************************************************************************
+*/
+void TIM7_IRQHandler(void)
+{
+	if((TIM7->SR & TIM_FLAG_UPDATE) != RESET)
+	{
+		TIM7->SR = ~ TIM_FLAG_UPDATE;
+		
+#ifdef TIMER_DEBUG
+		g_timer_test[5]++;
+		if(g_timer_test[5] >= 1000)
+		{
+			g_timer_test[5] = 0;
+			printf("TIM7 test\n");
 		}
 #endif		
 	}

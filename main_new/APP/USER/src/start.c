@@ -40,8 +40,12 @@ void start_system_init_function(void)
 	printf("\r\nCPU : STM32H743XIH6, BGA240, Ö÷Æµ: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
+	bsp_InitTimers(TIM2,1000,2,0);
+	bsp_InitTimers(TIM3,1000,2,0);
+	bsp_InitTimers(TIM4,1000,2,0);
+	bsp_InitTimers(TIM5,1000,2,0);
 	bsp_InitTimers(TIM6,1000,2,0);
-	
+	bsp_InitTimers(TIM7,1000,2,0);
 //	usart1_test();
 }
 
