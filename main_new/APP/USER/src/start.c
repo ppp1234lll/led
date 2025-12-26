@@ -36,7 +36,7 @@ void start_system_init_function(void)
 	bsp_InitUart7(115200);
 	bsp_InitUart8(115200);	
 	bsp_InitLpuart1(115200);	
-	
+//UARTx_Config();	
 	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
@@ -49,7 +49,7 @@ void start_system_init_function(void)
 	
 	bsp_InitSPIBus();	/* 配置SPI总线 */		
 	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
-
+	
 	DemoSpiFlash();
 }
 

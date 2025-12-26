@@ -12,8 +12,8 @@
 #include "bsp.h"
 #include "bsp_usart2.h"
 
-#define UART2_RX_NE     1    // 使用串口中断
-#define UART2_RX_DMA    0    // 使用串口DMA
+#define UART2_RX_NE     0    // 使用串口中断
+#define UART2_RX_DMA    1    // 使用串口DMA
 
 #define U2_RX_SIZE  (2048)
 /*  接收状态
@@ -46,7 +46,7 @@ void bsp_InitUsart2(uint32_t baudrate)
 
   /** Initializes the peripherals clock
   */
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2;
 	PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
 	{
@@ -60,52 +60,35 @@ void bsp_InitUsart2(uint32_t baudrate)
 	__HAL_RCC_DMA1_CLK_ENABLE();
 #endif
 	/**USART2 GPIO Configuration
-	PD8     ------> USART3_TX
-	PD9     ------> USART3_RX
+	PD5     ------> USART2_TX
+	PD6     ------> USART2_RX
 	*/
 	GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 #if UART2_RX_DMA
 	/*##-3- 配置DMA ##################################################*/
 	/* 配置DMA发送 */
-	hdma_usart2_rx.Instance = DMA1_Stream4;
-	hdma_usart2_rx.Init.Request = DMA_REQUEST_USART3_RX;
+	hdma_usart2_rx.Instance = DMA1_Stream1;
+	hdma_usart2_rx.Init.Request = DMA_REQUEST_USART2_RX;
 	hdma_usart2_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_usart2_rx.Init.PeriphInc = DMA_PINC_DISABLE;
 	hdma_usart2_rx.Init.MemInc = DMA_MINC_ENABLE;
 	hdma_usart2_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
 	hdma_usart2_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
 	hdma_usart2_rx.Init.Mode = DMA_NORMAL;
-	hdma_usart2_rx.Init.Priority = DMA_PRIORITY_HIGH;
+	hdma_usart2_rx.Init.Priority = DMA_PRIORITY_LOW;
 	hdma_usart2_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	if (HAL_DMA_Init(&hdma_usart2_rx) != HAL_OK)
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
 	/* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
-	__HAL_LINKDMA(uartHandle,hdmarx,hdma_usart2_rx);
-
-	/* USART3_TX Init */
-	hdma_usart2_tx.Instance = DMA1_Stream5;
-	hdma_usart2_tx.Init.Request = DMA_REQUEST_USART3_TX;
-	hdma_usart2_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	hdma_usart2_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_usart2_tx.Init.MemInc = DMA_MINC_ENABLE;
-	hdma_usart2_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_usart2_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_usart2_tx.Init.Mode = DMA_NORMAL;
-	hdma_usart2_tx.Init.Priority = DMA_PRIORITY_LOW;
-	hdma_usart2_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	if (HAL_DMA_Init(&hdma_usart2_tx) != HAL_OK)
-	{
-		Error_Handler(__FILE__, __LINE__);
-	}
-	__HAL_LINKDMA(uartHandle,hdmatx,hdma_usart2_tx);
+	__HAL_LINKDMA(&huart2,hdmarx,hdma_usart2_rx);
 #endif
 
   huart2.Instance = USART2;
@@ -118,7 +101,8 @@ void bsp_InitUsart2(uint32_t baudrate)
   huart2.Init.OverSampling = UART_OVERSAMPLING_16;
   huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart2) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -136,18 +120,18 @@ void bsp_InitUsart2(uint32_t baudrate)
 	__HAL_UART_CLEAR_IDLEFLAG(&huart2); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
 
 	/*##-4- 配置中断 #########################################*/
-	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+//	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
+//	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 	
 #endif
 
-//	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
-//	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_IDLE);  // 清除空闲标志
-//	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);  // 清除接收非空标志
-//	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_TC);     // 清除发送完成标志
+	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
+	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_IDLE);  // 清除空闲标志
+	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);  // 清除接收非空标志
+	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* USART2 interrupt Init */
-	HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+	HAL_NVIC_SetPriority(USART2_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
 
 }
@@ -243,10 +227,8 @@ void USART2_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U2RxBuffer, U2_RX_SIZE);		
-		Usart2_SendString("\r\ndma_recv:\r\n");
+		Usart2_SendString("\r\n uart2 dma_recv:\r\n");
 		HAL_UART_Transmit(&huart2, (uint8_t *)g_U2RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
-//		Usart1_Send_Data("123456789000\n",12);
 		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
 	}
@@ -275,36 +257,11 @@ void USART2_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA1_Stream2_IRQHandler(void)
+void DMA1_Stream1_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart2_rx);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: DMA1_Stream3_IRQn
-*	功能说明: 串口发送DMA中断服务程序。
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void DMA1_Stream3_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart2_tx, DMA_FLAG_TCIF3_7) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart2_tx, DMA_FLAG_TCIF3_7);
-	}
-
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart2_tx, DMA_FLAG_TEIF3_7) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart2_tx, DMA_FLAG_TEIF3_7);
-
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_usart2_tx);
-	}
-}
 #endif
 
 /*

@@ -58,7 +58,7 @@ void bsp_InitUart5(uint32_t baudrate)
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 #if UART5_RX_DMA
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 #endif
 	/**UART5 GPIO Configuration
 	PC12     ------> UART5_TX
@@ -81,7 +81,7 @@ void bsp_InitUart5(uint32_t baudrate)
 #if UART5_RX_DMA
 		/*##-3- 配置DMA ##################################################*/
 		/* 配置DMA发送 */
-    hdma_uart5_rx.Instance = DMA2_Stream0;
+    hdma_uart5_rx.Instance = DMA1_Stream4;
     hdma_uart5_rx.Init.Request = DMA_REQUEST_UART5_RX;
     hdma_uart5_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_uart5_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -98,22 +98,6 @@ void bsp_InitUart5(uint32_t baudrate)
     /* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
     __HAL_LINKDMA(&huart5,hdmarx,hdma_uart5_rx);
 
-    /* UART5_TX Init */
-    hdma_uart5_tx.Instance = DMA2_Stream1;
-    hdma_uart5_tx.Init.Request = DMA_REQUEST_UART5_TX;
-    hdma_uart5_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_uart5_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_uart5_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_uart5_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_uart5_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_uart5_tx.Init.Mode = DMA_NORMAL;
-    hdma_uart5_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_uart5_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_uart5_tx) != HAL_OK)
-    {
-      Error_Handler(__FILE__, __LINE__);
-    }
-    __HAL_LINKDMA(&huart5,hdmatx,hdma_uart5_tx);
 #endif
 
   huart5.Instance = UART5;
@@ -126,7 +110,8 @@ void bsp_InitUart5(uint32_t baudrate)
   huart5.Init.OverSampling = UART_OVERSAMPLING_16;
   huart5.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart5.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart5.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart5.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart5.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart5) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -156,7 +141,7 @@ void bsp_InitUart5(uint32_t baudrate)
 	__HAL_UART_CLEAR_FLAG(&huart5, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* UART5 interrupt Init */
-	HAL_NVIC_SetPriority(UART5_IRQn, 8, 0);
+	HAL_NVIC_SetPriority(UART5_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(UART5_IRQn);
 
 }
@@ -284,36 +269,11 @@ void UART5_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA2_Stream0_IRQHandler(void)
+void DMA1_Stream4_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_uart5_rx);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: USARTx_DMA_TX_IRQHandler
-*	功能说明: 串口发送DMA中断服务程序。
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void DMA2_Stream1_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart5_tx, DMA_FLAG_TCIF1_5) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart5_tx, DMA_FLAG_TCIF1_5);
-	}
-
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart5_tx, DMA_FLAG_TEIF1_5) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart5_tx, DMA_FLAG_TEIF1_5);
-
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_uart5_tx);
-	}
-}
 #endif
 /*
 *********************************************************************************************************

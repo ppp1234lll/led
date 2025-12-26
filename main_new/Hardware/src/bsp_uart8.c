@@ -57,7 +57,7 @@ void bsp_InitUart8(uint32_t baudrate)
 
 	__HAL_RCC_GPIOE_CLK_ENABLE();
 #if UART8_RX_DMA
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 #endif
 	/**UART8 GPIO Configuration
 	PE0     ------> UART8_RX
@@ -73,7 +73,7 @@ void bsp_InitUart8(uint32_t baudrate)
 #if UART8_RX_DMA
 		/*##-3- 配置DMA ##################################################*/
 		/* 配置DMA发送 */
-    hdma_uart8_rx.Instance = DMA2_Stream5;
+    hdma_uart8_rx.Instance = DMA1_Stream7;
     hdma_uart8_rx.Init.Request = DMA_REQUEST_UART8_RX;
     hdma_uart8_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_uart8_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -101,7 +101,8 @@ void bsp_InitUart8(uint32_t baudrate)
   huart8.Init.OverSampling = UART_OVERSAMPLING_16;
   huart8.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart8.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart8.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart8.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart8.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart8) != HAL_OK)
 	{
     Error_Handler(__FILE__, __LINE__);
@@ -259,7 +260,7 @@ void UART8_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA2_Stream5_IRQHandler(void)
+void DMA1_Stream7_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_uart8_rx);
 }

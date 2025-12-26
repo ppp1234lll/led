@@ -41,7 +41,7 @@ extern uint8_t g_U1RxBuffer[2048];
 */
 void DemoSpiFlash(void)
 {
-	char ch = '4';
+	char ch  ;
 	uint32_t uiReadPageNo = 0;
 
 	
@@ -51,9 +51,10 @@ void DemoSpiFlash(void)
 
 	sfDispMenu();		/* 打印命令提示 */
 
-	
+	while(1)
 	{
-
+		ch=getchar();
+		printf("接收到字符：%c\n",ch);
 //		if (comGetChar(COM1, &cmd))	/* 从串口读入一个字符(非阻塞方式) */
 		{
 			switch (ch)
@@ -118,7 +119,7 @@ void DemoSpiFlash(void)
 			}
 		}
 	}
-	while(1);
+	
 }
 
 /*

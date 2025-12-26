@@ -47,10 +47,10 @@ static void system_setup(void)
 	mpu_memory_protection();                 /* 保护相关存储区域 */
 	sys_cache_enable();                      /* 打开L1-Cache */
 	HAL_Init();                              /* 初始化HAL库 */
-//	sys_stm32_clock_init(192, 5, 2, 4);      /* 设置时钟, 480Mhz */
-	SystemClock_Config();
-	delay_init(400); 
-//	delay_init(480);                         /* 延时初始化 */
+	sys_stm32_clock_init(192, 5, 2, 4);      /* 设置时钟, 480Mhz */
+//	SystemClock_Config();
+//	delay_init(400); 
+	delay_init(480);                         /* 延时初始化 */
 	
 	/* 
 	   Event Recorder：

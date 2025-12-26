@@ -74,7 +74,7 @@ void bsp_InitUsart4(uint32_t baudrate)
 #if UART4_RX_DMA
 		/*##-3- 配置DMA ##################################################*/
 		/* 配置DMA发送 */
-    hdma_uart4_rx.Instance = DMA1_Stream6;
+    hdma_uart4_rx.Instance = DMA1_Stream3;
     hdma_uart4_rx.Init.Request = DMA_REQUEST_UART4_RX;
     hdma_uart4_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_uart4_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -91,22 +91,6 @@ void bsp_InitUsart4(uint32_t baudrate)
     /* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
     __HAL_LINKDMA(&huart4,hdmarx,hdma_uart4_rx);
 
-    /* UART4_TX Init */
-    hdma_uart4_tx.Instance = DMA1_Stream7;
-    hdma_uart4_tx.Init.Request = DMA_REQUEST_UART4_TX;
-    hdma_uart4_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_uart4_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_uart4_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_uart4_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_uart4_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_uart4_tx.Init.Mode = DMA_NORMAL;
-    hdma_uart4_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_uart4_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_uart4_tx) != HAL_OK)
-    {
-      Error_Handler(__FILE__, __LINE__);
-    }
-    __HAL_LINKDMA(&huart4,hdmatx,hdma_uart4_tx);
 #endif
 
   huart4.Instance = UART4;
@@ -119,7 +103,8 @@ void bsp_InitUsart4(uint32_t baudrate)
   huart4.Init.OverSampling = UART_OVERSAMPLING_16;
   huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart4.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart4.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart4) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -149,7 +134,7 @@ void bsp_InitUsart4(uint32_t baudrate)
 	__HAL_UART_CLEAR_FLAG(&huart4, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* UART4 interrupt Init */
-	HAL_NVIC_SetPriority(UART4_IRQn, 8, 0);
+	HAL_NVIC_SetPriority(UART4_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(UART4_IRQn);
 
 }
@@ -277,36 +262,11 @@ void UART4_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA1_Stream6_IRQHandler(void)
+void DMA1_Stream3_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_uart4_rx);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: USARTx_DMA_TX_IRQHandler
-*	功能说明: 串口发送DMA中断服务程序。
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void DMA1_Stream7_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF3_7) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TCIF3_7);
-	}
-
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF3_7) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_uart4_tx, DMA_FLAG_TEIF3_7);
-
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_uart4_tx);
-	}
-}
 #endif
 /*
 *********************************************************************************************************
@@ -318,8 +278,8 @@ void DMA1_Stream7_IRQHandler(void)
 */
 void usart4_test(void)
 {
-    uint8_t len;
-    uint16_t times = 0;
+	uint8_t len;
+	uint16_t times = 0;
 	while(1)
 	{
         if (g_usart4_rx_sta & 0x8000)                                                    /* 接收到了数据? */

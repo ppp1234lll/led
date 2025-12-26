@@ -29,6 +29,7 @@ UART_HandleTypeDef hlpuart1;        /* UART¾ä±ú */
 
 #if LPUART1_RX_DMA
 DMA_HandleTypeDef hdma_lpuart1_rx;
+
 #endif
 /*
 *********************************************************************************************************
@@ -100,7 +101,8 @@ void bsp_InitLpuart1(uint32_t baudrate)
   hlpuart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   hlpuart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   hlpuart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  hlpuart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  hlpuart1.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   hlpuart1.FifoMode = UART_FIFOMODE_DISABLE;
   if (HAL_UART_Init(&hlpuart1) != HAL_OK)
   {

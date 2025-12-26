@@ -73,7 +73,7 @@ void bsp_InitUsart3(uint32_t baudrate)
 #if UART3_RX_DMA
 	/*##-3- 配置DMA ##################################################*/
 	/* 配置DMA发送 */
-	hdma_usart3_rx.Instance = DMA1_Stream4;
+	hdma_usart3_rx.Instance = DMA1_Stream2;
 	hdma_usart3_rx.Init.Request = DMA_REQUEST_USART3_RX;
 	hdma_usart3_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_usart3_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -90,22 +90,6 @@ void bsp_InitUsart3(uint32_t baudrate)
 	/* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
 	__HAL_LINKDMA(&huart3,hdmarx,hdma_usart3_rx);
 
-	/* USART3_TX Init */
-	hdma_usart3_tx.Instance = DMA1_Stream5;
-	hdma_usart3_tx.Init.Request = DMA_REQUEST_USART3_TX;
-	hdma_usart3_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	hdma_usart3_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_usart3_tx.Init.MemInc = DMA_MINC_ENABLE;
-	hdma_usart3_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_usart3_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_usart3_tx.Init.Mode = DMA_NORMAL;
-	hdma_usart3_tx.Init.Priority = DMA_PRIORITY_LOW;
-	hdma_usart3_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	if (HAL_DMA_Init(&hdma_usart3_tx) != HAL_OK)
-	{
-		Error_Handler(__FILE__, __LINE__);
-	}
-	__HAL_LINKDMA(&huart3,hdmatx,hdma_usart3_tx);
 #endif
 
   huart3.Instance = USART3;
@@ -118,7 +102,8 @@ void bsp_InitUsart3(uint32_t baudrate)
   huart3.Init.OverSampling = UART_OVERSAMPLING_16;
   huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart3.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart3.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart3) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -141,13 +126,13 @@ void bsp_InitUsart3(uint32_t baudrate)
 	
 #endif
 
-//	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
-//	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_IDLE);  // 清除空闲标志
-//	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_RXNE);  // 清除接收非空标志
-//	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_TC);     // 清除发送完成标志
+	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
+	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_IDLE);  // 清除空闲标志
+	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_RXNE);  // 清除接收非空标志
+	__HAL_UART_CLEAR_FLAG(&huart3, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* USART3 interrupt Init */
-	HAL_NVIC_SetPriority(USART3_IRQn, 2, 0);
+	HAL_NVIC_SetPriority(USART3_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART3_IRQn);
 
 }
@@ -275,36 +260,11 @@ void USART3_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA1_Stream4_IRQHandler(void)
+void DMA1_Stream2_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart3_rx);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: DMA1_Stream3_IRQn
-*	功能说明: 串口发送DMA中断服务程序。
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void DMA1_Stream5_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart3_tx, DMA_FLAG_TCIF1_5) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart3_tx, DMA_FLAG_TCIF1_5);
-	}
-
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart3_tx, DMA_FLAG_TEIF1_5) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart3_tx, DMA_FLAG_TEIF1_5);
-
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_usart3_tx);
-	}
-}
 #endif
 
 /*

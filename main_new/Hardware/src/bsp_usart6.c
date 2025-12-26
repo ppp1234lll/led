@@ -57,7 +57,7 @@ void bsp_InitUsart6(uint32_t baudrate)
 
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 #if UART6_RX_DMA
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 #endif
 	/**USART6 GPIO Configuration
 	PC6     ------> USART6_TX
@@ -73,7 +73,7 @@ void bsp_InitUsart6(uint32_t baudrate)
 #if UART6_RX_DMA
 	/*##-3- 配置DMA ##################################################*/
 	/* 配置DMA发送 */
-	hdma_usart6_rx.Instance = DMA2_Stream2;
+	hdma_usart6_rx.Instance = DMA1_Stream5;
 	hdma_usart6_rx.Init.Request = DMA_REQUEST_USART6_RX;
 	hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
 	hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -90,22 +90,6 @@ void bsp_InitUsart6(uint32_t baudrate)
 	/* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
 	__HAL_LINKDMA(&huart6,hdmarx,hdma_usart6_rx);
 
-	/* USART6_TX Init */
-	hdma_usart6_tx.Instance = DMA2_Stream3;
-	hdma_usart6_tx.Init.Request = DMA_REQUEST_USART6_TX;
-	hdma_usart6_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-	hdma_usart6_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-	hdma_usart6_tx.Init.MemInc = DMA_MINC_ENABLE;
-	hdma_usart6_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-	hdma_usart6_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-	hdma_usart6_tx.Init.Mode = DMA_NORMAL;
-	hdma_usart6_tx.Init.Priority = DMA_PRIORITY_LOW;
-	hdma_usart6_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	if (HAL_DMA_Init(&hdma_usart6_tx) != HAL_OK)
-	{
-		Error_Handler(__FILE__, __LINE__);
-	}
-	__HAL_LINKDMA(&huart6,hdmatx,hdma_usart6_tx);
 #endif
 
   huart6.Instance = USART6;
@@ -118,7 +102,8 @@ void bsp_InitUsart6(uint32_t baudrate)
   huart6.Init.OverSampling = UART_OVERSAMPLING_16;
   huart6.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart6.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart6.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart6) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -147,7 +132,7 @@ void bsp_InitUsart6(uint32_t baudrate)
 	__HAL_UART_CLEAR_FLAG(&huart6, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* USART6 interrupt Init */
-	HAL_NVIC_SetPriority(USART6_IRQn, 2, 0);
+	HAL_NVIC_SetPriority(USART6_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART6_IRQn);
 
 }
@@ -275,36 +260,11 @@ void USART6_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA2_Stream2_IRQHandler(void)
+void DMA1_Stream5_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart6_rx);
 }
 
-/*
-*********************************************************************************************************
-*	函 数 名: DMA2_Stream3_IRQHandler
-*	功能说明: 串口发送DMA中断服务程序。
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void DMA2_Stream3_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart6_tx, DMA_FLAG_TCIF3_7) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart6_tx, DMA_FLAG_TCIF3_7);
-	}
-
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart6_tx, DMA_FLAG_TEIF3_7) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart6_tx, DMA_FLAG_TEIF3_7);
-
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_usart6_tx);
-	}
-}
 #endif
 
 /*

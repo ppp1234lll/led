@@ -474,14 +474,14 @@
               <FilePath>..\..\Hardware\src\bsp_rtc.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_usart2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_usart2.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_usart1.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_usart1.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_usart2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_usart2.c</FilePath>
             </File>
             <File>
               <FileName>bsp_usart3.c</FileName>

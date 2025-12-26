@@ -66,17 +66,17 @@
 #define SPIx_MOSI_PIN 					GPIO_PIN_5
 #define SPIx_MOSI_AF						GPIO_AF5_SPI1
 
-#define SPIx_TX_DMA_STREAM			DMA2_Stream7
-#define SPIx_RX_DMA_STREAM			DMA2_Stream6
+#define SPIx_TX_DMA_STREAM               DMA2_Stream3
+#define SPIx_RX_DMA_STREAM               DMA2_Stream2
 
-#define SPIx_TX_DMA_REQUEST			DMA_REQUEST_SPI1_TX
-#define SPIx_RX_DMA_REQUEST			DMA_REQUEST_SPI1_RX
+#define SPIx_TX_DMA_REQUEST              DMA_REQUEST_SPI1_TX
+#define SPIx_RX_DMA_REQUEST              DMA_REQUEST_SPI1_RX
 
-#define SPIx_DMA_TX_IRQn				DMA2_Stream7_IRQn
-#define SPIx_DMA_RX_IRQn				DMA2_Stream6_IRQn
+#define SPIx_DMA_TX_IRQn                 DMA2_Stream3_IRQn
+#define SPIx_DMA_RX_IRQn                 DMA2_Stream2_IRQn
 
-#define SPIx_DMA_TX_IRQHandler	DMA2_Stream7_IRQHandler
-#define SPIx_DMA_RX_IRQHandler	DMA2_Stream6_IRQHandler
+#define SPIx_DMA_TX_IRQHandler           DMA2_Stream3_IRQHandler
+#define SPIx_DMA_RX_IRQHandler           DMA2_Stream2_IRQHandler
 
 #define SPIx_IRQn								SPI1_IRQn
 #define SPIx_IRQHandler					SPI1_IRQHandler
@@ -119,8 +119,8 @@ uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
 /* DMA模式使用的SRAM4 */
 #elif defined (USE_SPI_DMA)
 
-__attribute__((section (".RAM_SRAMD2"))) uint8_t g_spiTxBuf[SPI_BUFFER_SIZE];   
-__attribute__((section (".RAM_SRAMD2"))) uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
+__attribute__((section (".RAM_SRAM4"))) uint8_t g_spiTxBuf[SPI_BUFFER_SIZE];   
+__attribute__((section (".RAM_SRAM4"))) uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
 
 #endif
 
@@ -333,15 +333,15 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *_hspi)
 	   __HAL_LINKDMA(_hspi, hdmarx, hdma_rx);	
 
 		/* 配置DMA发送中断 */
-		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 0, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 1, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_TX_IRQn);
 		
 		/* 配置DMA接收中断 */
-		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 0, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 1, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_RX_IRQn);
 		
 		/* 配置SPI中断 */
-		HAL_NVIC_SetPriority(SPIx_IRQn, 0, 0);
+		HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
 		HAL_NVIC_EnableIRQ(SPIx_IRQn);
 	}
 	#endif

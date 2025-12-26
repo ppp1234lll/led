@@ -13,7 +13,7 @@
 #include "bsp_usart1.h"
 
 #define UART1_RX_NE     0    // 使用串口中断
-#define UART1_RX_DMA    1    // 使用串口DMA
+#define UART1_RX_DMA    0    // 使用串口DMA
 
 #define U1_RX_SIZE  (2048)
 /*  接收状态
@@ -90,22 +90,6 @@ void bsp_InitUsart1(uint32_t baudrate)
     /* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
     __HAL_LINKDMA(&huart1,hdmarx,hdma_usart1_rx);
 
-    /* USART1_TX Init */
-    hdma_usart1_tx.Instance = DMA1_Stream1;
-    hdma_usart1_tx.Init.Request = DMA_REQUEST_USART1_TX;
-    hdma_usart1_tx.Init.Direction = DMA_MEMORY_TO_PERIPH;
-    hdma_usart1_tx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart1_tx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart1_tx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart1_tx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart1_tx.Init.Mode = DMA_NORMAL;
-    hdma_usart1_tx.Init.Priority = DMA_PRIORITY_LOW;
-    hdma_usart1_tx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_usart1_tx) != HAL_OK)
-    {
-      Error_Handler(__FILE__, __LINE__);
-    }
-    __HAL_LINKDMA(&huart1,hdmatx,hdma_usart1_tx);
 #endif
 
   huart1.Instance = USART1;
@@ -118,7 +102,8 @@ void bsp_InitUsart1(uint32_t baudrate)
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
   huart1.Init.ClockPrescaler = UART_PRESCALER_DIV1;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart1.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler(__FILE__, __LINE__);
@@ -148,7 +133,7 @@ void bsp_InitUsart1(uint32_t baudrate)
 	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* USART1 interrupt Init */
-	HAL_NVIC_SetPriority(USART1_IRQn, 3, 0);
+	HAL_NVIC_SetPriority(USART1_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART1_IRQn);
 
 }
@@ -321,23 +306,23 @@ void DMA1_Stream0_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void DMA1_Stream1_IRQHandler(void)
-{
-	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5) != RESET) {
-		// 清除传输完成标志（必须：否则会反复触发中断）
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5);
-	}
+//void DMA1_Stream1_IRQHandler(void)
+//{
+//	// 1. 检测DMA传输完成标志（TCIF：Transfer Complete Interrupt Flag）
+//	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5) != RESET) {
+//		// 清除传输完成标志（必须：否则会反复触发中断）
+//		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF1_5);
+//	}
 
-	// 2. 检测DMA传输错误标志（可选：处理发送异常）
-	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5) != RESET) {
-		// 清除错误标志
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5);
+//	// 2. 检测DMA传输错误标志（可选：处理发送异常）
+//	if (__HAL_DMA_GET_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5) != RESET) {
+//		// 清除错误标志
+//		__HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TEIF1_5);
 
-		// 错误处理：停止DMA，重置状态
-		HAL_DMA_Abort(&hdma_usart1_tx);
-	}
-}
+//		// 错误处理：停止DMA，重置状态
+//		HAL_DMA_Abort(&hdma_usart1_tx);
+//	}
+//}
 #endif
 /*
 *********************************************************************************************************
@@ -398,7 +383,7 @@ void usart1_test(void)
 }
 
 #ifdef Enable_USART
-///重定向c库函数printf到串口USARTx，重定向后可使用printf函数
+//重定向c库函数printf到串口USARTx，重定向后可使用printf函数
 int fputc(int ch, FILE *f)
 {
     /* 发送一个字节数据到串口USARTx */
