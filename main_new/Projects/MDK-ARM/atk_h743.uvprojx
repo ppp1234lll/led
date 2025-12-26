@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,CMSIS_device_header=\"stm32h7xx.h\"</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT</IncludePath>
+              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT;..\..\Middlewares\littlefs</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -1117,6 +1117,26 @@
               <FileName>SEGGER_RTT_Conf.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\Middlewares\RTT\SEGGER_RTT_Conf.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/littlefs</GroupName>
+          <Files>
+            <File>
+              <FileName>lfs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\littlefs\lfs.c</FilePath>
+            </File>
+            <File>
+              <FileName>lfs_port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\littlefs\lfs_port.c</FilePath>
+            </File>
+            <File>
+              <FileName>lfs_util.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\littlefs\lfs_util.c</FilePath>
             </File>
           </Files>
         </Group>
