@@ -24,7 +24,7 @@
 #include "bsp.h"
 #include "bsp_timers.h"
 
-#define  TIMER_DEBUG
+//#define  TIMER_DEBUG
 
 #ifdef TIMER_DEBUG
 __attribute__((section (".RAM_SRAM4"))) uint16_t g_timer_test[16];

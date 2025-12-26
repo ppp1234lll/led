@@ -12,8 +12,8 @@
 #include "bsp.h"
 #include "bsp_usart1.h"
 
-#define UART1_RX_NE     1    // 使用串口中断
-#define UART1_RX_DMA    0    // 使用串口DMA
+#define UART1_RX_NE     0    // 使用串口中断
+#define UART1_RX_DMA    1    // 使用串口DMA
 
 #define U1_RX_SIZE  (2048)
 /*  接收状态
@@ -108,7 +108,6 @@ void bsp_InitUsart1(uint32_t baudrate)
     __HAL_LINKDMA(&huart1,hdmatx,hdma_usart1_tx);
 #endif
 
-
   huart1.Instance = USART1;
   huart1.Init.BaudRate = baudrate;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -138,8 +137,8 @@ void bsp_InitUsart1(uint32_t baudrate)
 	__HAL_UART_CLEAR_IDLEFLAG(&huart1); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
 
 	/*##-4- 配置中断 #########################################*/
-	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
-	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
+//	HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 0, 0);
+//	HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
 	
 #endif
 
@@ -149,7 +148,7 @@ void bsp_InitUsart1(uint32_t baudrate)
 	__HAL_UART_CLEAR_FLAG(&huart1, UART_FLAG_TC);     // 清除发送完成标志
 
 	/* USART1 interrupt Init */
-	HAL_NVIC_SetPriority(USART1_IRQn, 8, 0);
+	HAL_NVIC_SetPriority(USART1_IRQn, 3, 0);
 	HAL_NVIC_EnableIRQ(USART1_IRQn);
 
 }
@@ -350,70 +349,73 @@ void DMA1_Stream1_IRQHandler(void)
 */
 void usart1_test(void)
 {
-    uint8_t len;
-    uint16_t times = 0;
+	int GetKey;
+	uint8_t len;
+	uint16_t times = 0;
 	while(1)
 	{
-        if (g_usart1_rx_sta & 0x8000)                                                    /* 接收到了数据? */
-        {
-            len = g_usart1_rx_sta & 0x3fff;                                              /* 得到此次接收到的数据长度 */
-            Usart1_SendString("\r\n您发送的消息为:\r\n");
+		/* 做一个简单的回环功能 */
+		if (SEGGER_RTT_HasKey()) 
+		{
+			GetKey = SEGGER_RTT_GetKey();
+			SEGGER_RTT_SetTerminal(0);
+			SEGGER_RTT_printf(0, "SEGGER_RTT_GetKey = %c\r\n", GetKey);
+		}
+		
+		if (g_usart1_rx_sta & 0x8000)                                                    /* 接收到了数据? */
+		{
+				len = g_usart1_rx_sta & 0x3fff;                                              /* 得到此次接收到的数据长度 */
+				Usart1_SendString("\r\n您发送的消息为:\r\n");
 
-            HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, len, 1000);   /* 发送接收到的数据 */
-            while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TC) != SET);           /* 等待发送结束 */
-            Usart1_SendString("\r\n\r\n");                                                         /* 插入换行 */
-            g_usart1_rx_sta = 0;
-        }
-        else
-        {
-            times++;
+				HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, len, 1000);   /* 发送接收到的数据 */
+				while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_TC) != SET);           /* 等待发送结束 */
+				Usart1_SendString("\r\n\r\n");                                                         /* 插入换行 */
+				g_usart1_rx_sta = 0;
+		}
+		else
+		{
+				times++;
 
-            if (times % 5000 == 0)
-            {
-                Usart1_SendString("\r\n正点原子 STM32开发板 串口实验\r\n");
-                Usart1_SendString("正点原子@ALIENTEK\r\n\r\n\r\n");
-            }
+				if (times % 5000 == 0)
+				{
+						Usart1_SendString("\r\n正点原子 STM32开发板 串口实验\r\n");
+						Usart1_SendString("正点原子@ALIENTEK\r\n\r\n\r\n");
+				}
 
-            if (times % 200 == 0)
-            {
-                Usart1_SendString("请输入数据,以回车键结束\r\n");
-            }
+				if (times % 200 == 0)
+				{
+						Usart1_SendString("请输入数据,以回车键结束\r\n");
+				}
 
-            if (times % 30  == 0) 
-            {
+				if (times % 30  == 0) 
+				{
 //                Usart1_SendString("times\r\n");
-            }
+				}
 
-            delay_ms(10);
-        }
-    }	
+				delay_ms(10);
+		}
+	}	
 }
 
-
-/******************************************************************************************/
-/* 加入以下代码, 支持printf函数, 而不需要选择use MicroLIB */
-
 #ifdef Enable_USART
-
-///重定向c库函数printf到串口DEBUG_USART，重定向后可使用printf函数
+///重定向c库函数printf到串口USARTx，重定向后可使用printf函数
 int fputc(int ch, FILE *f)
 {
-	/* 发送一个字节数据到串口DEBUG_USART */
-	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 1000);	
-	
+    /* 发送一个字节数据到串口USARTx */
+	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
 	return (ch);
 }
 
-///重定向c库函数scanf到串口DEBUG_USART，重写向后可使用scanf、getchar等函数
+///重定向c库函数scanf到串口USARTx，重写向后可使用scanf、getchar等函数
 int fgetc(FILE *f)
-{
-		
+{	
 	int ch;
-	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 1000);	
+	/* 等待串口输入数据 */
+	while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) == RESET);
+	__HAL_UART_CLEAR_OREFLAG(&huart1);
+	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
 	return (ch);
 }
 #endif
- 
-
 
 

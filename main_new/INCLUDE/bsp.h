@@ -57,9 +57,12 @@
 #include "bsp_uart8.h"
 #include "bsp_lpuart1.h"
 #include "bsp_timers.h"
+#include "bsp_spi_bus.h"
+#include "bsp_spi_flash.h"
+
+#include "bsp_usart.h"
 
 
-
-
+#include "demo_spi_flash.h"
 #endif
 

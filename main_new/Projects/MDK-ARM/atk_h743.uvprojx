@@ -275,7 +275,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8020000</StartAddress>
+                <StartAddress>0x8000000</StartAddress>
                 <Size>0x200000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -413,6 +413,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\freertos_demo.c</FilePath>
             </File>
+            <File>
+              <FileName>demo_spi_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\demo_spi_flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -517,6 +522,16 @@
               <FileName>bsp_timers.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_timers.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_spi_bus.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_spi_bus.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_spi_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_spi_flash.c</FilePath>
             </File>
           </Files>
         </Group>
