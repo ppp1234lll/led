@@ -1,8 +1,6 @@
-#include "lfs_port.h"
 #include "lfs.h"
-
-
-int lfs_test(void);
+#include "lfs_port.h"
+#include "bsp.h"
 
 /**
  * lfs与底层flash读数据接口
@@ -14,11 +12,9 @@ int lfs_test(void);
  * @return
  */
 static int lfs_deskio_read(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, void *buffer, lfs_size_t size)
-{
-	if(W25Qx_OK == w25qxx_read((uint8_t *)buffer, c->block_size * (OFFSETBLOCK+block) + off, size))
-		return LFS_ERR_OK;
-	else
-		return LFS_ERR_IO;
+{	
+	sf_ReadBuffer((uint8_t *)buffer, (block*(c->block_size))+off, size);
+	return 0;
 }
 
  
@@ -33,10 +29,8 @@ static int lfs_deskio_read(const struct lfs_config *c, lfs_block_t block, lfs_of
  */
 static int lfs_deskio_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t off, const void *buffer, lfs_size_t size)
 {
-	if(W25Qx_OK == w25qxx_write((uint8_t *)buffer, c->block_size * (OFFSETBLOCK+block) + off, size))
-		return LFS_ERR_OK;
-	else
-		return LFS_ERR_IO;
+	sf_WriteBuffer((uint8_t *)buffer, (block*(c->block_size))+off, size);
+	return 0;
 }
  
 /**
@@ -47,21 +41,21 @@ static int lfs_deskio_prog(const struct lfs_config *c, lfs_block_t block, lfs_of
  */
 static int lfs_deskio_erase(const struct lfs_config *c, lfs_block_t block)
 {
-	printf("block:%d,i:%d",block,(OFFSETBLOCK+block)*c->block_size);
-	if(W25Qx_OK == w25qxx_erase_block((OFFSETBLOCK+block)*c->block_size))
-		return LFS_ERR_OK;
-	else
-		return LFS_ERR_IO;
+	sf_EraseSector(block * c->block_size);
+	return 0;
 }
  
 static int lfs_deskio_sync(const struct lfs_config *c)
 {
-	if(W25Qx_OK == w25qxx_getstatus())
-		return LFS_ERR_OK;
-	else
-		return LFS_ERR_IO;
+	return 0;
 }
  
+///
+/// 静态内存使用方式必须设定这四个缓存
+///
+__attribute__((section (".RAM_SRAM4"))) static uint8_t read_buffer[256];  
+__attribute__((section (".RAM_SRAM4"))) static uint8_t prog_buffer[256];
+__attribute__((section (".RAM_SRAM4"))) static uint8_t lookahead_buffer[256];
 
 // configuration of the filesystem is provided by this struct
 const struct lfs_config cfg = 
@@ -73,59 +67,57 @@ const struct lfs_config cfg =
     .sync  = lfs_deskio_sync,
 
     // block device configuration
-    .read_size = 16,
-    .prog_size = 16,
-    .block_size = 4096,
-    .block_count = 128,
-    .cache_size = 16,
-    .lookahead_size = 16,
-    .block_cycles = 500,
-	
-	
-    // block device operations
-    .read  = block_device_read,
-    .prog  = block_device_prog,
-    .erase = block_device_erase,
-    .sync  = block_device_sync,
+		.read_size = 256,   		// 最小读取单元大小
+		.prog_size = 256,   		// 最小编程单元大小,
+		.block_size = 4096, 		// 擦除块的大小, 必须等于 W25Q128 的最小擦除单元
+		.block_count = 1024, 		// 块设备的块数量,块设备的块数量
+	                          // 25Q16 共计 16Mbit，即2MB, 4K一个扇区，共计 2*1024*1024/4096 = 512 个扇区 */
+						                // 25Q128 共计 128Mbit，即16MB, 4K一个扇区，共计 16*1024*1024/4096 = 4096 个扇区 */
 
-    // block device configuration
-    .read_size = 256,
-    .prog_size = 256,
-    .block_size  = 4096,
-    .block_count = 512, /* 25Q16 共计 16Mbit，即2MB, 4K一个扇区，共计 2*1024*1024/4096 = 512 个扇区 */
-						            /* 25Q128 共计 128Mbit，即16MB, 4K一个扇区，共计 16*1024*1024/4096 = 4096 个扇区 */
-    .lookahead 	 = 128,
+		.cache_size = 256,
+		.lookahead_size = 256,  // lookahead 缓冲区的大小,必须是 8 的倍数
+		.block_cycles = 500,	
+
 };
 
 // variables used by the filesystem
 lfs_t 		g_lfs_t;
-
-
-#define LFS_DEVICE_PARAM ("device")
 
 // entry point
 int lfs_init_function(void) 
 {
 	lfs_file_t  lfs_file;
 	/* 挂载设备 */
-    int err = lfs_mount(&g_lfs_t, &cfg);
+	int err = lfs_mount(&g_lfs_t, &cfg);
 
-    if (err) 
+	if (err) 
 	{
 		err = lfs_format(&g_lfs_t, &cfg);
 		err = lfs_mount(&g_lfs_t, &cfg);
-		if (err) {
+		if (err) 
+		{
 			/* 格式化flash */
-			W25QXX_Erase_Chip();
-			
+			sf_EraseChip();
+
 			err = lfs_format(&g_lfs_t, &cfg);
 			err = lfs_mount(&g_lfs_t, &cfg);
 		}
   }
-	err = lfs_file_open(&g_lfs_t, &lfs_file, "boot_count.txt", LFS_O_RDWR | LFS_O_CREAT);
-		
-	err = lfs_file_close(&g_lfs_t, &lfs_file);
-		
+	
+	// read current count
+	uint32_t boot_count = 0;
+	lfs_file_open(&g_lfs_t, &lfs_file, "boot_count", LFS_O_RDWR | LFS_O_CREAT);
+	lfs_file_read(&g_lfs_t, &lfs_file, &boot_count, sizeof(boot_count));
+
+	// update boot count
+	boot_count += 1;
+
+	lfs_file_rewind(&g_lfs_t, &lfs_file);
+	lfs_file_write(&g_lfs_t, &lfs_file, &boot_count, sizeof(boot_count));
+	
+  printf("boot_count: %d\n", boot_count);
+	// remember the storage is not updated until the file is closed successfully
+	lfs_file_close(&g_lfs_t, &lfs_file);
 	return 0;
 }
 
@@ -133,35 +125,75 @@ int lfs_init_function(void)
 
 int lfs_test(void)
 {
-	int err = 0;
-//	lfs_file_t lfs_fp;
-//	// read current count
-//    uint32_t boot_count = 0;
-//	uint32_t boot_count1 = 0;
+//	lfs_t lfs;
+//	lfs_file_t file;
+//	lfs_dir_t dir;
+//	struct lfs_info info;
+//	int err;
 //	
-//    err = lfs_file_open(&lfs, &lfs_file, "boot_count.txt", LFS_O_RDWR | LFS_O_CREAT);
-//	err = lfs_file_open(&lfs, &lfs_fp, "boot_test.txt", LFS_O_RDWR | LFS_O_CREAT);
-//    err = lfs_file_read(&lfs, &lfs_file, &boot_count, sizeof(boot_count));
-//	err = lfs_file_read(&lfs, &lfs_fp, &boot_count1, sizeof(boot_count1));
+//	// 创建一个名为test的文件向文件中写入"1234"4个字节数据
+//	lfs_file_open(&lfs, &file, "test", LFS_O_CREAT | LFS_O_RDWR);
+//	lfs_file_write(&lfs, &file, "1234", 4);
+//	lfs_file_close(&lfs, &file);
 //	
-//    // update boot count
-//    boot_count += 1;
-//	boot_count1 = boot_count%2 + boot_count;
-//	
-//    err = lfs_file_rewind(&lfs, &lfs_file);
-//    err = lfs_file_write(&lfs, &lfs_file, &boot_count, sizeof(boot_count));
-//	err = lfs_file_rewind(&lfs, &lfs_fp);
-//	err = lfs_file_write(&lfs, &lfs_fp, &boot_count1, sizeof(boot_count1));
-//	
-//    // remember the storage is not updated until the file is closed successfully
-//    err = lfs_file_close(&lfs, &lfs_file);
-//	err = lfs_file_close(&lfs, &lfs_fp);
-//	
-//    // release any resources we were using
-//    err = lfs_unmount(&lfs);
-	
-	return err;
+//	// 这时虽然打开文件时也使用了LFS_O_CREAT标志但是并不会创建一个新的文件也不会报错，在加入LFS_O_EXCL标志后才会报错
+//	// LFS_O_RDONLY 标志表示以只读打开文件
+//	// LFS_O_WRONLY 标志表示以只写打开文件
+//	// LFS_O_RDWR 标志表示以可读可写打开文件，等价于 LFS_O_RDONLY | LFS_O_WRONLY
+//	// LFS_O_CREAT 打开文件时如果文件不存在就创建新文件并打开，如果存在将读写指针定位到文件开头打开文件
+//	// LFS_O_EXCL  打开文件时如果文件不存在就创建新文件并打开，如果存在就报错
+//	// LFS_O_TRUNC 打开一个已有文件并将文件大小设置为0
+//	// LFS_O_APPEND 打开一个已有文件并将文件的读写指针设置到文件最后
+//	lfs_file_open(&lfs, &file, "test", LFS_O_CREAT | LFS_O_RDWR);
+//	lfs_file_write(&lfs, &file, "abc", 3);
+//	lfs_file_sync(&lfs, &file); // 这时会见内存中的缓存数据写入到Flash中，这时文件内容为"abc4"
 
+//	// LFS_SEEK_SET 用绝对位置设置文件的读写指针（用相对用文件开头的位置设置读写指针）
+//	// LFS_SEEK_CUR 用相对于当前的位置位置设置读写指针
+//	// LFS_SEEK_END 用相对用文件末尾的位置设置读写指针
+//	lfs_file_seek(&lfs, &file, 0, LFS_SEEK_SET); // 文件指针返回到文件开头
+//	lfs_file_write(&lfs, &file, "1", 1);
+//	lfs_file_sync(&lfs, &file); // 这时文件内容为"1bc4"
+
+//	lfs_file_seek(&lfs, &file, 0, LFS_SEEK_END); // 文件指针设置到文件最后
+//	lfs_file_write(&lfs, &file, "5", 1);
+//	lfs_file_sync(&lfs, &file); // 这时文件内容为"1bc45"
+
+//	// 文件指针设置到相对于当前位置-2，1bc45| --> 1bc|45
+//	lfs_file_seek(&lfs, &file, -2, LFS_SEEK_CUR);
+//	lfs_file_write(&lfs, &file, "d", 1);
+//	lfs_file_sync(&lfs, &file); // 这时文件内容为"1bcd5"
+//	lfs_file_close(&lfs, &file);
+
+//// 对test文件设置一个时间和一个日期的自定义属性，在删除文件时也会删除
+//#define FILE_TIME_TYPE 1
+//#define FILE_DATE_TYPE 2
+//	lfs_setattr(&lfs, "test", FILE_TIME_TYPE, "12:00:00", 8);
+//	lfs_setattr(&lfs, "test", FILE_DATE_TYPE, "2023-1-1", 8);
+
+//	// 在根目录下创建了一个名为abc的目录
+//	// 在abc目录下创建了一个名为test的文件，当前有两个test文件一个在根目录一个在abc目录中
+//	lfs_mkdir(&lfs, "abc");
+//	lfs_dir_open(&lfs, &dir, "abc");
+//	lfs_file_open(&lfs, &file, "test",LFS_O_CREAT | LFS_O_RDWR);
+//	lfs_file_close(&lfs, &file);
+//	lfs_dir_close(&lfs, &dir);
+
+//	// 遍历根目录下的内容，会递归遍历根目录下的目录里的内容
+//	// 同时每个目录都会遍历到一个"."和一个".."的文件夹表示当前文件夹和返回上一个文件夹的路径
+//	lfs_dir_open(&lfs, &dir, ".");
+//	while (1)
+//	{
+//		err = lfs_dir_read(&lfs, &dir, &info);
+//		if (err < 0)
+//				break;
+//	}
+//	lfs_dir_close(&lfs, &dir);
+
+//	// release any resources we were using
+//	err = lfs_unmount(&lfs);
+	
+//	return err;
 }
 
 

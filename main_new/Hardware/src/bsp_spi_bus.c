@@ -333,15 +333,15 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *_hspi)
 	   __HAL_LINKDMA(_hspi, hdmarx, hdma_rx);	
 
 		/* ≈‰÷√DMA∑¢ÀÕ÷–∂œ */
-		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_TX_IRQn);
 		
 		/* ≈‰÷√DMAΩ” ’÷–∂œ */
-		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_RX_IRQn);
 		
 		/* ≈‰÷√SPI÷–∂œ */
-		HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_IRQn);
 	}
 	#endif

@@ -11,7 +11,7 @@
 extern  lfs_t g_lfs_t;
 
 int lfs_init_function(void);
-
+int lfs_test(void);
 #endif
 
 

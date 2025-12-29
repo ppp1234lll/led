@@ -14,6 +14,8 @@
 #ifndef _BSP_SPI_FLASH_H
 #define _BSP_SPI_FLASH_H
 
+#include "./SYSTEM/sys/sys.h"
+
 #define SF_MAX_PAGE_SIZE	(4 * 1024)
 
 /* ∂®“Â¥Æ––Flash ID */
