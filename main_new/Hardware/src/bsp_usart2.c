@@ -12,10 +12,32 @@
 #include "bsp.h"
 #include "bsp_usart2.h"
 
+/*
+*********************************************************************************************************
+*	                             选择DMA，中断或者查询方式
+*********************************************************************************************************
+*/
 #define UART2_RX_NE     0    // 使用串口中断
 #define UART2_RX_DMA    1    // 使用串口DMA
 
+/*
+*********************************************************************************************************
+*	                            时钟，引脚，DMA，中断等宏定义
+*********************************************************************************************************
+*/
+
 #define U2_RX_SIZE  (2048)
+#define U2_TX_SIZE  (2048)
+
+/*
+*********************************************************************************************************
+*	                                           变量
+*********************************************************************************************************
+*/
+UART_HandleTypeDef 	huart2;        /* UART句柄 */
+DMA_HandleTypeDef 	hdma_usart2_rx;
+DMA_HandleTypeDef 	hdma_usart2_tx;
+
 /*  接收状态
  *  bit15，      接收完成标志
  *  bit14，      接收到0x0d
@@ -23,14 +45,21 @@
 */
 uint16_t g_usart2_rx_sta = 0;
 
-__attribute__((section (".RAM_SRAMD2"))) uint8_t g_U2RxBuffer[U2_RX_SIZE];
-
-UART_HandleTypeDef huart2;        /* UART句柄 */
-
 #if UART2_RX_DMA
-DMA_HandleTypeDef hdma_usart2_rx;
-DMA_HandleTypeDef hdma_usart2_tx;
+__attribute__((section (".RAM_SRAMD2"))) uint8_t g_U2RxBuffer[U2_RX_SIZE];
+__attribute__((section (".RAM_SRAMD2"))) uint8_t g_U2TxBuffer[U2_TX_SIZE];
+#else
+uint8_t g_U2RxBuffer[U2_RX_SIZE];
+uint8_t g_U2TxBuffer[U2_TX_SIZE];#endif
 #endif
+
+
+/*
+*********************************************************************************************************
+*	                                           函数声明
+*********************************************************************************************************
+*/
+
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitUsart2
@@ -57,7 +86,7 @@ void bsp_InitUsart2(uint32_t baudrate)
 	__HAL_RCC_USART2_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 #if UART2_RX_DMA
-	__HAL_RCC_DMA1_CLK_ENABLE();
+	__HAL_RCC_DMA2_CLK_ENABLE();
 #endif
 	/**USART2 GPIO Configuration
 	PD5     ------> USART2_TX
@@ -107,32 +136,45 @@ void bsp_InitUsart2(uint32_t baudrate)
   {
     Error_Handler(__FILE__, __LINE__);
   }
-	
-#if UART2_RX_NE
-	/* 该函数会开启接收中断：标志位UART_IT_RXNE，并且设置接收缓冲以及接收缓冲接收最大数据量 */
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)g_U2RxBuffer, U2_RX_SIZE);
-#endif
-	
-#if UART2_RX_DMA
-  // 启动 DMA 接收
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
-	__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);  // 禁用半满中断
-	__HAL_UART_CLEAR_IDLEFLAG(&huart2); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
-
-	/*##-4- 配置中断 #########################################*/
-//	HAL_NVIC_SetPriority(DMA1_Stream2_IRQn, 0, 0);
-//	HAL_NVIC_EnableIRQ(DMA1_Stream2_IRQn);
-	
-#endif
 
 	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_IDLE);  // 清除空闲标志
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);  // 清除接收非空标志
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_TC);     // 清除发送完成标志
 
+	
+#if UART2_RX_NE
+	/* USART2 interrupt Init */
+	HAL_NVIC_SetPriority(USART2_IRQn, 4, 0);
+	HAL_NVIC_EnableIRQ(USART2_IRQn);	
+	
+	/* 该函数会开启接收中断：标志位UART_IT_RXNE，并且设置接收缓冲以及接收缓冲接收最大数据量 */
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)g_U2RxBuffer, U2_RX_SIZE);
+#endif
+	
+#if UART2_RX_DMA
+
+	__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);  // 禁用半满中断
+	__HAL_UART_CLEAR_IDLEFLAG(&huart2); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
+
+	// TX DMA（Stream1）：启用完成中断和错误中断
+	__HAL_DMA_DISABLE_IT(&hdma_usart2_tx, DMA_IT_HT);  // 禁用半满中断
+	__HAL_DMA_ENABLE_IT(&hdma_usart2_tx, DMA_IT_TC | DMA_IT_TE);
+	
+	/*##-4- 配置中断 #########################################*/
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 4, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 4, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 	/* USART2 interrupt Init */
 	HAL_NVIC_SetPriority(USART2_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
+	
+  // 启动 DMA 接收
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
+#endif
 
 }
 
@@ -151,7 +193,7 @@ void Usart2_SendString(uint8_t *str)
   {
       HAL_UART_Transmit( &huart2,(uint8_t *)(str + k) ,1,1000);
       k++;
-  } while(*(str + k)!='\0');
+  } while(*(str + k)!='\0'); 
 }
 
 /*
@@ -164,13 +206,7 @@ void Usart2_SendString(uint8_t *str)
 */
 void Usart2_Send_Data(uint8_t *buf, uint16_t len)
 {
-//#if UART2_RX_DMA
-//		/* DMA发送时 cache的内容需要更新到SRAM中 */
-//		SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
-//		HAL_UART_Transmit_DMA(&huart2, buf, len);	
-//#else
-	HAL_UART_Transmit(&huart2,(uint8_t *)buf ,len,1000);
-//#endif  
+	HAL_UART_Transmit(&huart2,(uint8_t *)buf ,len,1000); 
 }
 
 /*
@@ -229,7 +265,7 @@ void USART2_IRQHandler(void)
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U2RxBuffer, U2_RX_SIZE);		
 		Usart2_SendString("\r\n uart2 dma_recv:\r\n");
 		HAL_UART_Transmit(&huart2, (uint8_t *)g_U2RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-		
+//		Usart2_Send_Data(g_U2RxBuffer, total_len);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
 	}
 #endif
@@ -251,7 +287,7 @@ void USART2_IRQHandler(void)
 #if UART2_RX_DMA
 /*
 *********************************************************************************************************
-*	函 数 名: DMA1_Stream2_IRQn
+*	函 数 名: DMA1_Stream1_IRQHandler
 *	功能说明: 串口中断的接收回调函数。
 *	形    参: 无
 *	返 回 值: 无
@@ -259,9 +295,8 @@ void USART2_IRQHandler(void)
 */
 void DMA1_Stream1_IRQHandler(void)
 {
-  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+	HAL_DMA_IRQHandler(&hdma_usart2_rx);
 }
-
 #endif
 
 /*
@@ -276,6 +311,8 @@ void usart2_test(void)
 {
     uint8_t len;
     uint16_t times = 0;
+	
+	Usart2_Send_Data("123456",6);
 	while(1)
 	{
         if (g_usart2_rx_sta & 0x8000)                                                    /* 接收到了数据? */
@@ -292,10 +329,11 @@ void usart2_test(void)
         {
             times++;
 
-            if (times % 5000 == 0)
+            if (times % 1000 == 0)
             {
                 Usart2_SendString("\r\n正点原子 STM32开发板 串口实验\r\n");
                 Usart2_SendString("正点原子@ALIENTEK\r\n\r\n\r\n");
+								Usart2_Send_Data("123456",6);
             }
 
             if (times % 200 == 0)
@@ -312,7 +350,4 @@ void usart2_test(void)
         }
     }	
 }
-
-
- 
 

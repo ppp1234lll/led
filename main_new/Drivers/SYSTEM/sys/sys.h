@@ -43,6 +43,9 @@
 #define      OFF     0
 #define      Write_Through()    do{ *(__IO uint32_t*)0XE000EF9C = 1UL << 2; }while(0)     /* Cache透写模式 */
 
+typedef void (*UART_RxCpltCallbackFunc)(UART_HandleTypeDef *huart);
+typedef void (*UART_RxEventCallbackFunc)(UART_HandleTypeDef *huart, uint16_t Size);
+
 void sys_nvic_set_vector_table(uint32_t baseaddr, uint32_t offset);                       /* 设置中断偏移量 */
 void sys_cache_enable(void);                                                              /* 使能STM32H7的L1-Cahce */
 uint8_t sys_stm32_clock_init(uint32_t plln, uint32_t pllm, uint32_t pllp, uint32_t pllq); /* 配置系统时钟 */

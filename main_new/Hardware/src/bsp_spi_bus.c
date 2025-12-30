@@ -481,20 +481,20 @@ uint8_t bsp_SpiBusBusy(void)
 #endif
 
 #ifdef USE_SPI_DMA
-	void SPIx_DMA_RX_IRQHandler(void)
-	{
-		HAL_DMA_IRQHandler(hspi.hdmarx);
-	}
+void SPIx_DMA_RX_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(hspi.hdmarx);
+}
 
-	void SPIx_DMA_TX_IRQHandler(void)
-	{
-		HAL_DMA_IRQHandler(hspi.hdmatx);
-	}
-	
-	void SPIx_IRQHandler(void)
-	{
-		HAL_SPI_IRQHandler(&hspi);
-	}	
+void SPIx_DMA_TX_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(hspi.hdmatx);
+}
+
+void SPIx_IRQHandler(void)
+{
+	HAL_SPI_IRQHandler(&hspi);
+}	
 #endif
 	
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

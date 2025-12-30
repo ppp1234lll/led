@@ -62,7 +62,7 @@
 
 #include "bsp_usart.h"
 
-
+#include "usart.h"
 #include "demo_spi_flash.h"
 #endif
 

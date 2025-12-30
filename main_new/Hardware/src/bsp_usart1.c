@@ -166,13 +166,13 @@ void Usart1_SendString(uint8_t *str)
 */
 void Usart1_Send_Data(uint8_t *buf, uint16_t len)
 {
-//#if UART1_RX_DMA
-//		/* DMA发送时 cache的内容需要更新到SRAM中 */
-//		SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
-//		HAL_UART_Transmit_DMA(&huart1, buf, len);	
-//#else
+#if UART1_RX_DMA
+		/* DMA发送时 cache的内容需要更新到SRAM中 */
+		SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
+		HAL_UART_Transmit_DMA(&huart1, buf, len);	
+#else
 	HAL_UART_Transmit(&huart1,(uint8_t *)buf ,len,1000);
-//#endif  
+#endif  
 }
 /*
 *********************************************************************************************************
@@ -198,11 +198,11 @@ HAL_StatusTypeDef HAL_UART_DMAStopRx(UART_HandleTypeDef *huart)
 
     //UART_EndRxTransfer(huart);
     /* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
-	CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
-	CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
+		CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
+		CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
-	/* At end of Rx process, restore huart->RxState to Ready */
-	huart->RxState = HAL_UART_STATE_READY;
+		/* At end of Rx process, restore huart->RxState to Ready */
+		huart->RxState = HAL_UART_STATE_READY;
   }
 
   return HAL_OK;
@@ -402,5 +402,4 @@ int fgetc(FILE *f)
 	return (ch);
 }
 #endif
-
 

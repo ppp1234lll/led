@@ -29,6 +29,11 @@
 
 /******************************************************************************************/
 
+extern UART_HandleTypeDef huart8;          /* UART¾ä±ú */
+extern DMA_HandleTypeDef hdma_uart8_rx;
+extern DMA_HandleTypeDef hdma_uart8_tx;
+extern UART_RxCpltCallbackFunc   usart8_rxcplt_callback ;
+extern UART_RxEventCallbackFunc  usart8_rxeventcplt_callback;
 /******************************************************************************************/
 
 void bsp_InitUart8(uint32_t baudrate);

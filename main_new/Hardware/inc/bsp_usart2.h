@@ -29,6 +29,10 @@
 
 /******************************************************************************************/
 
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern DMA_HandleTypeDef hdma_usart2_tx;
+extern UART_HandleTypeDef huart2;
+extern UART_RxCpltCallbackFunc huart2_rxcplt_cb;
 /******************************************************************************************/
 
 void bsp_InitUsart2(uint32_t bound);

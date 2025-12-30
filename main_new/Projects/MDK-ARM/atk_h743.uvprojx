@@ -509,11 +509,6 @@
               <FilePath>..\..\Hardware\src\bsp_uart7.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_uart8.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_uart8.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_lpuart1.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_lpuart1.c</FilePath>
@@ -532,6 +527,16 @@
               <FileName>bsp_spi_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_spi_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart8.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_uart8.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart_handler.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\uart_handler.c</FilePath>
             </File>
           </Files>
         </Group>

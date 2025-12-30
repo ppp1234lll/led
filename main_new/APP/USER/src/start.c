@@ -28,27 +28,29 @@ void start_system_init_function(void)
 	bsp_InitKey();				         // 按键初始化	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
 	bsp_InitUsart1(115200);
-	bsp_InitUsart2(115200);
-  bsp_InitUsart3(115200);
-	bsp_InitUsart4(115200);
-	bsp_InitUart5(115200);
-	bsp_InitUsart6(115200);
-	bsp_InitUart7(115200);
+//	bsp_InitUsart2(115200);
+//  bsp_InitUsart3(115200);
+//	bsp_InitUsart4(115200);
+//	bsp_InitUart5(115200);
+//	bsp_InitUsart6(115200);
+//	bsp_InitUart7(115200);
 	bsp_InitUart8(115200);	
-	bsp_InitLpuart1(115200);	
-//UARTx_Config();	
+//	bsp_InitLpuart1(115200);	
+
 	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
-	bsp_InitTimers(TIM2,1000,2,0);
-	bsp_InitTimers(TIM3,1000,2,0);
-	bsp_InitTimers(TIM4,1000,2,0);
-	bsp_InitTimers(TIM5,1000,2,0);
-	bsp_InitTimers(TIM6,1000,2,0);
-	bsp_InitTimers(TIM7,1000,2,0);
-	
-	bsp_InitSPIBus();	/* 配置SPI总线 */		
-	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+//	bsp_InitTimers(TIM2,1000,2,0);
+//	bsp_InitTimers(TIM3,1000,2,0);
+//	bsp_InitTimers(TIM4,1000,2,0);
+//	bsp_InitTimers(TIM5,1000,2,0);
+//	bsp_InitTimers(TIM6,1000,2,0);
+//	bsp_InitTimers(TIM7,1000,2,0);
+//	
+//	bsp_InitSPIBus();	/* 配置SPI总线 */		
+//	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+
+	uart8_test();
 	
 	lfs_init_function();
 	
