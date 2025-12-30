@@ -17,8 +17,8 @@
 *	                             选择DMA，中断或者查询方式
 *********************************************************************************************************
 */
-#define UART8_RX_NE     1    // 使用串口中断
-#define UART8_RX_DMA    0    // 使用串口DMA
+#define UART8_RX_NE     0    // 使用串口中断
+#define UART8_RX_DMA    1    // 使用串口DMA
 
 /*
 *********************************************************************************************************
@@ -154,7 +154,7 @@ void bsp_InitUart8(uint32_t baudrate)
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
-	__HAL_LINKDMA(&huart8,hdmatx,hdma_uart8_tx);
+//	__HAL_LINKDMA(&huart8,hdmatx,hdma_uart8_tx);
 #endif
 
   huart8.Instance = UART8;
@@ -240,24 +240,24 @@ void Uart8_SendString(uint8_t *str)
 */
 void Uart8_Send_Data(uint8_t *buf, uint16_t len)
 {
-#if UART8_RX_DMA
-	if (g_Uart8_TransferState != UART8_TRANSFER_COMPLETE)
-		return;
+//#if UART8_RX_DMA
+//	if (g_Uart8_TransferState != UART8_TRANSFER_COMPLETE)
+//		return;
 
-	g_Uart8_TransferState = UART8_TRANSFER_WAIT;	/* DMA发送状态 */
-		
-	/* DMA发送时 cache的内容需要更新到SRAM中 */
-	SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
-  /* 开启UART2 DMA发送（非阻塞函数，立即返回） */
-  if(HAL_UART_Transmit_DMA(&huart8, buf, len) != HAL_OK)
-  {
-    g_Uart8_TransferState = UART8_TRANSFER_ERROR; // 发送失败，清除忙碌标记
-    return;
-  }
-	
-#else
+//	g_Uart8_TransferState = UART8_TRANSFER_WAIT;	/* DMA发送状态 */
+//		
+//	/* DMA发送时 cache的内容需要更新到SRAM中 */
+//	SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
+//  /* 开启UART2 DMA发送（非阻塞函数，立即返回） */
+//  if(HAL_UART_Transmit_DMA(&huart8, buf, len) != HAL_OK)
+//  {
+//    g_Uart8_TransferState = UART8_TRANSFER_ERROR; // 发送失败，清除忙碌标记
+//    return;
+//  }
+//	
+//#else
 	HAL_UART_Transmit(&huart8,(uint8_t *)buf ,len,1000);
-#endif  
+//#endif  
 }
 
 /*
@@ -362,8 +362,14 @@ void UART8_RxEventCpltCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	if (huart->Instance == UART8)   /* 如果是串口1 */
 	{
+		HAL_UART_DMAStopRx(&huart8);
+		uint32_t total_len = U8_RX_SIZE - __HAL_DMA_GET_COUNTER(huart8.hdmarx);
 		
-		
+		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
+		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U8RxBuffer, U8_RX_SIZE);		
+		Uart8_SendString("\r\n uart7 dma_recv:\r\n");
+		HAL_UART_Transmit(&huart8, (uint8_t *)g_U8RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, g_U8RxBuffer, U8_RX_SIZE);	
 	}
 }
 #endif
@@ -377,22 +383,22 @@ void UART8_RxEventCpltCallback(UART_HandleTypeDef *huart, uint16_t Size)
 */
 void uart8_test(void)
 {
-    uint8_t len;
-    uint16_t times = 0;
+	uint8_t len;
+	uint16_t times = 0;
 	while(1)
 	{
-        if (g_uart8_rx_sta & 0x8000)                                                    /* 接收到了数据? */
-        {
-            len = g_uart8_rx_sta & 0x3fff;                                              /* 得到此次接收到的数据长度 */
-            printf("\r\n您发送的消息为:\r\n");
-						
-            HAL_UART_Transmit(&huart8, (uint8_t *)g_U8RxBuffer, len, 1000);   /* 发送接收到的数据 */
-            while(__HAL_UART_GET_FLAG(&huart8, UART_FLAG_TC) != SET);           /* 等待发送结束 */
-            printf("\r\n\r\n");                                                         /* 插入换行 */
-            g_uart8_rx_sta = 0;
-        }
-        else
-        {
+		if (g_uart8_rx_sta & 0x8000)                                                    /* 接收到了数据? */
+		{
+			len = g_uart8_rx_sta & 0x3fff;                                              /* 得到此次接收到的数据长度 */
+			printf("\r\n您发送的消息为:\r\n");
+			
+			HAL_UART_Transmit(&huart8, (uint8_t *)g_U8RxBuffer, len, 1000);   /* 发送接收到的数据 */
+			while(__HAL_UART_GET_FLAG(&huart8, UART_FLAG_TC) != SET);           /* 等待发送结束 */
+			printf("\r\n\r\n");                                                         /* 插入换行 */
+			g_uart8_rx_sta = 0;
+		}
+		else
+		{
             times++;
 
             if (times % 5000 == 0)
