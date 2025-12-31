@@ -24,7 +24,6 @@ void SystemClock_Config(void);
 */
 int main(void)
 {
-
 	system_setup();
 
 	start_system_init_function();
@@ -118,13 +117,13 @@ void SystemClock_Config(void)
        配置RCC_CLOCKTYPE_PCLK2时钟，对应APB2总线
        配置RCC_CLOCKTYPE_D1PCLK1时钟，对应APB3总线
        配置RCC_CLOCKTYPE_D3PCLK1时钟，对应APB4总线     
-    */
+  */
 	RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_D1PCLK1 | RCC_CLOCKTYPE_PCLK1 | \
 								 RCC_CLOCKTYPE_PCLK2  | RCC_CLOCKTYPE_D3PCLK1);
 
-	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-	RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
-	RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+	RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK;
+	RCC_ClkInitStruct.SYSCLKDivider  = RCC_SYSCLK_DIV1;
+	RCC_ClkInitStruct.AHBCLKDivider  = RCC_HCLK_DIV2;
 	RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV2;  
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2; 
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV2; 
@@ -137,14 +136,13 @@ void SystemClock_Config(void)
         Error_Handler(__FILE__, __LINE__);
 	}
 
-    /*
-      使用IO的高速模式，要使能IO补偿，即调用下面三个函数 
-      （1）使能CSI clock
-      （2）使能SYSCFG clock
-      （3）使能I/O补偿单元， 设置SYSCFG_CCCSR寄存器的bit0
-    */
+	/*
+		使用IO的高速模式，要使能IO补偿，即调用下面三个函数 
+		（1）使能CSI clock
+		（2）使能SYSCFG clock
+		（3）使能I/O补偿单元， 设置SYSCFG_CCCSR寄存器的bit0
+	*/
 	__HAL_RCC_CSI_ENABLE() ;
-
 	__HAL_RCC_SYSCFG_CLK_ENABLE() ;
 
 	HAL_EnableCompensationCell();

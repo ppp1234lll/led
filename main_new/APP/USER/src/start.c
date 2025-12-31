@@ -26,41 +26,35 @@ void start_system_init_function(void)
 	bsp_Init_DWT();
 	bsp_InitLed();                   // LED初始化（已测试）
 	bsp_InitRelay();				         // 继电器初始化（未测试）	
-	bsp_InitKey();				         // 按键初始化	
+	bsp_InitKey();				           // 按键初始化	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
 	bsp_InitUsart1(115200);
-//	bsp_InitUsart2(115200);
-//  bsp_InitUsart3(115200);
-//	bsp_InitUsart4(115200);
-//	bsp_InitUart5(115200);
-//	bsp_InitUsart6(115200);
-//	bsp_InitUart7(115200);
+	bsp_InitUsart2(115200);
+  bsp_InitUsart3(115200);
+	bsp_InitUsart4(115200);
+	bsp_InitUart5(115200);
+	bsp_InitUsart6(115200);
+	bsp_InitUart7(115200);
 	bsp_InitUart8(115200);	
-//	bsp_InitLpuart1(115200);	
+	bsp_InitLpuart1(115200);	
 
 	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
-//	bsp_InitTimers(TIM2,1000,2,0);
-//	bsp_InitTimers(TIM3,1000,2,0);
-//	bsp_InitTimers(TIM4,1000,2,0);
-//	bsp_InitTimers(TIM5,1000,2,0);
-//	bsp_InitTimers(TIM6,1000,2,0);
-//	bsp_InitTimers(TIM7,1000,2,0);
+	bsp_InitTimers(TIM2,1000,2,0);
+	bsp_InitTimers(TIM3,1000,2,0);
+	bsp_InitTimers(TIM4,1000,2,0);
+	bsp_InitTimers(TIM5,1000,2,0);
+	bsp_InitTimers(TIM6,1000,2,0);
+	bsp_InitTimers(TIM7,1000,2,0);
 //	
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
 
 	aht20_init_function();
-
-	aht20_test();
-
-
-	uart8_test();
 	
-	lfs_init_function();
+//	lfs_init_function();
 	
-	DemoSpiFlash();
 }
 
 /*
@@ -100,55 +94,109 @@ void start_get_device_id(uint32_t *id)
 	id[2] = g_chipid_t.id[2];
 }
 
-#if 0
-/* APP线程 */
-#define APP_TASK_PRIO		6
-#define APP_STK_SIZE		512
-__align(8) CCMRAM static OS_STK START_TASK_STK[APP_STK_SIZE];
-void app_task(void *argument);
+/* APP线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define APP_TASK_PRIO     20        /* 任务优先级 */
+#define APP_STK_SIZE      1024      /* 任务堆栈大小 */
+TaskHandle_t APP_Task_Handler;     /* 任务句柄 */
+void app_task(void *pvParameters);  /* 任务函数 */
 
-/* 网络线程 */
-#define ETH_TASK_PRIO		9
-#define ETH_STK_SIZE		320
-__align(8) CCMRAM static OS_STK ETH_TASK_STK[ETH_STK_SIZE];
-void eth_task(void *argument);
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define ETH_TASK_PRIO           19          /* 任务优先级 */
+#define ETH_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t ETH_Task_Handler;               /* 任务句柄 */
+void eth_task(void *pvParameters);          /* 任务函数 */
 
-/* 检测线程 */
-#define DET_TASK_PRIO		7
-#define DET_STK_SIZE		320
-__align(8) CCMRAM static OS_STK DET_TASK_STK[DET_STK_SIZE];
-void det_task(void *argument);
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define DET_TASK_PRIO           18          /* 任务优先级 */
+#define DET_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t DET_Task_Handler;               /* 任务句柄 */
+void det_task(void *pvParameters);          /* 任务函数 */
 
-/* 无线线程 */
-#define GSM_TASK_PRIO		8
-#define GSM_STK_SIZE		320
-CCMRAM OS_STK GSM_TASK_STK[GSM_STK_SIZE];
-void gsm_task(void *argument);
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define GSM_TASK_PRIO           17          /* 任务优先级 */
+#define GSM_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t GSM_Task_Handler;               /* 任务句柄 */
+void gsm_task(void *pvParameters);          /* 任务函数 */
 
-/* 打印线程 */
-#define PRINT_TASK_PRIO		29   /* 任务优先级 */
-#define PRINT_STK_SIZE		256  /* 任务堆栈大小 */
-CCMRAM OS_STK 	PRINT_TASK_STK[PRINT_STK_SIZE]; /* 任务堆栈 */
-void print_task(void *argument); /* 任务函数 */
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define PRINT_TASK_PRIO           10          /* 任务优先级 */
+#define PRINT_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t PRINT_Task_Handler;               /* 任务句柄 */
+void print_task(void *pvParameters);          /* 任务函数 */
+
 
 /* 查看任务堆栈 */
-#define STORAGESTACK_PRIO		30
-#define STORAGESTACK_STK_SIZE 		128
-OS_STK STORAGESTACK_STK[STORAGESTACK_STK_SIZE];
-void storagestack_task(void *p_arg);
+#define LIST_TASK_PRIO		    9
+#define LIST_TASK_STK_SIZE 		128
+TaskHandle_t LIST_Task_Handler;
+void list_task(void *p_arg);
 
-/************************************************************
-*
-* Function name	: start_creat_task_function
-* Description	: 创建任务
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void start_creat_task_function(void)
+
+/*
+*********************************************************************************************************
+*	函 数 名: start_task_creat
+*	功能说明: 创建任务
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void start_task_creat(void)
 {
+	taskENTER_CRITICAL();           /* 进入临界区 */
 
-										
+	xTaskCreate((TaskFunction_t )app_task,
+							(const char *   )"app_task",
+							(uint16_t       )APP_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )APP_TASK_PRIO,
+							(TaskHandle_t * )&APP_Task_Handler);
+
+	xTaskCreate((TaskFunction_t )eth_task,
+							(const char *   )"eth_task",
+							(uint16_t       )ETH_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )ETH_TASK_PRIO,
+							(TaskHandle_t * )&ETH_Task_Handler);
+
+	xTaskCreate((TaskFunction_t )det_task,
+							(const char *   )"det_task",
+							(uint16_t       )DET_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )DET_TASK_PRIO,
+							(TaskHandle_t * )&DET_Task_Handler);
+
+	xTaskCreate((TaskFunction_t )gsm_task,
+							(const char *   )"gsm_task",
+							(uint16_t       )GSM_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )GSM_TASK_PRIO,
+							(TaskHandle_t * )&GSM_Task_Handler);
+
+	xTaskCreate((TaskFunction_t )print_task,
+							(const char *   )"print_task",
+							(uint16_t       )PRINT_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )PRINT_TASK_PRIO,
+							(TaskHandle_t * )&PRINT_Task_Handler);
+
+	xTaskCreate((TaskFunction_t )list_task,
+							(const char *   )"list_task",
+							(uint16_t       )LIST_TASK_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )LIST_TASK_PRIO,
+							(TaskHandle_t * )&LIST_Task_Handler);
+													
+	taskEXIT_CRITICAL();            /* 退出临界区 */										
 }
 
 /*
@@ -161,8 +209,7 @@ void start_creat_task_function(void)
 */
 void app_task(void *argument)
 {
-	OSStatInit();	  	// 初始化统计任务
-	app_task_function();
+//	app_task_function();
 }
 
 /*
@@ -175,7 +222,7 @@ void app_task(void *argument)
 */
 void eth_task(void *argument)
 {
-	eth_network_line_status_detection_function();
+//	eth_network_line_status_detection_function();
 }
 
 /*
@@ -188,7 +235,7 @@ void eth_task(void *argument)
 */
 void det_task(void *argument)
 {
-	det_task_function();
+//	det_task_function();
 }
 
 /*
@@ -201,7 +248,7 @@ void det_task(void *argument)
 */
 void gsm_task(void *argument)
 {
-	gsm_task_function();
+//	gsm_task_function();
 }
 
 /*
@@ -214,21 +261,20 @@ void gsm_task(void *argument)
 */
 void print_task(void *argument)
 {
-	print_task_function();
+//	print_task_function();
 }	
 
 /*
 *********************************************************************************************************
-*	函 数 名: storagestack_task
+*	函 数 名: list_task
 *	功能说明: 任务堆栈
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void storagestack_task(void *p_arg)
+void list_task(void *p_arg)
 {
 
 }
-#endif
 
 
