@@ -9,9 +9,8 @@
 
 ********************************************************************************/
 
-#include "aht20.h"
-#include "aht20_drv.h"
-#include "delay.h"
+#include "./DRIVER/inc/aht20.h"
+#include "bsp.h"
 
 #define ATH20_SLAVE_ADDRESS (0x70)
 
@@ -71,21 +70,21 @@ uint8_t aht20_i2c_read_function(uint8_t addr, uint8_t *buf, uint8_t size)
 	uint8_t ret   = 0;
 	uint8_t index = 0;
 
-	aht20_i2c_start();
-	aht20_drive_write_byte(addr|0x01);
-	ret = aht20_i2c_wait_ack();
+	iic_start();
+	iic_send_byte(addr|0x01);
+	ret = iic_wait_ack();
 	for(index=0; index<size; index++)
 	{
 		if(index == (size-1))
 		{
-			buf[index] = aht20_drive_read_byte(0);
+			buf[index] = iic_read_byte(0);
 		}
 		else
 		{
-			buf[index] = aht20_drive_read_byte(1);
+			buf[index] = iic_read_byte(1);
 		}
 	}
-	aht20_i2c_stop();
+	iic_stop();
 
 	return ret;
 }
@@ -106,15 +105,15 @@ static uint8_t aht20_i2c_write_function(uint8_t addr, uint8_t *buf, uint8_t size
 	uint8_t ret   = 0;
 	uint8_t index = 0;
 
-	aht20_i2c_start();
-	aht20_drive_write_byte(addr|0x00);
-	ret = aht20_i2c_wait_ack();
+	iic_start();
+	iic_send_byte(addr|0x00);
+	ret = iic_wait_ack();
 	for(index=0; index<size; index++)
 	{
-		aht20_drive_write_byte(buf[index]);
-		ret = aht20_i2c_wait_ack();
+		iic_send_byte(buf[index]);
+		ret = iic_wait_ack();
 	}
-	aht20_i2c_stop();
+	iic_stop();
 
 	return ret;
 }
@@ -131,7 +130,7 @@ void aht20_init_function(void)
 {
 	uint8_t buff[1] = {0};
 
-	aht20_i2c_init();
+	iic_init();
 
 	/* ¼¤»î²É¼¯ */
 	delay_ms(100);

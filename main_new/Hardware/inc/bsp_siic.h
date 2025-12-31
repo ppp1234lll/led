@@ -26,13 +26,13 @@
 /******************************************************************************************/
 /* 引脚 定义 */
 
-#define IIC_SCL_GPIO_PORT               GPIOD
-#define IIC_SCL_GPIO_PIN                GPIO_PIN_12
-#define IIC_SCL_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOD_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
+#define IIC_SCL_GPIO_PORT               GPIOE
+#define IIC_SCL_GPIO_PIN                GPIO_PIN_10
+#define IIC_SCL_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOE_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
 
-#define IIC_SDA_GPIO_PORT               GPIOD
-#define IIC_SDA_GPIO_PIN                GPIO_PIN_13
-#define IIC_SDA_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOD_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
+#define IIC_SDA_GPIO_PORT               GPIOE
+#define IIC_SDA_GPIO_PIN                GPIO_PIN_9
+#define IIC_SDA_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOE_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
 
 /******************************************************************************************/
 

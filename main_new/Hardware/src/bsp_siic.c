@@ -46,7 +46,7 @@ void iic_init(void)
  */
 static void iic_delay(void)
 {
-    delay_us(2);    /* 2us的延时, 读写速度在250Khz以内 */
+    dwt_delay_us(2);    /* 2us的延时, 读写速度在250Khz以内 */
 }
 
 /**

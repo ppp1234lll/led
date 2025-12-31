@@ -23,6 +23,7 @@ void start_system_init_function(void)
 	hook.free_fn   = myfree_sramin;  // 内存释放
 	cJSON_InitHooks(&hook);          // 初始化自定义的内存分配和释放函数
 	
+	bsp_Init_DWT();
 	bsp_InitLed();                   // LED初始化（已测试）
 	bsp_InitRelay();				         // 继电器初始化（未测试）	
 	bsp_InitKey();				         // 按键初始化	
@@ -49,6 +50,11 @@ void start_system_init_function(void)
 //	
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+
+	aht20_init_function();
+
+	aht20_test();
+
 
 	uart8_test();
 	

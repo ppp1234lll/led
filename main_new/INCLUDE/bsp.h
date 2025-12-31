@@ -41,6 +41,7 @@
 #include "./SYSTEM/sys/sys.h"
 #include "./SYSTEM/delay/delay.h"
 
+#include "bsp_core_dwt.h"
 #include "bsp_led.h"
 #include "bsp_iwdg.h"
 #include "stmflash.h"
@@ -60,9 +61,9 @@
 #include "bsp_spi_bus.h"
 #include "bsp_spi_flash.h"
 
-#include "bsp_usart.h"
+#include "bsp_siic.h"
 
-#include "usart.h"
+
 #include "demo_spi_flash.h"
 #endif
 
