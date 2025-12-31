@@ -32,8 +32,6 @@
 #include "lwip/api.h"
 #include "lwip/dns.h"
 #include "MALLOC/malloc.h"
-#include "./BSP/LCD/lcd.h"
-#include "./BSP/LED/led.h"
 
 
 static const char http_html_hdr[] = "HTTP/1.1 200 OK\r\nContent-type: text/html\r\n\r\n";
@@ -232,11 +230,11 @@ start_html:
             {
                 if (*ptemp == '1')    /* 查看led1的值。为1则灯亮，为2则灭，此值与HTML网页中设置有关 */
                 {
-                    LED0(0);  /* 点亮LED1 */
+//                    LED0(0);  /* 点亮LED1 */
                 }
                 else
                 {
-                    LED0(1);    /* 熄灭LED1 */
+//                    LED0(1);    /* 熄灭LED1 */
                 }
 
             }

@@ -19,11 +19,8 @@
  */
  
 #include "freertos_demo.h"
-#include "./BSP/LED/led.h"
-#include "./BSP/LCD/lcd.h"
 #include "./SYSTEM/delay/delay.h"
 #include "./MALLOC/malloc.h"
-#include "./BSP/KEY/key.h"
 #include "lwip_comm.h"
 #include "lwip_demo.h"
 #include "lwipopts.h"
@@ -145,7 +142,7 @@ void start_task(void *pvParameters)
         delay_ms(500);
 			printf("Retrying...       \n");
         delay_ms(500);
-        LED1_TOGGLE();
+//        LED1_TOGGLE();
     }
     
     while (g_lwipdev.dhcpstatus != 2 && g_lwipdev.dhcpstatus != 0xff)/* 判断静态和动态分配完成  */
@@ -204,7 +201,7 @@ void led_task(void *pvParameters)
 
     while (1)
     {
-        LED1_TOGGLE();
+//        LED1_TOGGLE();
         vTaskDelay(100);
     }
 }

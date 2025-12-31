@@ -45,6 +45,7 @@
 
 typedef void (*UART_RxCpltCallbackFunc)(UART_HandleTypeDef *huart);
 typedef void (*UART_RxEventCallbackFunc)(UART_HandleTypeDef *huart, uint16_t Size);
+typedef void (*UART_TxCpltCallbackFunc)(UART_HandleTypeDef *huart);
 
 void sys_nvic_set_vector_table(uint32_t baseaddr, uint32_t offset);                       /* 设置中断偏移量 */
 void sys_cache_enable(void);                                                              /* 使能STM32H7的L1-Cahce */

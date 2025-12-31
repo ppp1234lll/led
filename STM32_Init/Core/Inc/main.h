@@ -57,6 +57,14 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define NRST_4G_Pin GPIO_PIN_2
+#define NRST_4G_GPIO_Port GPIOE
+#define PWRK_4G_Pin GPIO_PIN_3
+#define PWRK_4G_GPIO_Port GPIOE
+#define SEL_4G_Pin GPIO_PIN_13
+#define SEL_4G_GPIO_Port GPIOC
+#define CTRL_4G_Pin GPIO_PIN_1
+#define CTRL_4G_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 

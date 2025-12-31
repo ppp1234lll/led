@@ -27,7 +27,6 @@
 */
 
 #define U8_RX_SIZE     2048
-#define U8_TX_SIZE     2048
 #define RXBUFFERSIZE   1    /* 缓存大小 */
 
 enum {
@@ -54,18 +53,17 @@ uint16_t g_uart8_rx_sta = 0;
 
 #if UART8_RX_DMA
 __attribute__((section (".RAM_SRAMD2"))) uint8_t g_U8RxBuffer[U8_RX_SIZE];
-__attribute__((section (".RAM_SRAMD2"))) uint8_t g_U8TxBuffer[U8_TX_SIZE];
 #else
 uint8_t g_U8RxBuffer[U8_RX_SIZE];
-uint8_t g_U8TxBuffer[U8_TX_SIZE];
 #endif
 
 __IO uint32_t g_Uart8_TransferState = UART8_TRANSFER_COMPLETE;
 
-uint8_t g_uart8_rx_data[RXBUFFERSIZE];          /* HAL库使用的串口接收缓冲 */
+uint8_t g_uart8_rx_data[RXBUFFERSIZE];  /* HAL库使用的串口接收缓冲 */
 
-UART_RxCpltCallbackFunc   usart8_rxcplt_callback = NULL;// 
-UART_RxEventCallbackFunc  usart8_rxeventcplt_callback = NULL;// 
+UART_TxCpltCallbackFunc   usart8_txcplt_callback = NULL;  
+UART_RxCpltCallbackFunc   usart8_rxcplt_callback = NULL; 
+UART_RxEventCallbackFunc  usart8_rxeventcplt_callback = NULL; 
 
 /*
 *********************************************************************************************************
@@ -79,6 +77,9 @@ static void UART8_RxEventCpltCallback(UART_HandleTypeDef *huart, uint16_t Size);
 #if UART8_RX_NE
 static void UART8_RxCpltCallback(UART_HandleTypeDef *huart);
 #endif
+
+static void UART8_TxCpltCallback(UART_HandleTypeDef *huart);
+
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitUart8
@@ -154,7 +155,7 @@ void bsp_InitUart8(uint32_t baudrate)
 	{
 		Error_Handler(__FILE__, __LINE__);
 	}
-//	__HAL_LINKDMA(&huart8,hdmatx,hdma_uart8_tx);
+	__HAL_LINKDMA(&huart8,hdmatx,hdma_uart8_tx);
 #endif
 
   huart8.Instance = UART8;
@@ -180,6 +181,7 @@ void bsp_InitUart8(uint32_t baudrate)
 	#if UART8_RX_NE
 	usart8_rxcplt_callback = UART8_RxCpltCallback; // 绑定专属回调
 	#endif
+	usart8_txcplt_callback = UART8_TxCpltCallback;
 	
 #if UART8_RX_NE
 	/* UART8 interrupt Init */
@@ -240,24 +242,24 @@ void Uart8_SendString(uint8_t *str)
 */
 void Uart8_Send_Data(uint8_t *buf, uint16_t len)
 {
-//#if UART8_RX_DMA
-//	if (g_Uart8_TransferState != UART8_TRANSFER_COMPLETE)
-//		return;
+#if UART8_RX_DMA
+	if (g_Uart8_TransferState == UART8_TRANSFER_WAIT)
+		return;
 
-//	g_Uart8_TransferState = UART8_TRANSFER_WAIT;	/* DMA发送状态 */
-//		
-//	/* DMA发送时 cache的内容需要更新到SRAM中 */
-//	SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
-//  /* 开启UART2 DMA发送（非阻塞函数，立即返回） */
-//  if(HAL_UART_Transmit_DMA(&huart8, buf, len) != HAL_OK)
-//  {
-//    g_Uart8_TransferState = UART8_TRANSFER_ERROR; // 发送失败，清除忙碌标记
-//    return;
-//  }
-//	
-//#else
+	g_Uart8_TransferState = UART8_TRANSFER_WAIT;	/* DMA发送状态 */
+		
+	/* DMA发送时 cache的内容需要更新到SRAM中 */
+	SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
+  /* 开启UART2 DMA发送（非阻塞函数，立即返回） */
+  if(HAL_UART_Transmit_DMA(&huart8, buf, len) != HAL_OK)
+  {
+    g_Uart8_TransferState = UART8_TRANSFER_ERROR; // 发送失败，清除忙碌标记
+    return;
+  }
+	
+#else
 	HAL_UART_Transmit(&huart8,(uint8_t *)buf ,len,1000);
-//#endif  
+#endif  
 }
 
 /*
@@ -289,20 +291,21 @@ void DMA2_Stream0_IRQHandler(void)
 
 void DMA2_Stream1_IRQHandler(void)
 {
+
 	huart8.gState = HAL_UART_STATE_READY;
 	if(DMA2->LISR & (1 << 9)) 
 	{
 		g_Uart8_TransferState = UART8_TRANSFER_ERROR;
-		DMA2->LIFCR |= 1 << 9;  
+//		DMA2->LIFCR |= 1 << 9;  
 	}
-	if(DMA2->LISR & (1 << 10)) 
-	{
-		DMA2->LIFCR |= 1 << 10;  
-	}
+//	if(DMA2->LISR & (1 << 10)) 
+//	{
+//		DMA2->LIFCR |= 1 << 10;  
+//	}
 	if (DMA2->LISR & (1 << 11)) 
 	{
 		g_Uart8_TransferState = UART8_TRANSFER_COMPLETE;
-		DMA2->LIFCR |= 1 << 11;  
+//		DMA2->LIFCR |= 1 << 11;  
 	}
 	HAL_DMA_IRQHandler(&hdma_uart8_tx);
 }
@@ -349,6 +352,12 @@ void UART8_RxCpltCallback(UART_HandleTypeDef *huart)
 }
 #endif
 
+void UART8_TxCpltCallback(UART_HandleTypeDef *huart) {
+   
+	if (huart->Instance == UART8) {
+       huart->gState = HAL_UART_STATE_READY; // 重置状态
+   }
+}
 /*
 *********************************************************************************************************
 *	函 数 名: UART8_RxCpltCallback
@@ -367,7 +376,7 @@ void UART8_RxEventCpltCallback(UART_HandleTypeDef *huart, uint16_t Size)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U8RxBuffer, U8_RX_SIZE);		
-		Uart8_SendString("\r\n uart7 dma_recv:\r\n");
+		Uart8_SendString("\r\n uart8 dma_recv:\r\n");
 		HAL_UART_Transmit(&huart8, (uint8_t *)g_U8RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, g_U8RxBuffer, U8_RX_SIZE);	
 	}
@@ -399,28 +408,28 @@ void uart8_test(void)
 		}
 		else
 		{
-            times++;
+			times++;
 
-            if (times % 5000 == 0)
-            {
-                printf("\r\n正点原子 STM32开发板 串口实验\r\n");
-                printf("正点原子@ALIENTEK\r\n\r\n\r\n");
-            }
+			if (times % 5000 == 0)
+			{
+					printf("\r\n正点原子 STM32开发板 串口实验\r\n");
+					printf("正点原子@ALIENTEK\r\n\r\n\r\n");
+			}
 
-            if (times % 200 == 0)
-            {
-                printf("请输入数据,以回车键结束\r\n");
-							  Uart8_Send_Data("123456789000\n",12);
-            }
+			if (times % 200 == 0)
+			{
+					printf("请输入数据,以回车键结束\r\n");
+					Uart8_Send_Data("123456789000\n",12);
+			}
 
-            if (times % 30  == 0) 
-            {
+			if (times % 30  == 0) 
+			{
 //                Uart8_SendString("times\r\n");
-            }
+			}
 
-            delay_ms(10);
-        }
-    }	
+			delay_ms(10);
+		}
+	}	
 }
 
  

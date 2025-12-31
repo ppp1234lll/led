@@ -37,6 +37,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	}
 }
 
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == UART8)   /* 如果是串口1 */
+	{
+		usart8_txcplt_callback(huart);
+	}
+}
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
 	if (huart->Instance == UART8)   /* 如果是串口1 */

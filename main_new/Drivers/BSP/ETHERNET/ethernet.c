@@ -23,7 +23,6 @@
  */
 
 #include "./BSP/ETHERNET/ethernet.h"
-#include "./BSP/PCF8574/pcf8574.h"
 #include "./BSP/ETHERNET/ethernet_chip.h"
 #include "lwip_comm.h"
 #include "./SYSTEM/delay/delay.h"

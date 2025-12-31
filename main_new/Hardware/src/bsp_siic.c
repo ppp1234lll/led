@@ -7,22 +7,9 @@
  * @brief       IIC 驱动代码
  * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
  ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 阿波罗 H743开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- * 修改说明
- * V1.0 20220906
- * 第一次发布
- *
- ****************************************************************************************************
  */
 
-#include "./BSP/IIC/myiic.h"
+#include "bsp_siic.h"
 #include "./SYSTEM/delay/delay.h"
 
 
@@ -49,7 +36,7 @@ void iic_init(void)
     HAL_GPIO_Init(IIC_SDA_GPIO_PORT, &gpio_init_struct); /* SDA */
     /* SDA引脚模式设置,开漏输出,上拉, 这样就不用再设置IO方向了, 开漏输出的时候(=1), 也可以读取外部信号的高低电平 */
 
-    iic_stop();     /* 停止总线上所有设备 */
+    iic_stop();                                          /* 停止总线上所有设备 */
 }
 
 /**
@@ -174,9 +161,9 @@ void iic_send_byte(uint8_t data)
         IIC_SCL(1);
         iic_delay();
         IIC_SCL(0);
-        data <<= 1;                     /* 左移1位,用于下一次发送 */
+        data <<= 1;     /* 左移1位,用于下一次发送 */
     }
-    IIC_SDA(1);                         /* 发送完成, 主机释放SDA线 */
+    IIC_SDA(1);         /* 发送完成, 主机释放SDA线 */
 }
 
 /**
@@ -188,9 +175,9 @@ uint8_t iic_read_byte(uint8_t ack)
 {
     uint8_t i, receive = 0;
 
-    for (i = 0; i < 8; i++ )            /* 接收1个字节数据 */
+    for (i = 0; i < 8; i++ )    /* 接收1个字节数据 */
     {
-        receive <<= 1;                  /* 高位先输出,所以先收到的数据位要左移 */
+        receive <<= 1;          /* 高位先输出,所以先收到的数据位要左移 */
         IIC_SCL(1);
         iic_delay();
 
@@ -205,15 +192,14 @@ uint8_t iic_read_byte(uint8_t ack)
 
     if (!ack)
     {
-        iic_nack();     /* 发送nACK */
+        iic_nack();             /* 发送nACK */
     }
     else
     {
-        iic_ack();      /* 发送ACK */
+        iic_ack();              /* 发送ACK */
     }
 
     return receive;
 }
-
 
 
