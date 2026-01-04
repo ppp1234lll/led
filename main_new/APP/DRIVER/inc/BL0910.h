@@ -1,7 +1,7 @@
-#ifndef _BL0910_UART_H_
-#define _BL0910_UART_H_
+#ifndef _BL0910_H_
+#define _BL0910_H_
 
-#include "sys.h"
+#include "./SYSTEM/sys/sys.h"
 
 /* 寄存器表单 */
 #define BL0910_I1_WAVE         0x01 // 通道 1 波形寄存器(正常电流和快速电流可选)
@@ -70,7 +70,9 @@
 			 								              // [3:0]->通道 11(电压) [7:4]->通道1 [8:11]->通道 2......
 #define BL0910_GAIN2_REG       0x61 // 通道 PGA 增益调整寄存器0000=1 0001=2 0010=8 0011=16
 				 									          // [3:0]->通道 11(电压) [7:4]->通道1 [8:11]->通道 2......
-				 
+#define BL0910_VAR_WA_CREEP    0x88 // 
+#define BL0910_RMS_CREEP       0x8A //
+#define BL0910_FAST_RMS_CTRL   0x8B //
 #define BL0910_SAGLVL_LINECYC  0x8F //  
 #define BL0910_ADC_PD_CTRL     0x93 // 11 个通道 ADC 的使能控制
 			 										          // ADC_PD<0>控制电压通道; ADC_PD<10:1>控制对应的电流通道 10 到电流通道 1

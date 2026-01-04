@@ -3,17 +3,12 @@
 * @Description: SPI通信
 * @Author     : ZHLE
 *  Version Date        Modification Description
-	6、BL0910单相计量芯片: 硬件SPI3
-	   引脚分配为： BL_SCLK：  PC10
-                  BL_MISO： PC11 
-                  BL_MOSI： PC11
-
 ********************************************************************************/
 
-#include "BL0910.h"
-#include "det.h"
+#include "./DRIVER/inc/BL0910.h"
+//#include "det.h"
 #include "bsp.h"
-#include  <stdio.h>
+
 /*
 									 
 实际电压值(V) = [电压有效值寄存器值*Vref*(R25+R26+R35+R36+R37)]/[13162*Gain_V*R46*1000]
@@ -64,13 +59,16 @@ struct bl0910_data_t sg_bl0910data_t = {0};
 
 /* 接口与参数 */
 #define BL0910_INIT() 							bsp_InitHSPI()
-#define BL0910_SEND_STR(buff,len) 	HSPI_Write_Multi_Byte(buff,len)
+#define BL0910_SEND_STR(buff,len) 	HSPI_Send_Data(buff,len)
+#define BL0910_READ_STR(tx,rx,len) 	HSPI_Read_Data(tx,rx,len)
+//#define BL0910_READ_STR							HSPI_ReadByte
 
 /* 宏定义数据 */
 #define BL0910_DET_NUM   			20  		// 采集次数 
 #define BL0910_TIME_OUT  			100     // 超时时间 20ms
 #define BL0910_AUTO_TIME   		4000 	  // 2s (采集18次，每次100ms)
 #define BL0910_SEND_TIME   		50 	    // 发送时间 10ms
+
 /* 数据 */
 #define BL0910_REC_STA        sg_bl0910_rec_sta
 #define BL0910_REC_BUFF       sg_bl0910_buff
@@ -193,25 +191,25 @@ int8_t bl0910_deal_read_data_function(void)
 		
 	switch(sg_bl0910data_t.reg) 
 	{
-		case BL0910_V_RMS: 	   det_set_total_energy_bl0910(0,data); break;
-		case BL0910_I3_RMS:    det_set_total_energy_bl0910(2,data); break;
-		case BL0910_I4_RMS:    det_set_total_energy_bl0910(3,data); break;
-		case BL0910_I5_RMS:    det_set_total_energy_bl0910(4,data); break;
-		case BL0910_I6_RMS:    det_set_total_energy_bl0910(5,data); break;	
-		case BL0910_I7_RMS:    det_set_total_energy_bl0910(6,data); break;
-		case BL0910_I9_RMS:    det_set_total_energy_bl0910(1,data); break;
-		case BL0910_WATT3_AP:  det_set_total_energy_bl0910(10,Complement_2_Original(data));	break;
-		case BL0910_WATT4_AP:  det_set_total_energy_bl0910(11,Complement_2_Original(data));	break;
-		case BL0910_WATT5_AP:  det_set_total_energy_bl0910(12,Complement_2_Original(data));	break;
-		case BL0910_WATT6_AP:  det_set_total_energy_bl0910(13,Complement_2_Original(data));	break;
-		case BL0910_WATT7_AP:  det_set_total_energy_bl0910(14,Complement_2_Original(data)); break;
-		case BL0910_WATT9_AP:  det_set_total_energy_bl0910(18,Complement_2_Original(data));	break;
-		case BL0910_CF3_CNT:   det_set_total_energy_bl0910(19,data); break;
-		case BL0910_CF4_CNT: 	 det_set_total_energy_bl0910(20,data); break;
-		case BL0910_CF5_CNT:   det_set_total_energy_bl0910(21,data); break;
-		case BL0910_CF6_CNT:   det_set_total_energy_bl0910(22,data); break;
-		case BL0910_CF7_CNT:   det_set_total_energy_bl0910(23,data); break;
-		case BL0910_CF9_CNT:   det_set_total_energy_bl0910(27,data); break;
+//		case BL0910_V_RMS: 	   det_set_total_energy_bl0910(0,data); break;
+//		case BL0910_I3_RMS:    det_set_total_energy_bl0910(2,data); break;
+//		case BL0910_I4_RMS:    det_set_total_energy_bl0910(3,data); break;
+//		case BL0910_I5_RMS:    det_set_total_energy_bl0910(4,data); break;
+//		case BL0910_I6_RMS:    det_set_total_energy_bl0910(5,data); break;	
+//		case BL0910_I7_RMS:    det_set_total_energy_bl0910(6,data); break;
+//		case BL0910_I9_RMS:    det_set_total_energy_bl0910(1,data); break;
+//		case BL0910_WATT3_AP:  det_set_total_energy_bl0910(10,Complement_2_Original(data));	break;
+//		case BL0910_WATT4_AP:  det_set_total_energy_bl0910(11,Complement_2_Original(data));	break;
+//		case BL0910_WATT5_AP:  det_set_total_energy_bl0910(12,Complement_2_Original(data));	break;
+//		case BL0910_WATT6_AP:  det_set_total_energy_bl0910(13,Complement_2_Original(data));	break;
+//		case BL0910_WATT7_AP:  det_set_total_energy_bl0910(14,Complement_2_Original(data)); break;
+//		case BL0910_WATT9_AP:  det_set_total_energy_bl0910(18,Complement_2_Original(data));	break;
+//		case BL0910_CF3_CNT:   det_set_total_energy_bl0910(19,data); break;
+//		case BL0910_CF4_CNT: 	 det_set_total_energy_bl0910(20,data); break;
+//		case BL0910_CF5_CNT:   det_set_total_energy_bl0910(21,data); break;
+//		case BL0910_CF6_CNT:   det_set_total_energy_bl0910(22,data); break;
+//		case BL0910_CF7_CNT:   det_set_total_energy_bl0910(23,data); break;
+//		case BL0910_CF9_CNT:   det_set_total_energy_bl0910(27,data); break;
 		default:			break;
 	}
 	return ret;
@@ -318,7 +316,7 @@ void bl0910_write_reg_function(uint8_t reg,uint8_t *data, uint8_t len,uint8_t mo
 */
 void bl0910_read_reg_function(uint8_t reg, uint8_t mode)
 {
-	uint8_t buff[2] = {0};
+	uint8_t buff[6] = {0};
 	uint16_t index = 0;
 	buff[0] = BL0910_CMD_READ;	/* 数据 */
 	buff[1] = reg;	/* 数据 */
@@ -328,11 +326,17 @@ void bl0910_read_reg_function(uint8_t reg, uint8_t mode)
 	if( mode == 0) 	/* 更新标志 */
 		bl0910_sending_data_function(reg,0);
 	
-	BL0910_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
-	//hardSPI_ReadWriteByte(0x00);
-	for(index=0; index < 4; index++) {
-		BL0910_REC_BUFF[index] = HSPI_ReadByte();
-	}
+//	BL0910_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
+//	for(index=0; index < 4; index++) {
+//		BL0910_REC_BUFF[index] = HSPI_ReadByte();
+//	}
+
+	HSPI_Read_Data(buff,BL0910_REC_BUFF,6);
+	BL0910_REC_BUFF[0] = BL0910_REC_BUFF[2];
+	BL0910_REC_BUFF[1] = BL0910_REC_BUFF[3];
+	BL0910_REC_BUFF[2] = BL0910_REC_BUFF[4];
+	BL0910_REC_BUFF[3] = BL0910_REC_BUFF[5];
+	
 	BL0910_REC_STA = 0x8000+4;
 }
 
@@ -599,15 +603,17 @@ void bl0910_reset_numreg_function(void)
 */
 void bl0910_test(void)
 {
-	bl0910_read_reg_function(BL0910_TPS_CTRL,0);  // 默认值是0x07FF
+	uint8_t test[2] = {0x60,0x4C};
+	
+	bl0910_read_reg_function(BL0910_VAR_WA_CREEP,0);  // 0x04C04C
 	delay_ms(200);	
-	bl0910_read_reg_function(BL0910_SAGLVL_LINECYC,0);  // 默认值是0x100009
+	bl0910_read_reg_function(BL0910_RMS_CREEP,0);  // 0x200
 	delay_ms(200);	
-	bl0910_read_reg_function(BL0910_ADC_PD_CTRL,0);  // 默认值是0x000000
+	bl0910_read_reg_function(BL0910_FAST_RMS_CTRL,0);  // 0x20FFFF
 	delay_ms(200);
-	bl0910_read_reg_function(BL0910_GAIN1_REG,0);  // 默认值是 0x000000
+	bl0910_read_reg_function(BL0910_SAGLVL_LINECYC,0);  // 0x100009 0x000000
 	delay_ms(200);	
-	bl0910_read_reg_function(BL0910_GAIN2_REG,0);  // 默认值是 0x000000
+	bl0910_read_reg_function(BL0910_TPS_CTRL,0);  // 0x07FF
 	delay_ms(200);	
 	bl0910_read_reg_function(BL0910_RST_ENG,0);  // 默认值是0x100009
 	delay_ms(200);		

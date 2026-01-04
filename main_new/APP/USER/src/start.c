@@ -47,12 +47,13 @@ void start_system_init_function(void)
 	bsp_InitTimers(TIM5,1000,2,0);
 	bsp_InitTimers(TIM6,1000,2,0);
 	bsp_InitTimers(TIM7,1000,2,0);
-//	
+//	aht20_init_function();
+
+	bl0910_init_function();
+bl0910_test();
+	iwdg_feed();
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
-
-//	aht20_init_function();
-	iwdg_feed();
 //	lfs_init_function();
 
 }

@@ -60,9 +60,10 @@
 #include "bsp_timers.h"
 #include "bsp_spi_bus.h"
 #include "bsp_spi_flash.h"
-
 #include "bsp_siic.h"
 
+#include "bsp_hspi_BL0910.h"
+#include "bsp_sspi_BL0910.h"
 
 #include "demo_spi_flash.h"
 #endif

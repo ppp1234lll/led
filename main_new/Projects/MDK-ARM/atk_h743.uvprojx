@@ -458,6 +458,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\aht20.c</FilePath>
             </File>
+            <File>
+              <FileName>BL0910_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\DRIVER\src\BL0910_spi.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -567,6 +572,26 @@
               <FileName>bsp_siic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_siic.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_hspi_BL0910.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_hspi_BL0910.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_sspi_BL0910.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_sspi_BL0910.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_hspi2_bl0939.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_hspi2_bl0939.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_sspi_bl0939.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_sspi_bl0939.c</FilePath>
             </File>
           </Files>
         </Group>

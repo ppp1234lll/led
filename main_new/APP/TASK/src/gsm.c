@@ -6,9 +6,9 @@
 
 typedef struct
 {
-	#ifdef WIRED_PRIORITY_CONNECTION
+#ifdef WIRED_PRIORITY_CONNECTION
 	uint8_t tcp_cmd;	    // 1-允许TCP连接 0-禁止tcp连接
-	#endif
+#endif
 	uint8_t tcp_status;     // tcp连接状态
 	uint8_t tcp_error_cnt;  // 连接错误计数
 	struct {
