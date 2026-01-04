@@ -55,10 +55,16 @@ __RESET:
 	/* 通信模块初始化 */
 	memset(&sg_gsmoperate_t,0,sizeof(gsm_operate_t));
 	gprs_deinit_function(); // 清除数据再进行初始化
-	while(gprs_status_check_function() == 1) {
-		iwdg_feed();	
+//	while(gprs_status_check_function() == 1) {
+//		iwdg_feed();	
+//		vTaskDelay(10);
+//	}
+	
+		while(1) {
+		gprs_status_check_function();	
 		vTaskDelay(10);
 	}
+}
 	
 #ifdef 0	
 	if( gprs_get_module_status_function() != 1) {
