@@ -38,17 +38,17 @@
 #define GPRS_Sel_GPIO_PORT 						GPIOC
 #define GPRS_Sel_GPIO_PIN  					  GPIO_PIN_13
 
-#define GPRS_NRST_H HAL_GPIO_WritePin(GPRS_NRST_GPIO_PORT,GPRS_NRST_GPIO_PIN,GPIO_PIN_SET)
-#define GPRS_NRST_L HAL_GPIO_WritePin(GPRS_NRST_GPIO_PORT,GPRS_NRST_GPIO_PIN,GPIO_PIN_RESET)
-
-#define GPRS_PWRK_H HAL_GPIO_WritePin(GPRS_PWRK_GPIO_PORT,GPRS_PWRK_GPIO_PIN,GPIO_PIN_SET)
-#define GPRS_PWRK_L HAL_GPIO_WritePin(GPRS_PWRK_GPIO_PORT,GPRS_PWRK_GPIO_PIN,GPIO_PIN_RESET)
-
-#define GPRS_CTRL_H HAL_GPIO_WritePin(GPRS_CTRL_GPIO_PORT,GPRS_CTRL_GPIO_PIN,GPIO_PIN_SET)
-#define GPRS_CTRL_L HAL_GPIO_WritePin(GPRS_CTRL_GPIO_PORT,GPRS_CTRL_GPIO_PIN,GPIO_PIN_RESET)
-
-#define GPRS_Sel_H  HAL_GPIO_WritePin(GPRS_Sel_GPIO_PORT,GPRS_Sel_GPIO_PIN,GPIO_PIN_SET)
-#define GPRS_Sel_L  HAL_GPIO_WritePin(GPRS_Sel_GPIO_PORT,GPRS_Sel_GPIO_PIN,GPIO_PIN_RESET)
+#define GPRS_NRST_H  HAL_GPIO_WritePin(GPRS_NRST_GPIO_PORT,GPRS_NRST_GPIO_PIN,GPIO_PIN_SET)
+#define GPRS_NRST_L  HAL_GPIO_WritePin(GPRS_NRST_GPIO_PORT,GPRS_NRST_GPIO_PIN,GPIO_PIN_RESET)
+										 
+#define GPRS_PWRK_H  HAL_GPIO_WritePin(GPRS_PWRK_GPIO_PORT,GPRS_PWRK_GPIO_PIN,GPIO_PIN_SET)
+#define GPRS_PWRK_L  HAL_GPIO_WritePin(GPRS_PWRK_GPIO_PORT,GPRS_PWRK_GPIO_PIN,GPIO_PIN_RESET)
+										 
+#define GPRS_CTRL_H  HAL_GPIO_WritePin(GPRS_CTRL_GPIO_PORT,GPRS_CTRL_GPIO_PIN,GPIO_PIN_SET)
+#define GPRS_CTRL_L  HAL_GPIO_WritePin(GPRS_CTRL_GPIO_PORT,GPRS_CTRL_GPIO_PIN,GPIO_PIN_RESET)
+										 
+#define GPRS_Sel_H   HAL_GPIO_WritePin(GPRS_Sel_GPIO_PORT,GPRS_Sel_GPIO_PIN,GPIO_PIN_SET)
+#define GPRS_Sel_L   HAL_GPIO_WritePin(GPRS_Sel_GPIO_PORT,GPRS_Sel_GPIO_PIN,GPIO_PIN_RESET)
 
 #define GPRS_Sel_READ  HAL_GPIO_ReadPin(GPRS_Sel_GPIO_PORT,GPRS_Sel_GPIO_PIN)	
 /*
@@ -302,25 +302,23 @@ int8_t gprs_status_check_function(void)
 	uint32_t temp2 = 0;
 	uint8_t  res   = 0;
 	uint8_t  index = 0;
-	uint8_t *p1 = NULL;
+	uint8_t  *p1 = NULL;
 	uint32_t time[6] = {0};
-  uint8_t addr_len = 0;
+  uint8_t  addr_len = 0;
 	
 	switch(sg_gprs_status_t.step) {
 		case 0:
-			/* 数据清零 */
 			repeat = 0;
 			init_repeat = 0;
-			/* 设备开机 */
 			gprs_boot_up_function();
 			sg_gprs_status_t.step = 1;
 			break;
+		
 		case 1:
 			gprs_reset_function();
 			sg_gprs_status_t.step = 2;
 			repeat = 0;
 			if((++init_repeat) >= 3) {
-				/* 初始化失败 */
 				repeat = 0;
 				init_repeat = 0;
 				gprs_send_cmd_over_function();
@@ -335,7 +333,6 @@ int8_t gprs_status_check_function(void)
 				gprs_send_cmd_function((uint8_t*)"ATE0\r\n",0,0); // 关闭回显
 				sg_gprs_status_t.step = 3;
 				sg_gprs_status_t.status.com = 1; // 通信正常
-//				GPRS_DELAY_MS(2010); // 模组开机返回+MATREADY后，间隔至少2s才能执行AT+CFUN=0或AT+CFUN=1
 				repeat = 0;
 			}
 			else {

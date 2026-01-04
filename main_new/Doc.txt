@@ -33,7 +33,7 @@
 			485_RE : PD10	
 			
 	6、BL0910单相计量芯片: 硬件SPI3
-	   引脚分配为： BL_SCLK：  PE12
+	   引脚分配为： BL_SCLK： PE12
                     BL_MISO： PE13 
                     BL_MOSI： PE14
 

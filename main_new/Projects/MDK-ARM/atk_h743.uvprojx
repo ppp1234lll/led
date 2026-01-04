@@ -461,6 +461,16 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>APP/Task</GroupName>
+          <Files>
+            <File>
+              <FileName>gsm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\gsm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
@@ -547,11 +557,6 @@
               <FileName>bsp_uart8.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_uart8.c</FilePath>
-            </File>
-            <File>
-              <FileName>uart_handler.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\uart_handler.c</FilePath>
             </File>
             <File>
               <FileName>bsp_core_dwt.c</FileName>

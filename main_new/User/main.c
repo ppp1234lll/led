@@ -28,7 +28,10 @@ int main(void)
 
 	start_system_init_function();
 
-	freertos_demo();
+//	freertos_demo();
+	start_task_creat();
+	printf("run 2...\n");
+	vTaskStartScheduler(); /* 开启任务调度 */
 }
 
 /*

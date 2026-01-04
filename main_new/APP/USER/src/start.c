@@ -35,9 +35,9 @@ void start_system_init_function(void)
 	bsp_InitUart5(115200);
 	bsp_InitUsart6(115200);
 	bsp_InitUart7(115200);
-	bsp_InitUart8(115200);	
+//	bsp_InitUart8(115200);	
 	bsp_InitLpuart1(115200);	
-
+	iwdg_feed();
 	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
@@ -51,10 +51,10 @@ void start_system_init_function(void)
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
 
-	aht20_init_function();
-	
+//	aht20_init_function();
+	iwdg_feed();
 //	lfs_init_function();
-	
+
 }
 
 /*
@@ -207,8 +207,12 @@ void start_task_creat(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void app_task(void *argument)
+void app_task(void *pvParameters)
 {
+	while(1){
+
+		vTaskDelay(500);
+	}
 //	app_task_function();
 }
 
@@ -220,8 +224,12 @@ void app_task(void *argument)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void eth_task(void *argument)
+void eth_task(void *pvParameters)
 {
+	while(1){
+
+		vTaskDelay(500);
+	}
 //	eth_network_line_status_detection_function();
 }
 
@@ -233,8 +241,12 @@ void eth_task(void *argument)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void det_task(void *argument)
+void det_task(void *pvParameters)
 {
+	while(1){
+
+		vTaskDelay(500);
+	}
 //	det_task_function();
 }
 
@@ -246,9 +258,11 @@ void det_task(void *argument)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void gsm_task(void *argument)
+void gsm_task(void *pvParameters)
 {
-//	gsm_task_function();
+	pvParameters = pvParameters;
+
+	gsm_task_function();
 }
 
 /*
@@ -259,8 +273,12 @@ void gsm_task(void *argument)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void print_task(void *argument)
+void print_task(void *pvParameters)
 {
+	while(1){
+
+		vTaskDelay(500);
+	}	
 //	print_task_function();
 }	
 
@@ -272,9 +290,12 @@ void print_task(void *argument)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void list_task(void *p_arg)
+void list_task(void *pvParameters)
 {
+	while(1){
 
+		vTaskDelay(500);
+	}	
 }
 
 

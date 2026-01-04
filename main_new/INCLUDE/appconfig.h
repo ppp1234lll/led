@@ -103,6 +103,8 @@
 #include "./USER/inc/start.h"
 
 
+#include "./TASK/inc/gsm.h"
+
 
 #include "./DRIVER/inc/GPRS.h"
 #include "./DRIVER/inc/aht20.h"
