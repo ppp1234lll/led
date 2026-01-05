@@ -108,6 +108,7 @@
 
 #include "./DRIVER/inc/GPRS.h"
 #include "./DRIVER/inc/aht20.h"
+#include "./DRIVER/inc/aht201.h"
 #include "./DRIVER/inc/BL0910.h"
 #include "./DRIVER/inc/BL0939.h"
 #include "./DRIVER/inc/BL0942.h"

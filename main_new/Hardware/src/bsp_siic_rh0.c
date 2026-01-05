@@ -9,19 +9,19 @@
  ****************************************************************************************************
  */
 
-#include "bsp_siic.h"
+#include "bsp_siic_rh0.h"
 #include "bsp.h"
 
 /******************************************************************************************/
 /* 引脚 定义 */
 
-#define IIC_SCL_GPIO_PORT               GPIOE
-#define IIC_SCL_GPIO_PIN                GPIO_PIN_10
-#define IIC_SCL_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOE_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
+#define IIC_SCL_GPIO_PORT               GPIOA
+#define IIC_SCL_GPIO_PIN                GPIO_PIN_8
+#define IIC_SCL_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOA_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
 
-#define IIC_SDA_GPIO_PORT               GPIOE
+#define IIC_SDA_GPIO_PORT               GPIOC
 #define IIC_SDA_GPIO_PIN                GPIO_PIN_9
-#define IIC_SDA_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOE_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
+#define IIC_SDA_GPIO_CLK_ENABLE()       do{ __HAL_RCC_GPIOC_CLK_ENABLE(); }while(0)   /* PH口时钟使能 */
 
 /******************************************************************************************/
 
@@ -39,13 +39,14 @@
 #define IIC_READ_SDA     HAL_GPIO_ReadPin(IIC_SDA_GPIO_PORT, IIC_SDA_GPIO_PIN) /* 读取SDA */
 
 /******************************************************************************************/
-													
+
+
 /**
  * @brief       初始化IIC
  * @param       无
  * @retval      无
  */
-void iic_init(void)
+void bsp_siic_rh0_init(void)
 {
     GPIO_InitTypeDef gpio_init_struct;
 
@@ -63,7 +64,7 @@ void iic_init(void)
     HAL_GPIO_Init(IIC_SDA_GPIO_PORT, &gpio_init_struct); /* SDA */
     /* SDA引脚模式设置,开漏输出,上拉, 这样就不用再设置IO方向了, 开漏输出的时候(=1), 也可以读取外部信号的高低电平 */
 
-    iic_stop();                                          /* 停止总线上所有设备 */
+    rh0_iic_stop();                                          /* 停止总线上所有设备 */
 }
 
 /**
@@ -81,7 +82,7 @@ static void iic_delay(void)
  * @param       无
  * @retval      无
  */
-void iic_start(void)
+void rh0_iic_start(void)
 {
     IIC_SDA(1);
     IIC_SCL(1);
@@ -97,7 +98,7 @@ void iic_start(void)
  * @param       无
  * @retval      无
  */
-void iic_stop(void)
+void rh0_iic_stop(void)
 {
     IIC_SDA(0);     /* STOP信号: 当SCL为高时, SDA从低变成高, 表示停止信号 */
     iic_delay();
@@ -113,7 +114,7 @@ void iic_stop(void)
  * @retval      1，接收应答失败
  *              0，接收应答成功
  */
-uint8_t iic_wait_ack(void)
+uint8_t rh0_iic_wait_ack(void)
 {
     uint8_t waittime = 0;
     uint8_t rack = 0;
@@ -129,7 +130,7 @@ uint8_t iic_wait_ack(void)
 
         if (waittime > 250)
         {
-            iic_stop();
+            rh0_iic_stop();
             rack = 1;
             break;
         }
@@ -145,7 +146,7 @@ uint8_t iic_wait_ack(void)
  * @param       无
  * @retval      无
  */
-void iic_ack(void)
+void rh0_iic_ack(void)
 {
     IIC_SDA(0);     /* SCL 0 -> 1 时 SDA = 0,表示应答 */
     iic_delay();
@@ -162,7 +163,7 @@ void iic_ack(void)
  * @param       无
  * @retval      无
  */
-void iic_nack(void)
+void rh0_iic_nack(void)
 {
     IIC_SDA(1);     /* SCL 0 -> 1  时 SDA = 1,表示不应答 */
     iic_delay();
@@ -177,7 +178,7 @@ void iic_nack(void)
  * @param       data: 要发送的数据
  * @retval      无
  */
-void iic_send_byte(uint8_t data)
+void rh0_iic_send_byte(uint8_t data)
 {
     uint8_t t;
     
@@ -198,7 +199,7 @@ void iic_send_byte(uint8_t data)
  * @param       ack:  ack=1时，发送ack; ack=0时，发送nack
  * @retval      接收到的数据
  */
-uint8_t iic_read_byte(uint8_t ack)
+uint8_t rh0_iic_read_byte(uint8_t ack)
 {
     uint8_t i, receive = 0;
 
@@ -219,11 +220,11 @@ uint8_t iic_read_byte(uint8_t ack)
 
     if (!ack)
     {
-        iic_nack();             /* 发送nACK */
+        rh0_iic_nack();             /* 发送nACK */
     }
     else
     {
-        iic_ack();              /* 发送ACK */
+        rh0_iic_ack();              /* 发送ACK */
     }
 
     return receive;

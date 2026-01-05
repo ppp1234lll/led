@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,CMSIS_device_header=\"stm32h7xx.h\"</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT;..\..\Middlewares\littlefs</IncludePath>
+              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT;..\..\Middlewares\littlefs;..\..\Middlewares\lis3dh</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -468,6 +468,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\BL0939_SPI.c</FilePath>
             </File>
+            <File>
+              <FileName>aht201.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\DRIVER\src\aht201.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -574,11 +579,6 @@
               <FilePath>..\..\Hardware\src\bsp_core_dwt.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_siic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_siic.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_hspi_BL0910.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_hspi_BL0910.c</FilePath>
@@ -597,6 +597,16 @@
               <FileName>bsp_sspi_bl0939.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_sspi_bl0939.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_siic_rh0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_siic_rh0.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_siic_rh1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_siic_rh1.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -842,6 +852,31 @@
               <FileName>lfs_util.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\littlefs\lfs_util.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/LIS3DH</GroupName>
+          <Files>
+            <File>
+              <FileName>hal_lis3dh.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lis3dh\hal_lis3dh.c</FilePath>
+            </File>
+            <File>
+              <FileName>lis3dh_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lis3dh\lis3dh_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>lis3dh_iic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lis3dh\lis3dh_iic.c</FilePath>
+            </File>
+            <File>
+              <FileName>lis3dh_spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lis3dh\lis3dh_spi.c</FilePath>
             </File>
           </Files>
         </Group>

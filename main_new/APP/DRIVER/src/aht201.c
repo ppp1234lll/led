@@ -4,12 +4,15 @@
 * @Author     : ZHLE
 *  Version Date        Modification Description
 	9、AHT20温湿度传感器：(模拟IIC方式)，引脚分配为：  
-		      SCL:	PD12
-		      SDA:  PD11
+		SCL:	  PA8
+		SDA:    PC9
+
+		SCL:	  PD12
+		SDA:    PD13
 
 ********************************************************************************/
 
-#include "./DRIVER/inc/aht20.h"
+#include "./DRIVER/inc/aht201.h"
 #include "bsp.h"
 
 #define ATH20_SLAVE_ADDRESS (0x70)
@@ -55,7 +58,7 @@ static uint8_t cal_crc_table(uint8_t *ptr, uint8_t len)
 
 /*
 *********************************************************************************************************
-*	函 数 名: aht20_i2c_read_function
+*	函 数 名: aht201_i2c_read_function
 *	功能说明: 读数据
 *	形    参: 
 *	@addr		: 寄存器地址
@@ -64,33 +67,33 @@ static uint8_t cal_crc_table(uint8_t *ptr, uint8_t len)
 *	返 回 值:  无
 *********************************************************************************************************
 */
-static uint8_t aht20_i2c_read_function(uint8_t addr, uint8_t *buf, uint8_t size)
+static uint8_t aht201_i2c_read_function(uint8_t addr, uint8_t *buf, uint8_t size)
 {
 	uint8_t ret   = 0;
 	uint8_t index = 0;
 
-	rh0_iic_start();
-	rh0_iic_send_byte(addr|0x01);
-	ret = rh0_iic_wait_ack();
+	rh1_iic_start();
+	rh1_iic_send_byte(addr|0x01);
+	ret = rh1_iic_wait_ack();
 	for(index=0; index<size; index++)
 	{
 		if(index == (size-1))
 		{
-			buf[index] = rh0_iic_read_byte(0);
+			buf[index] = rh1_iic_read_byte(0);
 		}
 		else
 		{
-			buf[index] = rh0_iic_read_byte(1);
+			buf[index] = rh1_iic_read_byte(1);
 		}
 	}
-	rh0_iic_stop();
+	rh1_iic_stop();
 
 	return ret;
 }
 
 /*
 *********************************************************************************************************
-*	函 数 名: aht20_i2c_write_function
+*	函 数 名: aht201_i2c_write_function
 *	功能说明: 写数据
 *	形    参: 
 *	@addr		: 寄存器地址
@@ -99,53 +102,53 @@ static uint8_t aht20_i2c_read_function(uint8_t addr, uint8_t *buf, uint8_t size)
 *	返 回 值: 成功/失败
 *********************************************************************************************************
 */
-static uint8_t aht20_i2c_write_function(uint8_t addr, uint8_t *buf, uint8_t size)
+static uint8_t aht201_i2c_write_function(uint8_t addr, uint8_t *buf, uint8_t size)
 {
 	uint8_t ret   = 0;
 	uint8_t index = 0;
 
-	rh0_iic_start();
-	rh0_iic_send_byte(addr|0x00);
-	ret = rh0_iic_wait_ack();
+	rh1_iic_start();
+	rh1_iic_send_byte(addr|0x00);
+	ret = rh1_iic_wait_ack();
 	for(index=0; index<size; index++)
 	{
-		rh0_iic_send_byte(buf[index]);
-		ret = rh0_iic_wait_ack();
+		rh1_iic_send_byte(buf[index]);
+		ret = rh1_iic_wait_ack();
 	}
-	rh0_iic_stop();
+	rh1_iic_stop();
 
 	return ret;
 }
 
 /*
 *********************************************************************************************************
-*	函 数 名: aht20_init_function
+*	函 数 名: aht201_init_function
 *	功能说明: 初始化
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void aht20_init_function(void)
+void aht201_init_function(void)
 {
 	uint8_t buff[1] = {0};
 
-	bsp_siic_rh0_init();
+	bsp_siic_rh1_init();
 
 	/* 激活采集 */
 	delay_ms(100);
-	aht20_i2c_read_function(ATH20_SLAVE_ADDRESS, buff, 1);
+	aht201_i2c_read_function(ATH20_SLAVE_ADDRESS, buff, 1);
 }
 
 /*
 *********************************************************************************************************
-*	函 数 名: aht20_init_function
+*	函 数 名: aht201_init_function
 *	功能说明: 初始化
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
 
-int8_t aht20_measure(double *humidity, double *temperature)
+int8_t aht201_measure(double *humidity, double *temperature)
 {
 	uint32_t datatemp = 0;
 	double data = 0;
@@ -155,11 +158,11 @@ int8_t aht20_measure(double *humidity, double *temperature)
 	buff[0] = 0xAC;
 	buff[1] = 0x33;
 	buff[2] = 0x00;
-	ret = aht20_i2c_write_function(ATH20_SLAVE_ADDRESS, buff, 3);	//触发测量
+	ret = aht201_i2c_write_function(ATH20_SLAVE_ADDRESS, buff, 3);	//触发测量
 	if(ret != 0)
 		return ret;
 //	delay_ms(80);
-	ret = aht20_i2c_read_function(ATH20_SLAVE_ADDRESS, buff, 7);	//读取状态字
+	ret = aht201_i2c_read_function(ATH20_SLAVE_ADDRESS, buff, 7);	//读取状态字
 	if(ret != 0)
 		return ret;
 	
@@ -183,19 +186,19 @@ int8_t aht20_measure(double *humidity, double *temperature)
 
 /************************************************************
 *
-* Function name	: aht20_test
+* Function name	: aht201_test
 * Description	: 温湿度测试
 * Parameter		:
 * Return		:
 *
 ************************************************************/
-void aht20_test(void)
+void aht201_test(void)
 {
 	double det_temp = 0;
 	double det_humi = 0;
 	while(1)
 	{
-		aht20_measure(&det_humi,&det_temp);
+		aht201_measure(&det_humi,&det_temp);
 		printf("temp=%03f...humi=%03f \n",det_temp,det_humi);
 		delay_ms(1000);	
 	}

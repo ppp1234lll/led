@@ -1,16 +1,11 @@
-/**
- ****************************************************************************************************
- * @file        myiic.c
- * @author      正点原子团队(ALIENTEK)
- * @version     V1.0
- * @date        2022-09-06
- * @brief       IIC 驱动代码
- * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
- ****************************************************************************************************
- */
-
-#include "bsp_siic.h"
+#include "lis3dh_iic.h"
 #include "bsp.h"
+
+/*
+	8、3轴加速度计LIS3DH: (模拟IIC)，引脚分配为：  
+		SCL:   PE7
+		SDA:   PB1
+*/
 
 /******************************************************************************************/
 /* 引脚 定义 */
@@ -39,13 +34,21 @@
 #define IIC_READ_SDA     HAL_GPIO_ReadPin(IIC_SDA_GPIO_PORT, IIC_SDA_GPIO_PIN) /* 读取SDA */
 
 /******************************************************************************************/
+	
+static void iic_start(void);               /* 发送IIC开始信号 */
+static void iic_stop(void);                /* 发送IIC停止信号 */
+static void iic_ack(void);                 /* IIC发送ACK信号 */
+static void iic_nack(void);                /* IIC不发送ACK信号 */
+static uint8_t iic_wait_ack(void);         /* IIC等待ACK信号 */
+static void iic_send_byte(uint8_t data);   /* IIC发送一个字节 */
+static uint8_t iic_read_byte(uint8_t ack); /* IIC读取一个字节 */
 													
 /**
  * @brief       初始化IIC
  * @param       无
  * @retval      无
  */
-void iic_init(void)
+void LIS3DH_IIC_Init(void)
 {
     GPIO_InitTypeDef gpio_init_struct;
 
@@ -81,7 +84,7 @@ static void iic_delay(void)
  * @param       无
  * @retval      无
  */
-void iic_start(void)
+static void iic_start(void)
 {
     IIC_SDA(1);
     IIC_SCL(1);
@@ -97,7 +100,7 @@ void iic_start(void)
  * @param       无
  * @retval      无
  */
-void iic_stop(void)
+static void iic_stop(void)
 {
     IIC_SDA(0);     /* STOP信号: 当SCL为高时, SDA从低变成高, 表示停止信号 */
     iic_delay();
@@ -113,7 +116,7 @@ void iic_stop(void)
  * @retval      1，接收应答失败
  *              0，接收应答成功
  */
-uint8_t iic_wait_ack(void)
+static uint8_t iic_wait_ack(void)
 {
     uint8_t waittime = 0;
     uint8_t rack = 0;
@@ -145,7 +148,7 @@ uint8_t iic_wait_ack(void)
  * @param       无
  * @retval      无
  */
-void iic_ack(void)
+static void iic_ack(void)
 {
     IIC_SDA(0);     /* SCL 0 -> 1 时 SDA = 0,表示应答 */
     iic_delay();
@@ -162,7 +165,7 @@ void iic_ack(void)
  * @param       无
  * @retval      无
  */
-void iic_nack(void)
+static void iic_nack(void)
 {
     IIC_SDA(1);     /* SCL 0 -> 1  时 SDA = 1,表示不应答 */
     iic_delay();
@@ -177,7 +180,7 @@ void iic_nack(void)
  * @param       data: 要发送的数据
  * @retval      无
  */
-void iic_send_byte(uint8_t data)
+static void iic_send_byte(uint8_t data)
 {
     uint8_t t;
     
@@ -198,7 +201,7 @@ void iic_send_byte(uint8_t data)
  * @param       ack:  ack=1时，发送ack; ack=0时，发送nack
  * @retval      接收到的数据
  */
-uint8_t iic_read_byte(uint8_t ack)
+static uint8_t iic_read_byte(uint8_t ack)
 {
     uint8_t i, receive = 0;
 
@@ -230,3 +233,101 @@ uint8_t iic_read_byte(uint8_t ack)
 }
 
 
+static uint8_t m_DeviceIDs[1] = {0x30}; //默认地址
+/************************************************************
+*
+* Function name	: HAL_IIC_EMU_Read
+* Description	: 读取数据
+* Parameter		: 
+*	@Addr		: 地址
+*	@pBuf		: 数据指针
+*	@Len		: 数据长度
+* Return		: 
+*	
+************************************************************/
+bool HAL_IIC_EMU_Read(uint8_t Addr,uint8_t *pBuf,uint32_t Len)
+{
+	bool 	 Vale = true;
+	uint32_t i;
+
+	iic_start();
+	iic_send_byte(m_DeviceIDs[0]);
+	if(iic_wait_ack())
+	{
+		Vale = false;
+		goto Exit;
+	}
+	iic_send_byte(Addr);
+	if(iic_wait_ack())
+	{
+		Vale = false;
+		goto Exit;
+	}
+
+//	delay_ms(2);
+
+	iic_start();
+	iic_send_byte((1+ m_DeviceIDs[0]));
+	if(iic_wait_ack())
+	{
+		Vale = false;
+		goto Exit;
+	}
+	for( i = 0;i< Len;i ++ )
+	{
+		if( i == (Len-1) )
+		{
+			pBuf[i]= iic_read_byte(false);
+		}
+		else
+		{
+			pBuf[i] = iic_read_byte(true);
+		}
+	}
+	Exit:
+	iic_stop();
+	return Vale;
+}
+
+/************************************************************
+*
+* Function name	: HAL_IIC_EMU_Write
+* Description	: 写数据
+* Parameter		: 
+*	@Addr		: 地址
+*	@pBuff		: 数据指针
+*	@Len		: 数据长度
+* Return		: 
+*	
+************************************************************/
+bool HAL_IIC_EMU_Write(uint8_t Addr,uint8_t *pBuf,uint32_t Len)
+{
+	uint8_t Vale = true;
+	uint32_t i = 0;
+
+	iic_start();
+	iic_send_byte(m_DeviceIDs[0]);
+	if(iic_wait_ack())
+	{
+		Vale = false;
+		goto Exit;
+	}
+	iic_send_byte(Addr);
+	if(iic_wait_ack())
+	{
+		Vale = false;
+		goto Exit;
+	}
+	for( i = 0;i < Len;i ++ )
+	{
+		iic_send_byte(pBuf[i]);
+		if(iic_wait_ack())
+		{
+			Vale = false;
+			goto Exit;
+		}
+	}
+	Exit:
+	iic_stop();
+	return Vale;
+}
