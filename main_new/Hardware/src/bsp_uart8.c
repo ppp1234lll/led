@@ -255,8 +255,6 @@ void UART8_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U8RxBuffer, U8_RX_SIZE);		
-//		Uart8_SendString("\r\n uart8 dma_recv:\r\n");
-//		HAL_UART_Transmit(&huart8, (uint8_t *)g_U8RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 
 		gprs_get_receive_data_function(g_U8RxBuffer,total_len);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart8, g_U8RxBuffer, U8_RX_SIZE);

@@ -11,6 +11,7 @@
 
 #include "bsp.h"
 #include "bsp_usart6.h"
+#include "./DRIVER/inc/ATGM336H.h"
 
 #define UART6_RX_NE     0    // 使用串口中断
 #define UART6_RX_DMA    1    // 使用串口DMA
@@ -228,10 +229,7 @@ void USART6_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U6RxBuffer, U6_RX_SIZE);		
-		Usart6_SendString("\r\n usart6 dma_recv:\r\n");
-		HAL_UART_Transmit(&huart6, (uint8_t *)g_U6RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
-//		Usart1_Send_Data("123456789000\n",12);
+    gps_get_data(g_U6RxBuffer,total_len);
 		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart6, g_U6RxBuffer, U6_RX_SIZE);
 	}

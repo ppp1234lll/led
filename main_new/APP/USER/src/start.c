@@ -33,7 +33,7 @@ void start_system_init_function(void)
   bsp_InitUsart3(115200);
 	bsp_InitUsart4(115200);
 	bsp_InitUart5(115200);
-	bsp_InitUsart6(115200);
+	bsp_InitUsart6(9600);
 	bsp_InitUart7(115200);
 //	bsp_InitUart8(115200);	
 	bsp_InitLpuart1(115200);	
@@ -51,7 +51,7 @@ void start_system_init_function(void)
 
 	bl0910_init_function();
 	bl0939_init_function();
-bl0939_test();
+//ATGM338H_test();
 	iwdg_feed();
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	

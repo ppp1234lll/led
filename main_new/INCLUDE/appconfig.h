@@ -111,8 +111,8 @@
 #include "./DRIVER/inc/aht201.h"
 #include "./DRIVER/inc/BL0910.h"
 #include "./DRIVER/inc/BL0939.h"
-#include "./DRIVER/inc/BL0942.h"
 
+#include "./DRIVER/inc/ATGM336H.h"
 
 /*
 *********************************************************************************************************
