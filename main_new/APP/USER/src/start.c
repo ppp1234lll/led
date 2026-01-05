@@ -3,6 +3,66 @@
 
 ChipID_t g_chipid_t;
 
+/******************************************************************************************************/
+/*FreeRTOS配置*/
+
+/* START_TASK 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define START_TASK_PRIO         3           /* 任务优先级 */
+#define START_STK_SIZE          512         /* 任务堆栈大小 */
+TaskHandle_t StartTask_Handler;             /* 任务句柄 */
+void start_task(void *pvParameters);        /* 任务函数 */
+
+
+/* APP线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define APP_TASK_PRIO     20        /* 任务优先级 */
+#define APP_STK_SIZE      1024      /* 任务堆栈大小 */
+TaskHandle_t APP_Task_Handler;     /* 任务句柄 */
+void app_task(void *pvParameters);  /* 任务函数 */
+
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define ETH_TASK_PRIO           19          /* 任务优先级 */
+#define ETH_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t ETH_Task_Handler;              /* 任务句柄 */
+void eth_task(void *pvParameters);          /* 任务函数 */
+
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define DET_TASK_PRIO           18          /* 任务优先级 */
+#define DET_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t DET_Task_Handler;              /* 任务句柄 */
+void det_task(void *pvParameters);          /* 任务函数 */
+
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define GSM_TASK_PRIO           17          /* 任务优先级 */
+#define GSM_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t GSM_Task_Handler;              /* 任务句柄 */
+void gsm_task(void *pvParameters);          /* 任务函数 */
+
+/* 网络线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define PRINT_TASK_PRIO           10          /* 任务优先级 */
+#define PRINT_STK_SIZE            512         /* 任务堆栈大小 */
+TaskHandle_t PRINT_Task_Handler;              /* 任务句柄 */
+void print_task(void *pvParameters);          /* 任务函数 */
+
+/* 查看任务堆栈 */
+#define LIST_TASK_PRIO		    9
+#define LIST_TASK_STK_SIZE 		128
+TaskHandle_t LIST_Task_Handler;
+void list_task(void *p_arg);
+/******************************************************************************************************/
+
+
 /*
 *********************************************************************************************************
 *	函 数 名:  start_system_init_function
@@ -11,8 +71,31 @@ ChipID_t g_chipid_t;
 *	返 回 值:  无
 *********************************************************************************************************
 */
-void start_system_init_function(void)
+void start_task_create(void)
 {
+	/* start_task任务 */
+	xTaskCreate((TaskFunction_t )start_task,
+							(const char *   )"start_task",
+							(uint16_t       )START_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )START_TASK_PRIO,
+							(TaskHandle_t * )&StartTask_Handler);
+
+	vTaskStartScheduler(); /* 开启任务调度 */
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名:  start_task
+*	功能说明:   
+*	形    参:  pvParameters : 传入参数(未用到)
+*	返 回 值:  无
+*********************************************************************************************************
+*/
+void start_task(void *pvParameters)
+{
+	pvParameters = pvParameters;
+    
 	cJSON_Hooks hook;                // 初始化JSON 
 
 	iwdg_init(IWDG_PRESCALER_64, 1000);// 初始化看门狗(硬件、软件2s)
@@ -57,103 +140,15 @@ void start_system_init_function(void)
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
 //	lfs_init_function();
 
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: start_get_device_id_function
-*	功能说明: 获取本机ID.  
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void start_get_device_id_function(void)
-{
-	volatile uint32_t addr = 0x1FF1E800;
-	
-	g_chipid_t.id[0] = *(__I uint32_t *)(addr + 0x00);
-	g_chipid_t.id[1] = *(__I uint32_t *)(addr + 0x04);
-	g_chipid_t.id[2] = *(__I uint32_t *)(addr + 0x08);
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: start_get_device_id_str
-*	功能说明: 获取本机ID.  
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void start_get_device_id_str(uint8_t *str)
-{
-	sprintf((char*)str,"%04X%04X%04X",g_chipid_t.id[0],g_chipid_t.id[1],g_chipid_t.id[2]);
-}
-
-void start_get_device_id(uint32_t *id)
-{
-	id[0] = g_chipid_t.id[0];
-	id[1] = g_chipid_t.id[1];
-	id[2] = g_chipid_t.id[2];
-}
-
-/* APP线程 任务 配置
- * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
- */
-#define APP_TASK_PRIO     20        /* 任务优先级 */
-#define APP_STK_SIZE      1024      /* 任务堆栈大小 */
-TaskHandle_t APP_Task_Handler;     /* 任务句柄 */
-void app_task(void *pvParameters);  /* 任务函数 */
-
-/* 网络线程 任务 配置
- * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
- */
-#define ETH_TASK_PRIO           19          /* 任务优先级 */
-#define ETH_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t ETH_Task_Handler;               /* 任务句柄 */
-void eth_task(void *pvParameters);          /* 任务函数 */
-
-/* 网络线程 任务 配置
- * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
- */
-#define DET_TASK_PRIO           18          /* 任务优先级 */
-#define DET_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t DET_Task_Handler;               /* 任务句柄 */
-void det_task(void *pvParameters);          /* 任务函数 */
-
-/* 网络线程 任务 配置
- * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
- */
-#define GSM_TASK_PRIO           17          /* 任务优先级 */
-#define GSM_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t GSM_Task_Handler;               /* 任务句柄 */
-void gsm_task(void *pvParameters);          /* 任务函数 */
-
-/* 网络线程 任务 配置
- * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
- */
-#define PRINT_TASK_PRIO           10          /* 任务优先级 */
-#define PRINT_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t PRINT_Task_Handler;               /* 任务句柄 */
-void print_task(void *pvParameters);          /* 任务函数 */
-
-
-/* 查看任务堆栈 */
-#define LIST_TASK_PRIO		    9
-#define LIST_TASK_STK_SIZE 		128
-TaskHandle_t LIST_Task_Handler;
-void list_task(void *p_arg);
-
-
-/*
-*********************************************************************************************************
-*	函 数 名: start_task_creat
-*	功能说明: 创建任务
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void start_task_creat(void)
-{
+    
+	if (lwip_comm_init() != 0)
+	{
+		printf("lwIP Init failed!!\n");
+		delay_ms(500);
+		printf("Retrying...       \n");
+		delay_ms(500);
+	}
+    
 	taskENTER_CRITICAL();           /* 进入临界区 */
 
 	xTaskCreate((TaskFunction_t )app_task,
@@ -197,8 +192,46 @@ void start_task_creat(void)
 							(void *         )NULL,
 							(UBaseType_t    )LIST_TASK_PRIO,
 							(TaskHandle_t * )&LIST_Task_Handler);
-													
-	taskEXIT_CRITICAL();            /* 退出临界区 */										
+		
+	vTaskDelete(StartTask_Handler); /* 删除开始任务 */
+	taskEXIT_CRITICAL();            /* 退出临界区 */					 
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: start_get_device_id_function
+*	功能说明: 获取本机ID.  
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void start_get_device_id_function(void)
+{
+	volatile uint32_t addr = 0x1FF1E800;
+	
+	g_chipid_t.id[0] = *(__I uint32_t *)(addr + 0x00);
+	g_chipid_t.id[1] = *(__I uint32_t *)(addr + 0x04);
+	g_chipid_t.id[2] = *(__I uint32_t *)(addr + 0x08);
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: start_get_device_id_str
+*	功能说明: 获取本机ID.  
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void start_get_device_id_str(uint8_t *str)
+{
+	sprintf((char*)str,"%04X%04X%04X",g_chipid_t.id[0],g_chipid_t.id[1],g_chipid_t.id[2]);
+}
+
+void start_get_device_id(uint32_t *id)
+{
+	id[0] = g_chipid_t.id[0];
+	id[1] = g_chipid_t.id[1];
+	id[2] = g_chipid_t.id[2];
 }
 
 /*

@@ -50,6 +50,7 @@
 #include "lwip/stats.h"
 
 #include <string.h>
+#include "./ping/lwip_ping.h"
 
 #ifdef LWIP_HOOK_FILENAME
 #include LWIP_HOOK_FILENAME
@@ -113,6 +114,7 @@ icmp_input(struct pbuf *p, struct netif *inp)
       /* This is OK, echo reply might have been parsed by a raw PCB
          (as obviously, an echo request has been sent, too). */
       MIB2_STATS_INC(mib2.icmpinechoreps);
+		  lwip_ping_echo_reply(); // ¼à²âµ½Ó¦´ð
       break;
     case ICMP_ECHO:
       MIB2_STATS_INC(mib2.icmpinechos);

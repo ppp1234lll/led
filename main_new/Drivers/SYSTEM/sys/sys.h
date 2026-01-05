@@ -43,6 +43,12 @@
 #define      OFF     0
 #define      Write_Through()    do{ *(__IO uint32_t*)0XE000EF9C = 1UL << 2; }while(0)     /* Cache͸дģʽ */
 
+union i_c{
+    unsigned int  i;
+    unsigned char c[4];
+    };
+
+
 typedef void (*UART_RxCpltCallbackFunc)(UART_HandleTypeDef *huart);
 typedef void (*UART_RxEventCallbackFunc)(UART_HandleTypeDef *huart, uint16_t Size);
 typedef void (*UART_TxCpltCallbackFunc)(UART_HandleTypeDef *huart);

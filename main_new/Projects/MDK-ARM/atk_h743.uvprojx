@@ -488,6 +488,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\TASK\src\gsm.c</FilePath>
             </File>
+            <File>
+              <FileName>eth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\eth.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1157,6 +1162,21 @@
               <FileName>lwipopts.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\Middlewares\lwip\arch\lwipopts.h</FilePath>
+            </File>
+            <File>
+              <FileName>lwip_comm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Middlewares\lwip\arch\lwip_comm.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/lwip/app/ping</GroupName>
+          <Files>
+            <File>
+              <FileName>lwip_ping.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\ping\lwip_ping.c</FilePath>
             </File>
           </Files>
         </Group>

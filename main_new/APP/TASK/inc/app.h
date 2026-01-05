@@ -1,7 +1,7 @@
 #ifndef _APP_H_
 #define _APP_H_
 
-#include "sys.h"
+#include "./SYSTEM/sys/sys.h"
 
 // 服务器连接模式
 #define SERVER_MODE_LWIP (1) // 有线连接

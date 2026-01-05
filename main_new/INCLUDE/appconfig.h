@@ -70,6 +70,7 @@
 */
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
 /*
 *********************************************************************************************************
@@ -85,7 +86,25 @@
 */
 #include "lwipopts.h"
 #include "lwip_comm.h"
+#include "lwipopts.h"
+#include <lwip/sockets.h>
+#include "lwip/opt.h"
+#include "lwip/sys.h"
+#include "lwip/api.h"
+#include "lwip_comm.h"
+#include "netif/etharp.h"
+#include "lwip/dhcp.h"
+#include "lwip/mem.h"
+#include "lwip/memp.h"
+#include "lwip/init.h"
+#include "ethernetif.h"
+#include "lwip/timeouts.h"
+#include "lwip/tcpip.h"
+#include "lwip/icmp.h"
+#include "lwip/igmp.h"
+#include "lwip/raw.h"
 
+#include "./ping/lwip_ping.h"
 /*
 *********************************************************************************************************
 *                                         OTAÉý¼¶
@@ -100,11 +119,7 @@
 */
 #include "bsp.h"
 
-#include "./USER/inc/start.h"
-
-
-#include "./TASK/inc/gsm.h"
-
+#include "./BSP/ETHERNET/ethernet_chip.h"
 
 #include "./DRIVER/inc/GPRS.h"
 #include "./DRIVER/inc/aht20.h"
@@ -113,6 +128,14 @@
 #include "./DRIVER/inc/BL0939.h"
 
 #include "./DRIVER/inc/ATGM336H.h"
+
+#include "./USER/inc/start.h"
+
+#include "./TASK/inc/app.h"
+#include "./TASK/inc/det.h"
+#include "./TASK/inc/eth.h"
+#include "./TASK/inc/gsm.h"
+
 
 /*
 *********************************************************************************************************

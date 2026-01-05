@@ -7,15 +7,6 @@
  * @brief       lwIP HTTPS 实验
  * @license     Copyright (c) 2020-2032, 广州市星翼电子科技有限公司
  ****************************************************************************************************
- * @attention
- *
- * 实验平台:正点原子 阿波罗 H743开发板
- * 在线视频:www.yuanzige.com
- * 技术论坛:www.openedv.com
- * 公司网址:www.alientek.com
- * 购买地址:openedv.taobao.com
- *
- ****************************************************************************************************
  */
  
 #include "freertos_demo.h"
@@ -24,7 +15,7 @@
 #include "lwip_comm.h"
 #include "lwip_demo.h"
 #include "lwipopts.h"
-#include "stdio.h"
+#include "stdio.h" 
 #include "string.h"
 #include "FreeRTOS.h"
 #include "task.h"
@@ -82,16 +73,8 @@ void lwip_test_ui(uint8_t mode)
     if (mode & 1 << 1)
     {
         printf("lwIP Init Successed\n");
-        if (g_lwipdev.dhcpstatus == 2)
-        {
-            sprintf((char*)buf,"DHCP IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);     /* 显示动态IP地址 */
-        }
-        else
-        {
-            sprintf((char*)buf,"Static IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);    /* 打印静态IP地址 */
-        }
+        sprintf((char*)buf,"Static IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);    /* 打印静态IP地址 */
         printf("%s\n",buf);
-       
         speed = ethernet_chip_get_speed();      /* 得到网速 */
         
         if (speed)
@@ -143,11 +126,6 @@ void start_task(void *pvParameters)
 			printf("Retrying...       \n");
         delay_ms(500);
 //        LED1_TOGGLE();
-    }
-    
-    while (g_lwipdev.dhcpstatus != 2 && g_lwipdev.dhcpstatus != 0xff)/* 判断静态和动态分配完成  */
-    {
-        vTaskDelay(500);
     }
     
     taskENTER_CRITICAL();           /* 进入临界区 */

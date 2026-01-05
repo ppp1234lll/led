@@ -1,7 +1,7 @@
 #ifndef _DET_H_
 #define _DET_H_
 
-#include "sys.h"
+#include "./SYSTEM/sys/sys.h"
 
 /* °´¼üÊÂ¼þ */
 typedef enum

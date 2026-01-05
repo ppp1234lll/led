@@ -25,13 +25,8 @@ void SystemClock_Config(void);
 int main(void)
 {
 	system_setup();
-
-	start_system_init_function();
-
-//	freertos_demo();
-	start_task_creat();
 	printf("run 2...\n");
-	vTaskStartScheduler(); /* 开启任务调度 */
+	start_task_create();
 }
 
 /*

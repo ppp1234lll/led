@@ -78,6 +78,10 @@
 #define LWIP_ICMP                       1
 
 
+#define LWIP_IGMP 				              1	// 开启组播功能
+#define LWIP_RAW                        1
+#define LWIP_DNS                        1
+
 /* ---------- DHCP 选项 ---------- */
 /* 如果您希望DHCP配置为，请将LWIP_DHCP定义为1 */
 #define LWIP_DHCP                       0
