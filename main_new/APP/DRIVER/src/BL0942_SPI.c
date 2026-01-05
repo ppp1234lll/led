@@ -10,10 +10,9 @@
 
 ********************************************************************************/
 
-#include "BL0942.h"
+#include "./DRIVER/inc/BL0942.h"
 #include "bsp.h"
-#include "det.h"
-#include  <stdio.h>
+//#include "det.h"
 
 /*
 
@@ -56,12 +55,14 @@ struct bl0942_data_t {
 };
 
 static uint16_t sg_bl0942_rec_sta = 0;
-static uint8_t  sg_bl0942_buff[64] = {0};
+static uint8_t  sg_bl0942_buff[16] = {0};
 struct bl0942_data_t sg_bl0942data_t = {0};
 
 /* 接口与参数 */
-#define BL0942_INIT( )              bsp_InitSPI2()
-#define BL0942_SEND_STR(buff,len) 	SPI2_Write_Multi_Byte(buff,len)
+#define BL0942_INIT( )              bsp_InitSSPI()
+#define BL0942_SEND_STR(buff,len) 	SSPI_Write_Multi_Byte(buff,len)
+#define BL0942_ReadByte(data)       SSPI_ReadByte(data)
+
 
 /* 宏定义数据 */
 #define BL0942_DET_NUM   			2  		  // 采集次数 
@@ -163,8 +164,8 @@ int8_t bl0942_deal_read_data_function(void)
 
 	switch(sg_bl0942data_t.reg) 
 	{
-		case BL0942_V_RMS: 	 det_set_total_energy_bl0942(0,data); break;
-		case BL0942_I_RMS:   det_set_total_energy_bl0942(1,data); break;
+//		case BL0942_V_RMS: 	 det_set_total_energy_bl0942(0,data); break;
+//		case BL0942_I_RMS:   det_set_total_energy_bl0942(1,data); break;
 //		case BL0942_WATT :   // 有符号位  
 //			if((data&0x00800000) == 0x00800000)  // 判断最高位是否为0，Bit[23]为符号位，Bit[23]=0为正
 //			{
@@ -285,7 +286,7 @@ void bl0942_write_reg_function(uint8_t reg,uint8_t *data, uint8_t len,uint8_t mo
 */
 void bl0942_read_reg_function(uint8_t reg, uint8_t mode)
 {
-	uint8_t buff[6] = {0};
+	uint8_t buff[2] = {0};
 	uint8_t index = 0;
 
 	buff[0] = BL0942_CMD_READ;	/* 数据 */
@@ -296,19 +297,19 @@ void bl0942_read_reg_function(uint8_t reg, uint8_t mode)
 	if( mode == 0) 	/* 更新标志 */
 		bl0942_sending_data_function(reg,0);
 	
-//	BL0942_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
+	BL0942_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
 
-//	for(index=0; index < 4; index++) {
-//		BL0942_REC_BUFF[index] = HSPI2_ReadByte();
-//	}
-
-	for(index=0; index < 6; index++) {
-		BL0942_REC_BUFF[index] = SPI2_ReadWriteByte(buff[index]);;
+	for(index=0; index < 4; index++) {
+		BL0942_REC_BUFF[index] = BL0942_ReadByte();
 	}
-	BL0942_REC_BUFF[0] = BL0942_REC_BUFF[2];
-	BL0942_REC_BUFF[1] = BL0942_REC_BUFF[3];
-	BL0942_REC_BUFF[2] = BL0942_REC_BUFF[4];
-	BL0942_REC_BUFF[3] = BL0942_REC_BUFF[5];
+
+//	for(index=0; index < 6; index++) {
+//		BL0942_REC_BUFF[index] = SPI2_ReadWriteByte(buff[index]);;
+//	}
+//	BL0942_REC_BUFF[0] = BL0942_REC_BUFF[2];
+//	BL0942_REC_BUFF[1] = BL0942_REC_BUFF[3];
+//	BL0942_REC_BUFF[2] = BL0942_REC_BUFF[4];
+//	BL0942_REC_BUFF[3] = BL0942_REC_BUFF[5];
 	
 	BL0942_REC_STA = 0x8000+4;
 }
@@ -493,8 +494,10 @@ void bl0942_test(void)
 	delay_ms(200);		
 	while(1)
 	{
-		bl0942_work_process_function();	// 数据获取函数
-		delay_ms(100);		
+//		bl0942_work_process_function();	// 数据获取函数
+//		delay_ms(100);	
+		bl0942_read_reg_function(BL0942_FREQ,0);  // 默认值是0x4E20
+		delay_ms(1);			
 	}
 }
 

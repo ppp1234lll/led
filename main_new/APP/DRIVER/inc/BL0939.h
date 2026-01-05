@@ -1,8 +1,7 @@
 #ifndef _BL0939_H_
 #define _BL0939_H_
 
-#include "sys.h"
-
+#include "./SYSTEM/sys/sys.h"
 
 /* 寄存器表单 */
 #define BL0939_IA_FAST_RMS 	    		0x00 // A 通道快速有效值，无符号

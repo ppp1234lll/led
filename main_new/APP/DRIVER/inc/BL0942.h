@@ -1,7 +1,7 @@
 #ifndef _BL0942_H_
 #define _BL0942_H_
 
-#include "sys.h"
+#include "./SYSTEM/sys/sys.h"
 
 /* 寄存器表单 通讯协议的数据字节为 24bit，高位无效位补 0。 */
 #define BL0942_I_WAVE 	      0x01 // 电流波形寄存器，有符号

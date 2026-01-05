@@ -14,15 +14,15 @@
 
 #define SOFT_SPI_SCLK_GPIO_CLK()		__HAL_RCC_GPIOB_CLK_ENABLE()  
 #define SOFT_SPI_SCLK_GPIO 					GPIOB
-#define SOFT_SPI_SCLK_PIN  					GPIO_PIN_12
+#define SOFT_SPI_SCLK_PIN  					GPIO_PIN_10
                                   
 #define SOFT_SPI_MOSI_GPIO_CLK()		__HAL_RCC_GPIOB_CLK_ENABLE()
 #define SOFT_SPI_MOSI_GPIO 				 GPIOB
-#define SOFT_SPI_MOSI_PIN 				 GPIO_PIN_14
+#define SOFT_SPI_MOSI_PIN 				 GPIO_PIN_15
                                   
 #define SOFT_SPI_MISO_GPIO_CLK()		__HAL_RCC_GPIOB_CLK_ENABLE()
 #define SOFT_SPI_MISO_GPIO 				 GPIOB
-#define SOFT_SPI_MISO_PIN 				 GPIO_PIN_13
+#define SOFT_SPI_MISO_PIN 				 GPIO_PIN_14
  	    					
 #define SOFT_SPI_SCLK_H		HAL_GPIO_WritePin(SOFT_SPI_SCLK_GPIO, SOFT_SPI_SCLK_PIN, GPIO_PIN_SET)
 #define SOFT_SPI_SCLK_L		HAL_GPIO_WritePin(SOFT_SPI_SCLK_GPIO, SOFT_SPI_SCLK_PIN, GPIO_PIN_RESET)
@@ -93,21 +93,21 @@ uint8_t SSPI_ReadWriteByte(uint8_t TxData)
 
 	for(i=0; i<8; i++)
 	{
-		SOFT_SPI_SCLK=0;
-		sspi_delay(25);
-		if(TxData&0x80) SOFT_SPI_MOSI=1;
-		else SOFT_SPI_MOSI=0;
+		SOFT_SPI_SCLK_L;
+		sspi_delay(100);
+		if(TxData&0x80) SOFT_SPI_MOSI_H;
+		else SOFT_SPI_MOSI_L;
 		TxData<<=1;
-		sspi_delay(25);
-		SOFT_SPI_SCLK=1;  // 上升沿采样
-		sspi_delay(25);
+		sspi_delay(100);
+		SOFT_SPI_SCLK_H;  // 上升沿采样
+		sspi_delay(100);
 		RecevieData<<=1;
 		if(SOFT_SPI_MISO) RecevieData |= 0x01;
 		else RecevieData &= ~0x01;   // 下降沿接收数据
-		sspi_delay(25);
+		sspi_delay(100);
 	}
-	SOFT_SPI_SCLK=0;  // idle情况下SCK为电平
-	sspi_delay(25);
+	SOFT_SPI_SCLK_L;  // idle情况下SCK为电平
+	sspi_delay(100);
 	return RecevieData;
 }
 
@@ -125,15 +125,15 @@ void SSPI_WriteByte(uint8_t TxData)
 	uint8_t i = 0;  
 	for(i=0; i<8; i++) 
 	{
-		SOFT_SPI_SCLK = 0; //CPOL=0        //拉低时钟，即空闲时钟为低电平， CPOL=0；
-		if(TxData&0x80) SOFT_SPI_MOSI=1;
-		else SOFT_SPI_MOSI=0;
+		SOFT_SPI_SCLK_L; //CPOL=0        //拉低时钟，即空闲时钟为低电平， CPOL=0；
+		if(TxData&0x80) SOFT_SPI_MOSI_H;
+		else SOFT_SPI_MOSI_L;
 		TxData<<=1;
-		sspi_delay(25); 
-		SOFT_SPI_SCLK=1;                   // 上升沿采样 //CPHA=0  
-		sspi_delay(25); 
+		sspi_delay(100); 
+		SOFT_SPI_SCLK_H;                   // 上升沿采样 //CPHA=0  
+		sspi_delay(100); 
 	}
-	SOFT_SPI_SCLK = 0;                   // 最后SPI发送完后，拉低时钟，进入空闲状态；
+	SOFT_SPI_SCLK_L;                   // 最后SPI发送完后，拉低时钟，进入空闲状态；
 }
 /*
 *********************************************************************************************************
@@ -166,15 +166,15 @@ uint8_t SSPI_ReadByte(void)
 	uint8_t RecevieData=0;
 	for(i=0; i<8; i++) 
 	{
-		SOFT_SPI_SCLK = 1;           //拉低时钟，即空闲时钟为低电平；  
-		sspi_delay(25); 
-		SOFT_SPI_SCLK = 0;   
+		SOFT_SPI_SCLK_H;           //拉低时钟，即空闲时钟为低电平；  
+		sspi_delay(100); 
+		SOFT_SPI_SCLK_L;   
 		RecevieData<<=1;
 		if(SOFT_SPI_MISO) RecevieData |= 0x01;
 		else RecevieData &= ~0x01;   // 下降沿接收数据
-		sspi_delay(25); 
+		sspi_delay(100); 
 	}
-	SOFT_SPI_SCLK=0;  // idle情况下SCK为电平
+	SOFT_SPI_SCLK_L;  // idle情况下SCK为电平
 	return RecevieData;
 }  
 

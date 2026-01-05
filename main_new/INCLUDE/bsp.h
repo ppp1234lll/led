@@ -64,6 +64,8 @@
 
 #include "bsp_hspi_BL0910.h"
 #include "bsp_sspi_BL0910.h"
+#include "bsp_hspi2_BL0939.h"
+#include "bsp_sspi_BL0939.h"
 
 #include "demo_spi_flash.h"
 #endif

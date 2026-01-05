@@ -12,22 +12,7 @@
 
 #include "bsp_hspi2_bl0939.h"
 
-#define SPI2_SCLK_GPIO_CLK		RCC_AHB1Periph_GPIOB   
-#define SPI2_SCLK_GPIO 				GPIOB
-#define SPI2_SCLK_PIN  				GPIO_Pin_10
-					 
-#define SPI2_MOSI_GPIO_CLK		RCC_AHB1Periph_GPIOB
-#define SPI2_MOSI_GPIO 				GPIOB
-#define SPI2_MOSI_PIN 				GPIO_Pin_15
-					 
-#define SPI2_MISO_GPIO_CLK		RCC_AHB1Periph_GPIOB
-#define SPI2_MISO_GPIO 				GPIOB
-#define SPI2_MISO_PIN 				GPIO_Pin_14
-					 
-#define SPI2_SCLK		PBout(10)
-#define SPI2_MOSI		PBout(15)
-#define SPI2_MISO		PBin(14)
-
+SPI_HandleTypeDef hspi2;
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitSPI2
@@ -38,101 +23,80 @@
 */
 void bsp_InitSPI2(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	SPI_InitTypeDef  SPI_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 	
-	RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOB,ENABLE);
-	RCC_APB1PeriphClockCmd(	RCC_APB1Periph_SPI2,ENABLE );//SPI3时钟使能
+	/* SPI2 clock enable */
+	__HAL_RCC_SPI2_CLK_ENABLE();
 
-  GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10|GPIO_Pin_14|GPIO_Pin_15;
-  GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;//复用功能
-  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
-  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
-  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;//上拉
-  GPIO_Init(GPIOB, &GPIO_InitStructure);//初始化
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	/**SPI2 GPIO Configuration
+	PB10     ------> SPI2_SCK
+	PB14     ------> SPI2_MISO
+	PB15     ------> SPI2_MOSI
+	*/
+	GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_14|GPIO_PIN_15;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF5_SPI2;
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource10,GPIO_AF_SPI2); 
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource14,GPIO_AF_SPI2); 
-	GPIO_PinAFConfig(GPIOB,GPIO_PinSource15,GPIO_AF_SPI2); 
- 
-	//这里只针对SPI口初始化
-	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2,ENABLE);//复位SPI1
-	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2,DISABLE);//停止复位SPI1
-	
-	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;  //设置SPI单向或者双向的数据模式:SPI设置为双线双向全双工
-	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;		//设置SPI工作模式:设置为主SPI
-	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;		//设置SPI的数据大小:SPI发送接收8位帧结构
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;		//串行同步时钟的空闲状态为高电平
-	SPI_InitStructure.SPI_CPHA = SPI_CPHA_2Edge;	//串行同步时钟的第二个跳变沿（上升或下降）数据被采样
-	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;		//NSS信号由硬件（NSS管脚）还是软件（使用SSI位）管理:内部NSS信号有SSI位控制
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;		//定义波特率预分频的值:波特率预分频值为256
-	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;	//指定数据传输从MSB位还是LSB位开始:数据传输从MSB位开始
-	SPI_InitStructure.SPI_CRCPolynomial = 7;	//CRC值计算的多项式
-	SPI_Init(SPI2, &SPI_InitStructure);  //根据SPI_InitStruct中指定的参数初始化外设SPIx寄存器
- 
-	SPI_Cmd(SPI2, ENABLE); //使能SPI外设
-	
-	SPI2_ReadWriteByte(0xff);//启动传输		 
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: SPI2_ReadWriteByte
-*	功能说明: 读写字节函数
-*	形    参: 
-*	@TxData		: 写入字节
-*	返 回 值: 读取到的字节
-*********************************************************************************************************
-*/
-uint8_t SPI2_ReadWriteByte(uint8_t TxData)
-{
-	u8 retry=0;				 	
-	while((SPI2->SR&SPI_I2S_FLAG_TXE)==RESET) //检查指定的SPI标志位设置与否:发送缓存空标志位
-	{
-		retry++;
-		if(retry>200)return 0;
-	}			  
-	SPI2->DR=TxData;	 	//发送一个byte   //通过外设SPIx发送一个数据
-	retry=0;
-
-	while((SPI2->SR&SPI_I2S_FLAG_RXNE)==RESET) //检查指定的SPI标志位设置与否:接受缓存非空标志位
-	{
-		retry++;
-		if(retry>200)return 0;
-	}	  						    
-	return SPI2->DR; //返回通过SPIx最近接收的数据
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 0x0;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  hspi2.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+  hspi2.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+  hspi2.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+  hspi2.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+  hspi2.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+  hspi2.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+  hspi2.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+  hspi2.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler(__FILE__, __LINE__);
+  }
 }
 
 
 /*
 *********************************************************************************************************
-*	函 数 名: SPI2_Write_Multi_Byte
+*	函 数 名: HSPI_Send_Data
 *	功能说明: 模拟 SPI 写数据
 *	形    参: 
 *	@TxData		: 写入字节
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void SPI2_Write_Multi_Byte(uint8_t *buff, uint16_t len)
+void HSPI2_Send_Data(uint8_t *buff, uint16_t len)
 {
-	while(len--) {
-		SPI2_ReadWriteByte(buff[0]);
-		buff++;
-	}
+	HAL_SPI_Transmit(&hspi2, buff, len, 1000);
 }
-
-
 /*
 *********************************************************************************************************
-*	函 数 名: HSPI2_ReadByte
-*	功能说明: 模拟 SPI 读一个字节
+*	函 数 名: HSPI_Read_Data
+*	功能说明: 读数据
 *	形    参: 
-*	返 回 值: 读到的数据
+*	@TxData		: 写入字节
+*	返 回 值: 无
 *********************************************************************************************************
 */
-uint8_t HSPI2_ReadByte(void)
+void HSPI2_Read_Data(uint8_t *txdata,uint8_t *rxdata, uint16_t len)
 {
-	return SPI2_ReadWriteByte(0xff);
+	HAL_SPI_TransmitReceive(&hspi2, txdata, rxdata,len, 1000);
 }
+
 
 

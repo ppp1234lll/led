@@ -10,9 +10,9 @@
 
 ********************************************************************************/
 
-#include "BL0939.h"
+#include "./DRIVER/inc/BL0939.h"
 #include "bsp.h"
-#include "det.h"
+//#include "det.h"
 
 /*
 实际电压值(V) = [电压有效值寄存器值*Vref*(R11+R10+R13+R14+R16+R9)]/[79931*R17*1000]
@@ -70,8 +70,10 @@ float ld_current;
 
 /* 接口与参数 */
 #define bl0939_INIT() 							bsp_InitSPI2()
-#define bl0939_SEND_STR(buff,len) 	SPI2_Write_Multi_Byte(buff,len)
-#define bl0939_ReadByte(data)       SPI2_ReadWriteByte(data)
+#define bl0939_SEND_STR(buff,len) 	HSPI2_Send_Data(buff,len)
+#define bl0939_ReadByte(tx,rx,len)  HSPI2_Read_Data(tx,rx,len)
+
+//#define bl0939_ReadByte()           SSPI_ReadByte()
 
 /* 宏定义数据 */
 #define bl0939_DET_NUM   			4  		  // 采集次数 
@@ -193,12 +195,12 @@ int8_t bl0939_deal_read_data_function(void)
 
 	switch(sg_bl0939data_t.reg) 
 	{
-		case BL0939_V_RMS: 	 det_set_total_energy_bl0939(0,data); break;
-		case BL0939_IA_RMS:  det_set_total_energy_bl0939(1,data); break;
-		case BL0939_IB_RMS:  det_set_total_energy_bl0939(2,data); break;
+//		case BL0939_V_RMS: 	 det_set_total_energy_bl0939(0,data); break;
+//		case BL0939_IA_RMS:  det_set_total_energy_bl0939(1,data); break;
+//		case BL0939_IB_RMS:  det_set_total_energy_bl0939(2,data); break;
 //		case BL0939_A_WATT:  det_set_total_energy_bl0939(3,Complement_3_Original(data));	break;
 //		case BL0939_B_WATT:  det_set_total_energy_bl0939(4,Complement_3_Original(data));	break;
-		case BL0939_CFA_CNT: det_set_total_energy_bl0939(5,data); break;
+//		case BL0939_CFA_CNT: det_set_total_energy_bl0939(5,data); break;
 //		case BL0939_CFB_CNT: det_set_total_energy_bl0939(6,data); break;
 		default:			break;
 	}
@@ -320,9 +322,7 @@ void bl0939_read_reg_function(uint8_t reg, uint8_t mode)
 //		bl0939_REC_BUFF[index] = bl0939_ReadByte();
 //	}
 	
-	for(index=0; index < 6; index++) {
-		bl0939_REC_BUFF[index] = SPI2_ReadWriteByte(buff[index]);;
-	}
+	bl0939_ReadByte(buff,bl0939_REC_BUFF,6);
 	bl0939_REC_BUFF[0] = bl0939_REC_BUFF[2];
 	bl0939_REC_BUFF[1] = bl0939_REC_BUFF[3];
 	bl0939_REC_BUFF[2] = bl0939_REC_BUFF[4];
@@ -528,8 +528,9 @@ void bl0939_test(void)
 	while(1)
 	{
 		bl0939_work_process_function();	// 数据获取函数
-//		bl0939_read_reg_function(BL0939_IA_RMS,0);
-		delay_ms(200);		
+		delay_ms(200);	
+//		bl0939_read_reg_function(BL0939_TPS_CTRL,0);
+//		delay_ms(1);		
 	}
 }
 

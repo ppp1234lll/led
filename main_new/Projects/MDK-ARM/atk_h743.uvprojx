@@ -463,6 +463,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\BL0910_spi.c</FilePath>
             </File>
+            <File>
+              <FileName>BL0939_SPI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\DRIVER\src\BL0939_SPI.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
