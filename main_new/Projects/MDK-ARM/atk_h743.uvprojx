@@ -678,6 +678,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_siic_rh1.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_cpu_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_cpu_flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -857,11 +862,6 @@
               <FileName>ethernet_chip.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\BSP\ETHERNET\ethernet_chip.c</FilePath>
-            </File>
-            <File>
-              <FileName>stmflash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\stmflash.c</FilePath>
             </File>
           </Files>
         </Group>

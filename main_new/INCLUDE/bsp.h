@@ -42,9 +42,10 @@
 #include "./SYSTEM/delay/delay.h"
 
 #include "bsp_core_dwt.h"
+#include "bsp_cpu_flash.h"
+
 #include "bsp_led.h"
 #include "bsp_iwdg.h"
-#include "stmflash.h"
 #include "bsp_usart2.h"
 #include "bsp_relay.h"
 #include "bsp_key.h"

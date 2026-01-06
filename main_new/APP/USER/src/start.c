@@ -130,16 +130,26 @@ void start_task(void *pvParameters)
 	bsp_InitTimers(TIM5,1000,2,0);
 	bsp_InitTimers(TIM6,1000,2,0);
 	bsp_InitTimers(TIM7,1000,2,0); 
-//	aht20_init_function();
+	
+	hal_lis3dh_init(true);
+	aht20_init_function();
 
 	bl0910_init_function();
 	bl0939_init_function();
 
-	iwdg_feed();
-//	bsp_InitSPIBus();	/* 配置SPI总线 */		
-//	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+DemoFlash();
 
-    
+
+	iwdg_feed();
+	bsp_InitSPIBus();	/* 配置SPI总线 */		
+	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+
+	save_init_function();
+	com_recevie_function_init();			// 初始化接收缓冲区
+	app_get_storage_param_function();	// 获取本地存储的数据
+	update_status_init();							// 更新检测
+  printf("run here!!\n");
+  while(1);
 	if (lwip_comm_init() != 0)
 	{
 		printf("lwIP Init failed!!\n");
@@ -147,7 +157,7 @@ void start_task(void *pvParameters)
 		printf("Retrying...       \n");
 		delay_ms(500);
 	}
-    
+  iwdg_feed();  
 	taskENTER_CRITICAL();           /* 进入临界区 */
 
 	xTaskCreate((TaskFunction_t )app_task,
@@ -294,8 +304,11 @@ void det_task(void *pvParameters)
 */
 void gsm_task(void *pvParameters)
 {
-	pvParameters = pvParameters;
+	while(1){
 
+		vTaskDelay(500);
+	}
+	printf("gsm_task run \n");
 	gsm_task_function();
 }
 

@@ -952,7 +952,7 @@ void com_deal_configure_mac(com_rec_data_t *buff)
 	vTaskDelay(100);
 	
 	/* ±£´æ */
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint8_t *)&local->mac,6);
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 	eth_set_network_reset();
 	
@@ -979,7 +979,7 @@ void com_deal_configure_device_id(com_rec_data_t *buff)
 	vTaskDelay(100);
 	
 	/* ±£´æ */
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint8_t*)param->id.c,4);
 	app_set_save_infor_function(SAVE_DEVICE_PARAM);
 	
 	vTaskDelay(100);

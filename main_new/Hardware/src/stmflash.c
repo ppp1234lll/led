@@ -152,19 +152,23 @@ void stmflash_write(uint32_t waddr, uint32_t *pbuf, uint32_t length)
     HAL_FLASH_Lock();                           /* 上锁 */
 }
 
-#define STM_SECTOR_SIZE	   2048  // 最多是2K字节
-uint32_t stmflash_save_buf[STM_SECTOR_SIZE/4];
+#define STM_SECTOR_SIZE	   1  // 最多是2K字节
+__attribute__((aligned(4))) uint32_t stmflash_save_buf[STM_SECTOR_SIZE];
+
 void stmflash_write_save(uint32_t ReadAddr,uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)	
 {
 	uint32_t secoff;	   //扇区内偏移地址(32位字计算)
  	uint16_t i; 
 	secoff = WriteAddr - ReadAddr;		//扇区内偏移地址
-	stmflash_read(ReadAddr,(uint32_t*)stmflash_save_buf,STM_SECTOR_SIZE/4); //读出2K扇区的内容
-	for(i=0;i<NumToWrite;i++)//复制
-	{
-		stmflash_save_buf[i+secoff]=pBuffer[i];	  
-	}
-	stmflash_write(ReadAddr, stmflash_save_buf,STM_SECTOR_SIZE/4);
+	stmflash_read(ReadAddr,(uint32_t*)stmflash_save_buf,STM_SECTOR_SIZE); //读出2K扇区的内容
+//	for(i=0;i<NumToWrite;i++)//复制
+//	{
+//		stmflash_save_buf[i+secoff]=pBuffer[i];	  
+//	}
+//	stmflash_write(ReadAddr, stmflash_save_buf,STM_SECTOR_SIZE);
+	
+  printf("run here!!\n");
+	while(1);
 }
 
 /******************************************************************************************/
@@ -207,6 +211,11 @@ void stmflash_test(void)
 	uint8_t datatemp[SIZE];
 	uint8_t datatemp2[SIZE2];
 	
+	volatile uint8_t len1 = TEXT_LENTH;
+	volatile uint8_t len2 = ADD_LENTH;	
+	volatile uint8_t len3 = SIZE;
+	volatile uint8_t len4 = SIZE2;
+	
 	stmflash_read(FLASH_SAVE_ADDR, (uint32_t *)datatemp, SIZE);
 	for(uint8_t i=0;i<SIZE;i++)
 	{
@@ -214,13 +223,13 @@ void stmflash_test(void)
 		printf("%02x ",datatemp[i]);
 		printf("\r\n");
 	}
-	delay_ms(1000);
+	delay_ms(10);
 	stmflash_write(FLASH_SAVE_ADDR, (uint32_t *)g_text_buf, SIZE);
 	printf("write\r\n");
-	delay_ms(1000);
+	delay_ms(10);
 	stmflash_read(FLASH_SAVE_ADDR, (uint32_t *)datatemp, SIZE);
 	printf("read 2: %s \r\n",datatemp);
-	delay_ms(1000);
+	delay_ms(10);
 	
 	stmflash_write_save(FLASH_SAVE_ADDR, FLASH_ADD_ADDR,(uint32_t *)g_text_buf_add, SIZE2);
 	printf("write 2\r\n");

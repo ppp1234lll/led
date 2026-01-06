@@ -1070,25 +1070,21 @@ void app_task_save_function(void)
 	if(sg_sysoperate_t.save_flag.save_device_param == 1)
 	{
 		sg_sysoperate_t.save_flag.save_device_param = 0;
-		/* 存储设备参数信息 */
 		save_storage_device_parameter_function(&sg_sysparam_t.device);
 	}	
 	
 	if(sg_sysoperate_t.save_flag.save_local_network == 1)
 	{
 		sg_sysoperate_t.save_flag.save_local_network = 0;
-		/* 存储本地网络参数信息 */
 		save_stroage_local_network(&sg_sysparam_t.local);
 	}
 	
 	if(sg_sysoperate_t.save_flag.save_remote_network == 1)
 	{
 		sg_sysoperate_t.save_flag.save_remote_network = 0;
-		/* 存储本地网络参数信息 */
 		save_stroage_remote_ip_function(&sg_sysparam_t.remote);
 		
 		vTaskDelay(100);
-//		set_reboot_time_function(1000); // 配置服务器后系统重启，防止设备未传到新平台
 		app_system_softreset(1000);
 	}
 		/* 存储摄像头参数 */	
@@ -1217,7 +1213,7 @@ void app_set_local_network_function_two(struct local_ip_t param)
 	memcpy(sg_sysparam_t.local.multicast_ip,param.multicast_ip,4);
 	sg_sysparam_t.local.multicast_port = param.multicast_port;
 
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&sg_sysparam_t.local.mac,2);
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint8_t *)&sg_sysparam_t.local.mac,6);
 
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }
@@ -1553,7 +1549,7 @@ void app_set_device_param_function(struct device_param param)
 	memset((uint8_t*)&sg_sysparam_t.device,0,sizeof(struct device_param));
 	memcpy((uint8_t*)&sg_sysparam_t.device,&param,sizeof(struct device_param));
 	
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param.id.c,1);
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint8_t*)param.id.c,4);
 	app_set_save_infor_function(SAVE_DEVICE_PARAM);
 }
 

@@ -43,13 +43,13 @@ void gsm_task_function(void)
 	
 #ifdef WIRELESS_PRIORITY_CONNECTION
 	/* 判断网络模式 */
-//	if(app_get_network_mode() == 1) {
-//		eth_set_tcp_cmd(1);
-//	}
+	if(app_get_network_mode() == 1) {
+		eth_set_tcp_cmd(1);
+	}
 #endif
-
+  printf("gsm_task_function run \n");
 	gprs_init_function();
-
+  
 __RESET:
 	led_control_function(LD_GPRS,LD_OFF);
 	/* 通信模块初始化 */
@@ -59,7 +59,7 @@ __RESET:
 		iwdg_feed();	
 		vTaskDelay(10);
 	}
-
+ 
 	if( gprs_get_module_status_function() != 1) {
 
 #ifdef WIRELESS_PRIORITY_CONNECTION
@@ -124,15 +124,6 @@ __RESET:
 			goto __RESET;
 		}
 
-		#ifdef COM_GPS_ENABLE
-		/* GPS定位信息查询 */
-		/* 不在发送状态 */
-		if((++gps_count) > 100 && app_get_com_send_status_function() == 0) {
-			gps_count = 0;
-			gsm_gps_task_function();
-		}
-		#endif
-		gsm_gps_task_function();
 		iwdg_feed();
 		vTaskDelay(10);  // 延时10ms
 	}
@@ -162,7 +153,8 @@ void gsm_tcp_control_function(void)
 	if(sg_gsmoperate_t.tcp_status == 0) 
 	{
 	#endif
-		if(flag == 0) {
+		if(flag == 0) 
+		{
 			/* 进行状态监测 */
 			if(gprs_network_status_monitoring_function() != 0) 
 			{
@@ -176,7 +168,8 @@ void gsm_tcp_control_function(void)
 		}
 		
 		if(remote->outside_port == 0 || remote->outside_iporname[0] == 0 ||
-			(strcmp((char*)remote->outside_iporname,"0.0.0.0")==0)) { 
+			(strcmp((char*)remote->outside_iporname,"0.0.0.0")==0)) 
+		{ 
 			/* 地址不符合连接需求，不进行连接 */
 			#ifdef WIRED_PRIORITY_CONNECTION
 			sg_gsmoperate_t.tcp_cmd = 0;
@@ -195,7 +188,7 @@ void gsm_tcp_control_function(void)
 			if(ret == 0) 					  // 连接成功
 			{
 				#ifdef WIRELESS_PRIORITY_CONNECTION
-				eth_set_tcp_cmd(0);
+					eth_set_tcp_cmd(0);
 				#endif			
 				led_control_function(LD_GPRS,LD_FLICKER);
 				app_set_com_interface_selection_function(1);
@@ -211,31 +204,32 @@ void gsm_tcp_control_function(void)
 				if(sg_gsmoperate_t.tcp_error_cnt > GSM_TCP_CONNECT_TIME)
 				{
 					sg_gsmoperate_t.tcp_error_cnt = 0;
-					/* 需要对sim800c进行初始化 */
+
 					gprs_module_restart_function();
 					gsm_set_module_reset_function();
 				}
 			}
 		}
 	}
-	#ifdef WIRED_PRIORITY_CONNECTION
+	
+#ifdef WIRED_PRIORITY_CONNECTION
 	/* tcp连接被拒绝 */
 	if(sg_gsmoperate_t.tcp_cmd == 0 && sg_gsmoperate_t.tcp_status == 1)
 	{
 		gprs_network_disconnect_function(0);
-		
 		app_set_com_interface_selection_function(0);
 	}
 	#endif
-  #ifdef WIRED_PRIORITY_CONNECTION
+	
+#ifdef WIRED_PRIORITY_CONNECTION
 	if(sg_gsmoperate_t.tcp_cmd == 0) {
 		flag = 0;
 	}
-    #else 
-    if(sg_gsmoperate_t.tcp_status == 0) {
-        flag = 0;
-    }
-	#endif
+#else 
+//	if(sg_gsmoperate_t.tcp_status == 0) {
+//			flag = 0;
+//	}
+#endif
 }
 
 /************************************************************

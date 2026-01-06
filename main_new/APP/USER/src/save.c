@@ -108,18 +108,14 @@ int8_t save_read_local_network(struct local_ip_t *local)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, local,sizeof(struct local_ip_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		/* 读取默认值 */
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
-		
 		save_read_default_local_network(local);
 		save_stroage_local_network(local);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
 }
 
@@ -146,7 +142,7 @@ void save_read_default_local_network(struct local_ip_t *local)
 	local->ip[3] = DEFALUT_LOCAL_IP3;
 
 	/* 本机MAC */
-	stmflash_read(DEVICE_MAC_ADDR, (uint32_t *)mac, 2);
+	bsp_ReadCpuFlash(DEVICE_MAC_ADDR, (uint8_t *)mac, 6);
 	for(uint8_t i=0;i<6;i++)
 	{
 		if(mac[i] == 0xFF)
@@ -170,7 +166,7 @@ void save_read_default_local_network(struct local_ip_t *local)
 		local->mac[4]=mac[4];
 		local->mac[5]=mac[5]; 
 	}
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);		
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint8_t *)&local->mac,6);		
 
 	/* 本机子网掩码 */
 	local->netmask[0]=DEFALUT_NETMASK0;	
@@ -258,21 +254,15 @@ int8_t save_read_remote_ip_function(struct remote_ip *remote)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, remote,sizeof(struct remote_ip));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		/* 读取默认值 */
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
-		
 		save_read_default_remote_ip(remote);
 		save_stroage_remote_ip_function(remote);
-		
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
-
 }
 
 /************************************************************
@@ -305,8 +295,8 @@ void save_read_default_remote_ip(struct remote_ip *remote)
 ************************************************************/
 int8_t save_storage_device_parameter_function(struct device_param *param)
 {
-	int8_t		ret      = 0;
- 	int 		err 	 = 0;
+	int8_t  ret  = 0;
+ 	int 		err  = 0;
 	lfs_file_t  lfs_fp   = {0};
 	
 	/* 数据保存 */
@@ -341,7 +331,7 @@ void save_read_default_device_paramter_function(struct device_param *param)
 {
 	union i_c data_id;		  		// id
 	
-	stmflash_read(DEVICE_ID_ADDR,(uint32_t*)data_id.c,1);
+	bsp_ReadCpuFlash(DEVICE_ID_ADDR,(uint8_t*)data_id.c,4);
 	if((data_id.i >= 0xFFFFF)||(data_id.i == 0))
 	{
 		param->id.i = 3;
@@ -350,7 +340,7 @@ void save_read_default_device_paramter_function(struct device_param *param)
 	{
 		param->id.i = data_id.i;
 	}
-	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
+	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint8_t*)param->id.c,1);
 	
 	memset(param->name,0,sizeof(param->name));
 	memset(param->password,0,sizeof(param->password));
@@ -368,8 +358,8 @@ void save_read_default_device_paramter_function(struct device_param *param)
 ************************************************************/
 int8_t save_read_device_paramter_function(struct device_param *param)
 {
-	int8_t		ret      = 0;
-	int 		err 	 = 0;
+	int8_t  ret  = 0;
+	int 		err  = 0;
 	lfs_file_t  lfs_fp   = {0};
 	
 	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_DEVICE_PARAMETER_NAME, LFS_O_RDWR);
@@ -378,17 +368,14 @@ int8_t save_read_device_paramter_function(struct device_param *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(struct device_param));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 		save_read_default_device_paramter_function(param);
-		/* 存储 */
 		save_storage_device_parameter_function(param);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
 }
 
@@ -402,8 +389,8 @@ int8_t save_read_device_paramter_function(struct device_param *param)
 ************************************************************/
 int8_t save_stroage_com_param_function(com_param_t *param)
 {
-	int8_t		ret      = 0;
- 	int 		err 	 = 0;
+	int8_t  ret  = 0;
+ 	int 		err  = 0;
 	lfs_file_t  lfs_fp   = {0};
 	
 	/* 数据保存 */
@@ -462,22 +449,16 @@ int8_t save_read_com_param_function(com_param_t *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(com_param_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 		save_read_default_com_param_function(param);
-		/* 存储 */
 		save_stroage_com_param_function(param);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
-
 }
-
-
 
 /************************************************************
 *
@@ -545,18 +526,15 @@ int8_t save_read_carema_parameter(carema_t *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(carema_t));
+    err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 		save_read_default_carema_parameter(param);
 		save_stroage_carema_parameter(param);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
-	
 }
 
 /************************************************************
@@ -633,15 +611,14 @@ int8_t save_read_threshold_parameter(struct threshold_params *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(struct threshold_params));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 		save_read_default_threshold_parameter(param);
 		save_stroage_threshold_parameter(param);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	return ret;
 }
 
@@ -696,19 +673,14 @@ int8_t save_read_backups_function(sys_backups_t *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(sys_backups_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		/* 读取默认值 */
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
-		
 		save_read_default_backups(param);
-		save_stroage_backups_function(param);
-		
+		save_stroage_backups_function(param);	
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
 }
 
@@ -787,21 +759,15 @@ int8_t save_read_http_ota_function(struct update_addr *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(struct update_addr));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		/* 读取默认值 */
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
-		
 		save_read_default_http_ota(param);
 		save_stroage_http_ota_function(param);
-		
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	
 	return ret;
-
 }
 
 /************************************************************
@@ -876,15 +842,14 @@ int8_t save_read_electricity_function(electricity_t *param)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
 		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(electricity_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 		save_read_default_electricity(param);
 		save_stroage_electricity_function(*param);
 		ret = -1;
 	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	return ret;
 }
 /************************************************************
