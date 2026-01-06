@@ -145,31 +145,6 @@ void bl0939_send_over_function(void)
 
 /*
 *********************************************************************************************************
-*	函 数 名: Complement_2_Original
-*	功能说明: 补码转换为原码
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-static uint32_t Complement_3_Original(uint32_t data)
-{
-	uint32_t temp;
-	if((data&0x00800000) == 0x00800000)  // 判断最高位是否为0，Bit[23]为符号位，Bit[23]=0为正
-	{
-		data &= 0x007FFFFF;  // 清除符号位 	
-		temp =~data;         // 反码
-		data = temp & 0x007FFFFF;  // 清除左边多余位
-		data += 1;				
-	}
-	else  // 当前为负功
-	{
-		data &= 0x007FFFFF;  // 清除符号位
-	}
-	return data;
-}
-
-/*
-*********************************************************************************************************
 *	函 数 名: bl0942_deal_read_data_function
 *	功能说明: 处理读取到的数据
 *	形    参: 无
@@ -198,8 +173,8 @@ int8_t bl0939_deal_read_data_function(void)
 //		case BL0939_V_RMS: 	 det_set_total_energy_bl0939(0,data); break;
 //		case BL0939_IA_RMS:  det_set_total_energy_bl0939(1,data); break;
 //		case BL0939_IB_RMS:  det_set_total_energy_bl0939(2,data); break;
-//		case BL0939_A_WATT:  det_set_total_energy_bl0939(3,Complement_3_Original(data));	break;
-//		case BL0939_B_WATT:  det_set_total_energy_bl0939(4,Complement_3_Original(data));	break;
+//		case BL0939_A_WATT:  det_set_total_energy_bl0939(3,complement_to_original(data));	break;
+//		case BL0939_B_WATT:  det_set_total_energy_bl0939(4,complement_to_original(data));	break;
 //		case BL0939_CFA_CNT: det_set_total_energy_bl0939(5,data); break;
 //		case BL0939_CFB_CNT: det_set_total_energy_bl0939(6,data); break;
 		default:			break;
@@ -306,7 +281,6 @@ void bl0939_write_reg_function(uint8_t reg,uint8_t *data, uint8_t len,uint8_t mo
 void bl0939_read_reg_function(uint8_t reg, uint8_t mode)
 {
 	uint8_t buff[6] = {0};
-	uint16_t index = 0;
 	
 	buff[0] = BL0939_CMD_READ;	/* 读取 */
 	buff[1] = reg;	/* 数据 */

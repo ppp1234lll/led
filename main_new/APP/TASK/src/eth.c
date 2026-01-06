@@ -21,7 +21,7 @@ struct eth_ping
 
 struct eth_ping sg_ethping_t = {0};
 
-static void dns_serverFound(const char *name, struct ip_addr *ipaddr, void *arg);
+static void dns_serverFound(const char *name, const ip_addr_t *ipaddr, void *arg);
 /*
 *********************************************************************************************************
 *	函 数 名: eth_task_function
@@ -39,50 +39,44 @@ void eth_task_function(void)
     eth_snmp_connect_control_function(); // SNMP控制	
 		
 #ifdef WIRELESS_PRIORITY_CONNECTION
-//		if(app_get_network_mode() == 1) {
-//			eth_set_tcp_cmd(1);
-//		}
+		if(app_get_network_mode() == 1) {
+			eth_set_tcp_cmd(1);
+		}
 #endif
 		eth_ping_detection_function();		   /* PING协议 */
 
-		if( app_get_network_mode() != 2) {	/* 网络状态检测 */
-			eth_tcp_connect_control_function();		/* 网络状态检测 */
+		if( app_get_network_mode() != 2) 
+		{	/* 网络状态检测 */
+//			eth_tcp_connect_control_function();		/* 网络状态检测 */
 		} 
 		else 
 		{
-			if (g_lwipdev.tcp_status != LWIP_TCP_NO_CONNECT) {
+			if (g_lwipdev.tcp_status != LWIP_TCP_NO_CONNECT) 
+			{
 				eth_set_tcp_connect_reset();
-				OSTimeDlyHMSM(0,0,0,100);
+				vTaskDelay(100);
 			}
-			#ifdef WIRED_PRIORITY_CONNECTION
+#ifdef WIRED_PRIORITY_CONNECTION
 			gsm_set_tcp_cmd(1);	 // 启动无线tcp连接
-			#endif
+#endif
 		}
-		
-		/* 主网络状态1、2检测 */
-		if(g_lwipdev.netif_state == 1) 
-		{
-			if( det_get_main_network_status() == 1 ||det_get_main_network_sub_status() == 1) 
-				led_out_control_function(LD_LAN_O,LD_FLICKER);
-			else 
-				led_out_control_function(LD_LAN_O,LD_ON);
-		} 
-		else
-			led_out_control_function(LD_LAN_O,LD_OFF);
 	
 		/* 更新检测 */
-		if( g_lwipdev.netif_state == 1) {
-			if( update_get_mode_function() == UPDATE_MODE_LWIP ) {
+		if( g_lwipdev.netif_state == 1) 
+		{
+			if( update_get_mode_function() == UPDATE_MODE_LWIP ) 
+			{
 				/* 断开连接 */
-				if (g_lwipdev.tcp_status != LWIP_TCP_NO_CONNECT) {
+				if (g_lwipdev.tcp_status != LWIP_TCP_NO_CONNECT) 
+				{
 					eth_set_tcp_connect_reset();
-					OSTimeDlyHMSM(0,0,0,200);
+					vTaskDelay(200);
 				}
 				/* 更新 */
 				update_lwip_task_function();
 			}
 		}
-		OSTimeDlyHMSM(0,0,0,20);  // 延时20ms
+		vTaskDelay(20);
 	}
 }
 
@@ -98,7 +92,6 @@ int8_t eth_network_line_status_check(void)
 {
 				 int8_t  res			   		 = 0;
   static uint8_t count           = 0;
-	static uint8_t eth_now_status  = 0;
 	static uint8_t eth_status_flag = 0;
 	
 	if((g_lwipdev.link_status == LWIP_LINK_ON) && (g_lwipdev.netif_state == 0))	// 网线连上 
@@ -112,7 +105,6 @@ int8_t eth_network_line_status_check(void)
 		vTaskDelay(100);
 		
 		eth_status_flag = 1; // 只进入一次
-		led_out_control_function(LD_LAN_O,LD_OFF);
 		led_control_function(LD_LAN,LD_OFF);
 			
 #ifdef WIRED_PRIORITY_CONNECTION
@@ -225,7 +217,8 @@ void eth_ping_detection_function(void)
 		return;
 	}
 
-	if ( ping_cmd == 0) {
+	if ( ping_cmd == 0) 
+	{
 		switch(sg_ethping_t.cnt)
 		{
 			case 0: 					// 主机
@@ -336,7 +329,7 @@ void eth_ping_detection_function(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-static void dns_serverFound(const char *name, ip4_addr_t *ipaddr, void *arg)
+static void dns_serverFound(const char *name, const ip_addr_t *ipaddr, void *arg)
 {
 	uint32_t ip=0;
 	

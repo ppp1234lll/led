@@ -6,33 +6,32 @@
 #define SAVE_DEVICE_PARAMETER_NAME  ("device_name")       /* 设备详细:id、名称、密码等 */
 #define SAVE_CAREMA_PARAMETER       ("carema_param")      /* 摄像头相关信息 */
 #define SAVE_COM_PARAMETER_NAME     ("comparameter")      /* 通信相关参数 */
-#define SAVE_HTTP_UPDATE_ADDR_NAME ("HTTP_OTA")    /* 更新地址 */
+#define SAVE_HTTP_UPDATE_ADDR_NAME  ("HTTP_OTA")          /* 更新地址 */
 #define SAVE_THRESHOLD_PARAMETER    ("threshold_params")  /* 相关阈值：电压 电流 角度 */ // 20230720
 #define SAVE_UPDATE_FILE_INFOR_NAME ("upfileinfor.bin")   /* 更新文件信息 */
+#define SAVE_ELECTRICITY_PARAM      ("electricity")           /* 用电量信息，防止重启后用电量变为0 */
 
-#define SAVE_ELECTRICITY_PARAM ("electricity")           /* 用电量信息，防止重启后用电量变为0 */
-
-/************************************************************
-*
-* Function name	: save_init_function
-* Description	: 存储功能初始化函数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
+/*
+*********************************************************************************************************
+*	函 数 名: save_init_function
+*	功能说明: 存储功能初始化函数
+*	形    参：无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 void save_init_function(void)
 {
 	lfs_init_function();     						// 挂载文件系统
 }
 
-/************************************************************
-*
-* Function name	: save_clear_file_function
-* Description	: 恢复出厂化
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
+/*
+*********************************************************************************************************
+*	函 数 名: save_clear_file_function
+*	功能说明: 恢复出厂化
+*	形    参：无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 void save_clear_file_function(uint8_t mode)
 {
 	if(mode == 0)
@@ -55,14 +54,14 @@ void save_clear_file_function(uint8_t mode)
   }
 }
 
-/************************************************************
-*
-* Function name	: save_stroage_local_network
-* Description	: 存储本地网络参数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
+/*
+*********************************************************************************************************
+*	函 数 名: save_stroage_local_network
+*	功能说明: 存储本地网络参数
+*	形    参：无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 int8_t save_stroage_local_network(struct local_ip_t *local)
 {
 	int8_t		ret      = 0;
@@ -99,8 +98,8 @@ int8_t save_stroage_local_network(struct local_ip_t *local)
 ************************************************************/
 int8_t save_read_local_network(struct local_ip_t *local)
 {
-	int8_t		ret      = 0;
-	int 		err 	 = 0;
+	int8_t ret  = 0;
+	int    err  = 0;
 	lfs_file_t  lfs_fp   = {0};
 	
 	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_LOCAL_NETWORK_NAME, LFS_O_RDWR);
@@ -137,8 +136,8 @@ void save_read_default_local_network(struct local_ip_t *local)
 	uint32_t data= 0;
 	uint8_t  mac[6] = {0}; 			// MAC地址 
 	uint8_t  ret = 0;
-	
-	data = *(vu32*)(0X1FFF7A10);
+	extern ChipID_t g_chipid_t;
+	data = g_chipid_t.id[0];
 	
 	/* 本机ip地址 */
 	local->ip[0] = DEFALUT_LOCAL_IP0;
@@ -147,7 +146,7 @@ void save_read_default_local_network(struct local_ip_t *local)
 	local->ip[3] = DEFALUT_LOCAL_IP3;
 
 	/* 本机MAC */
-	STMFLASH_Read(DEVICE_MAC_ADDR, (uint32_t *)mac, 2);
+	stmflash_read(DEVICE_MAC_ADDR, (uint32_t *)mac, 2);
 	for(uint8_t i=0;i<6;i++)
 	{
 		if(mac[i] == 0xFF)
@@ -171,13 +170,14 @@ void save_read_default_local_network(struct local_ip_t *local)
 		local->mac[4]=mac[4];
 		local->mac[5]=mac[5]; 
 	}
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);		
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);		
 
 	/* 本机子网掩码 */
 	local->netmask[0]=DEFALUT_NETMASK0;	
 	local->netmask[1]=DEFALUT_NETMASK1;
 	local->netmask[2]=DEFALUT_NETMASK2;
 	local->netmask[3]=DEFALUT_NETMASK3;
+	
 	/* 本机默认网关 */
 	local->gateway[0]=DEFALUT_GATEWAY0;	
 	local->gateway[1]=DEFALUT_GATEWAY1;
@@ -190,7 +190,7 @@ void save_read_default_local_network(struct local_ip_t *local)
 	local->dns[2] = DEFALUT_DNS2;
 	local->dns[3] = DEFALUT_DNS3;
 	
-	local->server_mode = DEFALUT_SERVERMODE; // 同时连接
+	local->server_mode = DEFALUT_SERVERMODE;  
 	
 	/* 组播地址 */
 	local->multicast_ip[0] = DEFALUT_MULTICAST_IP0;
@@ -341,7 +341,7 @@ void save_read_default_device_paramter_function(struct device_param *param)
 {
 	union i_c data_id;		  		// id
 	
-	STMFLASH_Read(DEVICE_ID_ADDR,(uint32_t*)data_id.c,1);
+	stmflash_read(DEVICE_ID_ADDR,(uint32_t*)data_id.c,1);
 	if((data_id.i >= 0xFFFFF)||(data_id.i == 0))
 	{
 		param->id.i = 3;
@@ -350,7 +350,8 @@ void save_read_default_device_paramter_function(struct device_param *param)
 	{
 		param->id.i = data_id.i;
 	}
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
+	
 	memset(param->name,0,sizeof(param->name));
 	memset(param->password,0,sizeof(param->password));
 	strcpy((char*)param->password,DEFALUT_PASSWORD);
@@ -439,7 +440,6 @@ void save_read_default_com_param_function(com_param_t *param)
 	param->ping   			= DEFALUT_PING;
 	param->dev_ping 		= DEFALUT_DEV_PING;
 	param->network_time = DEFALUT_NETWORK_DELAY;  // 网络延时时间  20220308
-	param->onvif_time  	= DEFALUT_ONVIF_TIME; // ONVIF搜索时间  20230811
 }
 
 /************************************************************
@@ -611,10 +611,6 @@ void save_read_default_threshold_parameter(struct threshold_params *param)
 	param->humi_low 			= DEFAULT_HUMI_LOW;
 	param->temp_high 			= DEFALUT_TEMP_HIGH;
 	param->temp_low 			= DEFALUT_TEMP_LOW;
-	param->door_open_time   = DEFALUT_DOOR_OPEN_TIME;
-	param->door_close_time  = DEFALUT_DOOR_CLOSE_TIME;
-	param->light_open_time  = DEFALUT_LIGHT_OPEN_TIME;
-	param->light_close_time = DEFALUT_LIGHT_CLOSE_TIME;
 	param->miu  	 		    = DEFAULT_MIU;
 }
 
@@ -901,7 +897,7 @@ int8_t save_read_electricity_function(electricity_t *param)
 ************************************************************/
 void save_read_default_electricity(electricity_t *param)
 {
-	memset(param,0,sizeof(param));
+	memset(param,0,sizeof(electricity_t));
 }
 
 

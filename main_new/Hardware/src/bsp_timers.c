@@ -23,6 +23,7 @@
 
 #include "bsp.h"
 #include "bsp_timers.h"
+#include "appconfig.h"
 
 //#define  TIMER_DEBUG
 
@@ -258,6 +259,16 @@ void TIM3_IRQHandler(void)
 	if((TIM3->SR & TIM_FLAG_UPDATE) != RESET)
 	{
 		TIM3->SR = ~ TIM_FLAG_UPDATE;
+
+		lwip_ping_timer_function();
+		app_com_time_function();
+		app_sys_operate_timer_function();
+		eth_ping_timer_function();
+		led_flicker_control_timer_function();
+		app_reboot_timer_run();
+		bl0910_run_timer_function();
+		com_queue_time_function();
+		bl0939_run_timer_function();
 		
 #ifdef TIMER_DEBUG
 		g_timer_test[1]++;

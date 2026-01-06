@@ -56,6 +56,8 @@
 
 #include "ebtn_APP.h"
 #include "ebtn_APP_Keys.h"
+
+
 /*
 *********************************************************************************************************
 *                                         驱动库
@@ -84,25 +86,25 @@
 *                                         LWIP网络
 *********************************************************************************************************
 */
+#include "ethernetif.h"
 #include "lwipopts.h"
 #include "lwip_comm.h"
-#include "lwipopts.h"
+
 #include <lwip/sockets.h>
 #include "lwip/opt.h"
 #include "lwip/sys.h"
 #include "lwip/api.h"
-#include "lwip_comm.h"
 #include "netif/etharp.h"
 #include "lwip/dhcp.h"
 #include "lwip/mem.h"
 #include "lwip/memp.h"
 #include "lwip/init.h"
-#include "ethernetif.h"
 #include "lwip/timeouts.h"
 #include "lwip/tcpip.h"
 #include "lwip/icmp.h"
 #include "lwip/igmp.h"
 #include "lwip/raw.h"
+#include "lwip/dns.h"
 
 #include "./ping/lwip_ping.h"
 /*
@@ -110,7 +112,8 @@
 *                                         OTA升级
 *********************************************************************************************************
 */
-
+#include "./UPDATE/inc/update.h"
+#include "./UPDATE/inc/update_http.h"
 
 /*
 *********************************************************************************************************
@@ -121,6 +124,9 @@
 
 #include "./BSP/ETHERNET/ethernet_chip.h"
 
+#include <hal_lis3dh.h>
+#include "lis3dh_driver.h"
+
 #include "./DRIVER/inc/GPRS.h"
 #include "./DRIVER/inc/aht20.h"
 #include "./DRIVER/inc/aht201.h"
@@ -130,6 +136,8 @@
 #include "./DRIVER/inc/ATGM336H.h"
 
 #include "./USER/inc/start.h"
+#include "./USER/inc/com.h"
+#include "./USER/inc/save.h"
 
 #include "./TASK/inc/app.h"
 #include "./TASK/inc/det.h"
@@ -137,6 +145,8 @@
 #include "./TASK/inc/gsm.h"
 
 
+#include "./TOOL/inc/crc.h"
+#include "./TOOL/inc/tool.h"
 /*
 *********************************************************************************************************
 *                                          文件系统
@@ -183,9 +193,9 @@
 *                                          FLASH存储位置
 *********************************************************************************************************
 */
-#define DEVICE_FLASH_STORE	0x08004000
-#define DEVICE_ID_ADDR      DEVICE_FLASH_STORE
-#define DEVICE_MAC_ADDR     DEVICE_FLASH_STORE + 64
+#define DEVICE_FLASH_STORE	  0x081E0000
+#define DEVICE_ID_ADDR        DEVICE_FLASH_STORE
+#define DEVICE_MAC_ADDR       DEVICE_FLASH_STORE + 64
 
 #endif
 

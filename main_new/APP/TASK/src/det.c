@@ -1,6 +1,7 @@
 #include "appconfig.h"
+#include "./TASK/inc/det.h"
 
-CCMRAM data_collection_t sg_datacollec_t;
+__attribute__((section (".RAM_D1"))) data_collection_t sg_datacollec_t;
 
 /*
 *********************************************************************************************************
@@ -19,12 +20,10 @@ void det_task_function(void)
 		det_get_temphumi_function(); 		 // 获取温湿度
 		det_get_attitude_state_value();  // 获取姿态数据
 		bl0910_work_process_function();	 // 数据获取函数
-		bl0972_work_process_function();
 		bl0939_work_process_function();
 		det_get_gps_value();             // 获取GPS数据
-//		det_get_lux_function();          // 获取光照度
-		IWDG_Feed();			 		           // 喂狗			
-		OSTimeDlyHMSM(0,0,0,10);  	 	   // 延时5ms
+		iwdg_feed();			 		           // 喂狗			
+		vTaskDelay(10);  	 	  
 	}
 }
 
@@ -38,6 +37,7 @@ void det_task_function(void)
 */
 void det_get_key_status_function(void)
 {
+	uint8_t i=0;
 	if(sg_datacollec_t.key_s[RESET_K1] == KEY_EVNT)	 // 恢复出厂化
 	{
 		det_set_key_value(RESET_K1,KEY_NONE);
@@ -50,31 +50,11 @@ void det_get_key_status_function(void)
 		led_control_function(LD_GPRS,LD_ON); 
 		app_set_reset_function();/* 将系统设置参数恢复为默认值，需要重启生效 */
 	}
-	if(sg_datacollec_t.key_s[DOOR_K2] == KEY_EVNT)	 // 箱门开
-		sg_datacollec_t.key_evnt[DOOR_K2] = 1;	
-	else 
-		sg_datacollec_t.key_evnt[DOOR_K2] = 2;	
 	
-	if(sg_datacollec_t.key_s[PWR_K3] == KEY_EVNT)	 // 供电开
+	for(i=0; i< KEY_MAX;i++ )
 	{
-		sg_datacollec_t.key_evnt[PWR_K3] = 0;	
-		led_out_control_function(LD_PWR_O,LD_OFF);
+		sg_datacollec_t.key_s[i+1] = KeyScan10ms(i);
 	}
-	else 
-	{
-		sg_datacollec_t.key_evnt[PWR_K3] = 1;	
-		led_out_control_function(LD_PWR_O,LD_ON);
-	}
-	
-	if(sg_datacollec_t.key_s[WATER_K4] == KEY_EVNT)	 // 水浸
-		sg_datacollec_t.key_evnt[WATER_K4] = 2;	
-	else 
-		sg_datacollec_t.key_evnt[WATER_K4] = 1;	
-	
-	if(sg_datacollec_t.key_s[INT3_K7] == KEY_EVNT)	 // 防雷
-		sg_datacollec_t.key_evnt[INT3_K7] = 2;	
-	else 
-		sg_datacollec_t.key_evnt[INT3_K7] = 1;	
 	
 }
 
@@ -89,9 +69,7 @@ void det_get_key_status_function(void)
 uint8_t det_main_network_and_camera_network(void)
 {
 	static uint8_t main_ip[2] = {0};
-	static uint8_t camera[6]  = {0};
-	uint8_t i = 0;
-	
+ 
 	/* 检测主网络 */
 	if(sg_datacollec_t.main_ip == 0 && sg_datacollec_t.main_sub_ip == 0) 
 	{
@@ -103,27 +81,6 @@ uint8_t det_main_network_and_camera_network(void)
 	}
 	main_ip[0] = sg_datacollec_t.main_ip;
 	main_ip[1] = sg_datacollec_t.main_sub_ip;
-	
-	/* 检测摄像头 */
-	for(i=0; i<6; i++) 
-	{
-		if(camera[i] == 1 && sg_datacollec_t.camera[i] == 0) 
-		{
-			camera[0] = sg_datacollec_t.camera[0];
-			camera[1] = sg_datacollec_t.camera[1];
-			camera[2] = sg_datacollec_t.camera[2];
-			camera[3] = sg_datacollec_t.camera[3];
-			camera[4] = sg_datacollec_t.camera[4];
-			camera[5] = sg_datacollec_t.camera[5];
-			return 1;
-		}
-	}
-	camera[0] = sg_datacollec_t.camera[0];
-	camera[1] = sg_datacollec_t.camera[1];
-	camera[2] = sg_datacollec_t.camera[2];
-	camera[3] = sg_datacollec_t.camera[3];
-	camera[4] = sg_datacollec_t.camera[4];
-	camera[5] = sg_datacollec_t.camera[5];
 	
 	return 0;
 }
@@ -146,9 +103,9 @@ void det_get_temphumi_function(void)
 	if(th_count_time >= 100)  // 2s 2000/20 = 100
 	{
 		th_count_time = 0;
-	if(aht20_measure(&det_humi,&det_temp) == 0) {
-		sg_datacollec_t.humi_inside = det_humi;
-		sg_datacollec_t.temp_inside = det_temp;
+	  if(aht20_measure(&det_humi,&det_temp) == 0) {
+			sg_datacollec_t.humi_inside = det_humi;
+			sg_datacollec_t.temp_inside = det_temp;
 		}
 	}
 }
@@ -296,7 +253,7 @@ fp32 det_get_vin220v_handler(uint8_t num)
 		case 3: return sg_datacollec_t.current[1];
 		case 4: return sg_datacollec_t.current[2];
 		case 5: return sg_datacollec_t.current[3];
-		case 6: return sg_datacollec_t.current[4];
+//		case 6: return sg_datacollec_t.current[4];
 //		case 7: return sg_datacollec_t.current[5];
 //		case 8: return sg_datacollec_t.current[6];
 //		case 9: return sg_datacollec_t.current[7];
@@ -322,7 +279,7 @@ fp32 det_get_power_handler(uint8_t num)
 		case 2: return sg_datacollec_t.power[1]; 
 		case 3: return sg_datacollec_t.power[2];
 		case 4: return sg_datacollec_t.power[3];
-		case 5: return sg_datacollec_t.power[4];
+//		case 5: return sg_datacollec_t.power[4];
 //		case 6: return sg_datacollec_t.power[5];
 //		case 7: return sg_datacollec_t.power[6];
 //		case 8: return sg_datacollec_t.power[7];
@@ -348,43 +305,12 @@ fp32 det_get_electricity_handler(uint8_t num)
 		case 2: return sg_datacollec_t.kwh.electricity[1]; 
 		case 3: return sg_datacollec_t.kwh.electricity[2];
 		case 4: return sg_datacollec_t.kwh.electricity[3];
-		case 5: return sg_datacollec_t.kwh.electricity[4];
+//		case 5: return sg_datacollec_t.kwh.electricity[4];
 //		case 6: return sg_datacollec_t.kwh.electricity[5];
 //		case 7: return sg_datacollec_t.kwh.electricity[6];
 //		case 8: return sg_datacollec_t.kwh.electricity[7];
 	}
 	return  0;
-}
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_dc_electricity_handler
-*	功能说明: 获取直流参数
-*	形    参: 
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-fp32 det_get_dc_electricity_handler(uint8_t num)
-{
-	switch(num)
-	{
-		case 0: return sg_datacollec_t.dc_vout;
-		case 1: return sg_datacollec_t.dc_current;
-		case 2: return sg_datacollec_t.dc_power; 
-		case 3: return sg_datacollec_t.dc_kwh;
-	}
-	return  0;
-}
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_open_door
-*	功能说明: 获取箱门状态
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint8_t det_get_open_door(void)
-{
-	return sg_datacollec_t.key_s[DOOR_K2];
 }
 
 /************************************************************
@@ -418,32 +344,6 @@ void Miu_Handler(char *pcInsert, uint8_t num)
 uint16_t det_get_cabinet_posture(void)
 {
 	return sg_datacollec_t.attitude_acc;
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_set_camera_status
-*	功能说明: 设置摄像机网络状态
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_set_camera_status(uint8_t num,uint8_t status)
-{
-	sg_datacollec_t.camera[num] = status;
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_camera_status
-*	功能说明: 获取摄像机网络状态
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint8_t det_get_camera_status(uint8_t num)
-{
-	return sg_datacollec_t.camera[num];
 }
 
 /*
@@ -518,7 +418,7 @@ void det_set_total_energy_bl0910(uint8_t num,float data)
 		case 3: sg_datacollec_t.current[1] = data / BL0910_CURR_KP; 		break;
 		case 4: sg_datacollec_t.current[2] = data / BL0910_CURR_KP; 		break;
 		case 5: sg_datacollec_t.current[3] = data / BL0910_CURR_KP; 		break;
-		case 6: sg_datacollec_t.current[4] = data / BL0910_CURR_KP; 		break;
+//		case 6: sg_datacollec_t.current[4] = data / BL0910_CURR_KP; 		break;
 //		case 7: sg_datacollec_t.current[5] = data / BL0910_CURR_KP; 		break;
 //		case 8: sg_datacollec_t.current[6] = data / BL0910_CURR_KP; 		break;
 //		case 9: sg_datacollec_t.current[7] = data / BL0910_CURR_KP; 		break;
@@ -526,7 +426,7 @@ void det_set_total_energy_bl0910(uint8_t num,float data)
 		case 11: sg_datacollec_t.power[1] = data / BL0910_POWER_KP;		break;
 		case 12: sg_datacollec_t.power[2] = data / BL0910_POWER_KP;		break;
 		case 13: sg_datacollec_t.power[3] = data / BL0910_POWER_KP;		break;
-		case 14: sg_datacollec_t.power[4] = data / BL0910_POWER_KP;		break;
+//		case 14: sg_datacollec_t.power[4] = data / BL0910_POWER_KP;		break;
 //		case 15: sg_datacollec_t.power[5] = data / BL0910_POWER_KP;		break;
 //		case 16: sg_datacollec_t.power[6] = data / BL0910_POWER_KP;		break;
 //		case 17: sg_datacollec_t.power[7] = data / BL0910_POWER_KP;		break;
@@ -535,63 +435,11 @@ void det_set_total_energy_bl0910(uint8_t num,float data)
 		case 20: sg_datacollec_t.kwh.electricity[1] = data * BL0910_ELEC_Ke;		break;
 		case 21: sg_datacollec_t.kwh.electricity[2] = data * BL0910_ELEC_Ke;		break;
 		case 22: sg_datacollec_t.kwh.electricity[3] = data * BL0910_ELEC_Ke;		break;
-		case 23: sg_datacollec_t.kwh.electricity[4] = data * BL0910_ELEC_Ke;		break;
+//		case 23: sg_datacollec_t.kwh.electricity[4] = data * BL0910_ELEC_Ke;		break;
 //		case 24: sg_datacollec_t.kwh.electricity[5] = data * BL0910_ELEC_Ke;		break;
 //		case 25: sg_datacollec_t.kwh.electricity[6] = data * BL0910_ELEC_Ke;		break;
 //		case 26: sg_datacollec_t.kwh.electricity[7] = data * BL0910_ELEC_Ke;		break;
 		case 27: sg_datacollec_t.kwh.total_electricity = data * BL0910_ELEC_Ke;	break;
-  }
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_set_total_energy_bl0942
-*	功能说明: 计算BL0942电量参数
-*	形    参: 
-*	@num		: 通道
-*	@data		: 数据
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_set_total_energy_bl0942(uint8_t num,float data)
-{
-//	switch(num)
-//	{
-//		case 0: sg_datacollec_t.QF_front_vin220v = data / BL0942_VOLT_KP;   break;
-//		case 1: sg_datacollec_t.residual_c       = data / BL0942_CURR_KP ; 	break;
-//  }
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_set_total_energy_bl0972
-*	功能说明: 计算BL0972电量参数
-*	形    参: 
-*	@num		: 通道
-*	@data		: 数据
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_set_total_energy_bl0972(uint8_t num,float data)
-{
-	switch(num)
-	{
-		case 0: sg_datacollec_t.dc_vout    = data / BL0972_VOLT_KP;  break;
-		case 1: 
-			sg_datacollec_t.dc_current = data / BL0972_CURR_KP;  
-		  if(sg_datacollec_t.dc_current < 20)
-				sg_datacollec_t.dc_current  = 0;
-			else
-				sg_datacollec_t.dc_current -= 20;
-		break;
-		case 2: 
-			sg_datacollec_t.dc_power   = data / BL0972_POWER_KP; 
-		  if(sg_datacollec_t.dc_power < 0.2f)
-				sg_datacollec_t.dc_power  = 0;
-			else
-				sg_datacollec_t.dc_power -= 0.2f;		
-		break;
-		case 3: sg_datacollec_t.dc_kwh     = data * BL0972_ELEC_Ke;  break;
   }
 }
 
@@ -629,15 +477,28 @@ void det_set_ping_status(uint8_t status)
 
 /*
 *********************************************************************************************************
+*	函 数 名: det_set_key_value
+*	功能说明: 设置按键数值
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void det_set_key_value(uint8_t key_id,uint8_t key_value)
+{
+  sg_datacollec_t.key_s[key_id] = key_value;
+}
+
+/*
+*********************************************************************************************************
 *	函 数 名: det_get_door_status
 *	功能说明: 获取箱门状态
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-uint8_t det_get_door_status(void)
+uint8_t det_get_door_status(uint8_t id)
 {
-	return sg_datacollec_t.key_evnt[DOOR_K2];
+	return sg_datacollec_t.key_s[id + 2];
 }
 /*
 *********************************************************************************************************
@@ -649,19 +510,7 @@ uint8_t det_get_door_status(void)
 */
 uint8_t det_get_pwr_status(void)
 {
-	return sg_datacollec_t.key_evnt[PWR_K3];
-}
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_spd_status
-*	功能说明: 获取防雷开关状态
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-uint8_t det_get_spd_status(void)
-{
-	return sg_datacollec_t.key_evnt[INT3_K7];
+	return sg_datacollec_t.key_s[1];
 }
 
 /*
@@ -672,21 +521,9 @@ uint8_t det_get_spd_status(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-uint8_t det_get_water_status(void)
+uint8_t det_get_water_status(uint8_t id)
 {
-	return sg_datacollec_t.key_evnt[WATER_K4];
-}
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_collect_data
-*	功能说明: 获取数据信息
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void *det_get_collect_data(void)
-{
-	return (&sg_datacollec_t);
+	return sg_datacollec_t.key_s[id + 6];
 }
 
 /*
@@ -702,31 +539,7 @@ void det_get_gps_value(void)
   atgm336h_decode_nmea_xxgga();
 	
 }
-/*
-*********************************************************************************************************
-*	函 数 名: det_set_key_value
-*	功能说明: 设置按键数值
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_set_key_value(uint8_t key_id,uint8_t key_value)
-{
-  sg_datacollec_t.key_s[key_id] = key_value;
-}
 
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_lux_function
-*	功能说明: 获取光照度
-*	形    参: 无
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_get_lux_function(void)
-{
-//	sg_datacollec_t.lux = BH1750_ReadI2C_Data(BH1750_Addr);      //读出数据
-}
 /*
 *********************************************************************************************************
 *	函 数 名: det_get_miu_value
@@ -738,5 +551,30 @@ void det_get_lux_function(void)
 uint8_t det_get_miu_value(void)
 {
 	return sg_datacollec_t.residual_c;
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: det_get_mcb220_value
+*	功能说明: 获取空开
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+uint8_t det_get_mcb220_value(void)
+{
+	return sg_datacollec_t.key_s[8];
+}
+/*
+*********************************************************************************************************
+*	函 数 名: det_get_collect_data
+*	功能说明: 获取数据信息
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void *det_get_collect_data(void)
+{
+	return (&sg_datacollec_t);
 }
 

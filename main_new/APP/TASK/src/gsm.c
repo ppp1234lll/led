@@ -55,18 +55,11 @@ __RESET:
 	/* 通信模块初始化 */
 	memset(&sg_gsmoperate_t,0,sizeof(gsm_operate_t));
 	gprs_deinit_function(); // 清除数据再进行初始化
-//	while(gprs_status_check_function() == 1) {
-//		iwdg_feed();	
-//		vTaskDelay(10);
-//	}
-	
-		while(1) {
-		gprs_status_check_function();	
+	while(gprs_status_check_function() == 1) {
+		iwdg_feed();	
 		vTaskDelay(10);
 	}
-}
-	
-#ifdef 0	
+
 	if( gprs_get_module_status_function() != 1) {
 
 #ifdef WIRELESS_PRIORITY_CONNECTION
@@ -140,8 +133,8 @@ __RESET:
 		}
 		#endif
 		gsm_gps_task_function();
-		IWDG_Feed();
-		OSTimeDlyHMSM(0,0,0,10);  // 延时10ms
+		iwdg_feed();
+		vTaskDelay(10);  // 延时10ms
 	}
 }
 
@@ -480,21 +473,6 @@ uint8_t gsm_data_send_function(uint8_t *buff, uint16_t len)
 ************************************************************/
 int8_t gsm_gps_task_function(void)
 {
-	int8_t ret = 0;
-	struct locat_infor_t locat_t;
-	
-	if(sg_gsmoperate_t.gps.step)
-	{
-		sg_gsmoperate_t.gps.step = 0;
-		ret = gps_lbs_position_read_function(&locat_t);
-		if(ret == 0) 
-		{
-			sg_gsmoperate_t.gps.latitude = locat_t.latitude;
-			sg_gsmoperate_t.gps.longitude = locat_t.longitude;
-		} 
-
-	}
-	
 	return 0;
 }
 
@@ -567,4 +545,4 @@ double gsm_get_location_information_function(uint8_t mode)
 		return sg_gsmoperate_t.gps.latitude;
 	}
 }
-#endif
+

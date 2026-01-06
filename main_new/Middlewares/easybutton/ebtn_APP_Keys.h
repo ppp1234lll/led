@@ -35,7 +35,7 @@ extern "C"
 #define CLICK_AND_PRESS_MIN_TIME    20  // 触发最短时间（小于该值不触发 Click/Press）
 #define CLICK_AND_PRESS_MAX_TIME    200 // 短按最长时间（超过则触发 Press；0xFFFF=不检查最大值）
 #define MULTI_CLICK_MAX_TIME        500   // 连击间隔超时（两个按键之间的最大间隔）
-#define KEEPALIVE_TIME_PERIOD       1000  // 长按周期（每周期增加 keepalive_cnt）
+#define KEEPALIVE_TIME_PERIOD       1500  // 长按周期（每周期增加 keepalive_cnt）
 #define MAX_CLICK_COUNT             6     // 最大连续短击次数（0=不检查连击）
 
 /* -------------------------------- 此处修改按键ID定义 -------------------------------- */
@@ -48,15 +48,7 @@ typedef enum
 {
 		// 示例：四个按键
 		RESET_K1 = 0,
-		PWR_K2,
-		DOOR1_K3,
-		DOOR2_K4,
-		DOOR3_K5,
-		DOOR4_K6,
-		WATER1_K7,
-		WATER2_K8,
-		MCB_V220_K9,
-
+	
 		// 更多按键......
 		KEYS_COUNT // 最大按键，用于提供按键数量
 } key_enum_t;

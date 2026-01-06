@@ -31,7 +31,7 @@ static long int     ping_counter      =  0;
 /* º¯ÊıÉùÃ÷ */
 static int8_t lwip_ping_send(uint8_t local_ip[4], uint8_t remote_ip[4]);
 
-uint8_t raw_callback(void *arg,struct raw_pcb *pcb,struct pbuf *p,ip_addr_t *addr)
+u8_t raw_callback(void *arg,struct raw_pcb *pcb,struct pbuf *p,const ip_addr_t *addr)
 {
   uint8_t buf[40],ct[20];
   //struct ip_hdr  *iphdr;
@@ -42,7 +42,7 @@ uint8_t raw_callback(void *arg,struct raw_pcb *pcb,struct pbuf *p,ip_addr_t *add
      sprintf((char *)buf,"IP:%d.%d.%d.%d",*(char *)addr,*((char *)addr+1),*((char *)addr+2),*((char *)addr+3));
      sprintf((char *)ct,"Ping times:%ld",ping_counter);
   }
-  return 0;
+	return 0;
 }
 
 /*

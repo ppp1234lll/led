@@ -24,10 +24,23 @@
 
 //引脚定义
 /*******************************************************/
+typedef enum
+{
+	KEY_PWR = 0,
+	KEY_DOOR1,
+	KEY_DOOR2,
+	KEY_DOOR3,
+	KEY_DOOR4,
+	KEY_WATER0,
+	KEY_WATER1,
+	KEY_MCB,
+
+	KEY_MAX // 最大按键，用于提供按键数量
+} key_id_t;
 
 /* 函数声明 */
 void bsp_InitKey(void);
-
+uint8_t KeyScan10ms(uint8_t id);
 void key_test(void);
 
 #endif

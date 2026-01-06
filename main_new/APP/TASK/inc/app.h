@@ -251,6 +251,7 @@ void app_set_door_time_function(uint16_t *time);
 void *app_get_http_ota_function(void);
 void app_set_http_ota_function(struct update_addr param);
 
-void app_system_softreset(void);
+void app_system_softreset(uint32_t time);
+void app_reboot_timer_run(void);
 
 #endif

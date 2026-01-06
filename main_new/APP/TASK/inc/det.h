@@ -38,15 +38,9 @@ typedef struct
 	electricity_t kwh;    // 用电量
 	
 	uint8_t key_s[10];    // 按键数量定义
-	uint8_t key_evnt[10]; // 按键事件
 	
-	float dc_vout;     // 直流输出电压
-	float dc_current;  // 直流输出电流
-	float dc_power;    // 直流输出功率
-	float dc_kwh;      // 直流输出用电量
 	uint8_t residual_c;   // 剩余电流
 
-	uint8_t camera[10];	 // 摄像机状态x3：0；离线 1：在线，2：延时严重
 	uint8_t main_ip;	   // 主网络状态：0：离线 1：在线，2：延时严重
 	uint8_t main_sub_ip; // 主网络状态sub: 0：离线 1：在线，2：延时严重
 	uint8_t ping_status; // ping结束标志位
@@ -82,14 +76,11 @@ void det_set_spd_status(uint8_t mode);   //  设置防雷开关状态
 void det_set_water_status(uint8_t mode);
 
 
-uint8_t det_get_open_door(void);							// 获取箱门状态
 uint16_t det_get_cabinet_posture(void);						// 获取箱体姿态
 uint8_t det_get_camera_status(uint8_t num);					// 获取摄像机状态
 uint8_t det_get_main_network_status(void);					// 获取主网络状态
 uint8_t det_get_main_network_sub_status(void);				// 获取主网络状态 - 2
-uint8_t det_get_spd_status(void);	   //  获取防雷开关状态
-uint8_t det_get_water_status(void);
-uint8_t det_get_miu_value(void);
+
 void *det_get_collect_data(void);
 void det_set_key_value(uint8_t key_id,uint8_t key_value);
 void Miu_Handler(char *pcInsert, uint8_t num);
@@ -97,9 +88,9 @@ void Miu_Handler(char *pcInsert, uint8_t num);
 void det_get_gps_value(void);
 void det_get_lux_function(void);
 uint8_t det_get_pwr_status(void);
-uint8_t det_get_door_status(void);
-uint8_t det_get_spd_status(void);
-uint8_t det_get_water_status(void);
-
+uint8_t det_get_door_status(uint8_t id);
+uint8_t det_get_water_status(uint8_t id);
+uint8_t det_get_mcb220_value(void);
+uint8_t det_get_miu_value(void);
 
 #endif

@@ -88,7 +88,7 @@ void ebtn_APP_Event(struct ebtn_btn *btn, ebtn_evt_t evt)
             /* ----------------------------------- 6击时 ---------------------------------- */
             else if (btn->click_cnt == 6)
             {
-//							det_set_key_value(RESET_K1,KEY_ERASE);
+							det_set_key_value(RESET_K1,KEY_ERASE);
 							if(KEY_DEBUG)  printf("RESET_K1 6\n");
             }
         }
@@ -98,142 +98,12 @@ void ebtn_APP_Event(struct ebtn_btn *btn, ebtn_evt_t evt)
             /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
             if (btn->keepalive_cnt == 1)
             {
-//							det_set_key_value(RESET_K1,KEY_EVNT);
+							det_set_key_value(RESET_K1,KEY_EVNT);
 							if(KEY_DEBUG)  printf("RESET_K1 long\n");
             }
         }
         break;
-        /* ----------------------------------- KEY2 ---------------------------------- */
-    case PWR_K2:
-        if (evt == EBTN_EVT_ONPRESS)
-        {
-//					det_set_key_value(PWR_K2,KEY_EVNT);
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(PWR_K2,KEY_NONE);
-				}	
-        break;
-
-        /* ----------------------------------- KEY3 ---------------------------------- */
-    case DOOR1_K3:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(DOOR1_K3,KEY_EVNT);
-							if(KEY_DEBUG) printf("DOOR1_K3 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(DOOR1_K3,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY4 ---------------------------------- */
-    case DOOR2_K4:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(DOOR2_K4,KEY_EVNT);
-							if(KEY_DEBUG) printf("DOOR2_K4 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(DOOR2_K4,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY5 ---------------------------------- */
-    case DOOR3_K5:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(DOOR3_K5,KEY_EVNT);
-							if(KEY_DEBUG) printf("DOOR3_K5 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(DOOR3_K5,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY6 ---------------------------------- */
-    case DOOR4_K6:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(DOOR4_K6,KEY_EVNT);
-							if(KEY_DEBUG) printf("DOOR4_K6 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(DOOR4_K6,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY7 ---------------------------------- */
-    case WATER1_K7:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(WATER1_K7,KEY_EVNT);
-							if(KEY_DEBUG) printf("WATER1_K7 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(WATER1_K7,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY8 ---------------------------------- */
-    case WATER2_K8:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(WATER2_K8,KEY_EVNT);
-							if(KEY_DEBUG) printf("WATER2_K8 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(WATER2_K8,KEY_NONE);
-				}
-        break;
-
-        /* ----------------------------------- KEY9 ---------------------------------- */
-    case MCB_V220_K9:
-				if (evt == EBTN_EVT_KEEPALIVE)
-        {
-            /* ------------------------------- 长按计数到达指定值时 ------------------------------- */
-            if (btn->keepalive_cnt == 1)
-            {
-//							det_set_key_value(MCB_V220_K9,KEY_EVNT);
-							if(KEY_DEBUG) printf("MCB_V220_K9 long\n");
-            }
-        }
-				else if (evt == EBTN_EVT_ONRELEASE)// 按键 释放处理
-				{
-//						det_set_key_value(MCB_V220_K9,KEY_NONE);
-				}
-        break;						
-    }
+		}
 }
 
 

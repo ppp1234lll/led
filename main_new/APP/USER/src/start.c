@@ -134,11 +134,10 @@ void start_task(void *pvParameters)
 
 	bl0910_init_function();
 	bl0939_init_function();
-//ATGM338H_test();
+
 	iwdg_feed();
 //	bsp_InitSPIBus();	/* 配置SPI总线 */		
 //	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
-//	lfs_init_function();
 
     
 	if (lwip_comm_init() != 0)

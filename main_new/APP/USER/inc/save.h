@@ -1,9 +1,8 @@
 #ifndef _SAVE_H_
 #define _SAVE_H_
 
-#include "sys.h"
-#include "app.h"
-#include "det.h"
+#include "./TASK/inc/app.h"
+#include "./TASK/inc/det.h"
 
 /* 默认参数 */
 #define DEFALUT_LOCAL_IP0 (192)
@@ -62,14 +61,7 @@
 #define DEFALUT_PING			    (20*1000)   // 每轮ping的间隔时间
 #define DEFALUT_DEV_PING	    (10*1000)   // 下一次ping的时间
 #define DEFALUT_NETWORK_DELAY	(200)       // 网络延时时间  20220308
-#define DEFALUT_ONVIF_TIME  	(120)       // ONVIF搜索时间  20230811
-#define DEFALUT_RELOAD_TIME  	(48*60*60)  // 重启时间       20240904
 
-#define DEFALUT_LIGHT_OPEN_TIME  (720) // 12:00 = 12*60
-#define DEFALUT_LIGHT_CLOSE_TIME (720) // 12:00 = 12*60
-
-#define DEFALUT_DOOR_OPEN_TIME   (720) // 12:00 = 12*60
-#define DEFALUT_DOOR_CLOSE_TIME  (720) // 12:00 = 12*60
 
 /* 存储相关 */
 #define SAVE_OTHER_PARAM   (0) // 其余数据

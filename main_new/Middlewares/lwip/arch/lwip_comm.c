@@ -239,16 +239,16 @@ void lwip_start_function(void)
 	
 	if(g_lwipdev.init == 1) 
 	{
-//		lwip_comm_default_ip_set(&g_lwipdev);		// 设置默认IP等信息
+		lwip_comm_default_ip_set(&g_lwipdev);		// 设置默认IP等信息
 
-//		printf("\n本机IP: %d.%d.%d.%d\n", g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);
-//		IP4_ADDR(&g_lwip_netif.ip_addr,g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);
-//		IP4_ADDR(&g_lwip_netif.netmask,g_lwipdev.netmask[0],g_lwipdev.netmask[1] ,g_lwipdev.netmask[2],g_lwipdev.netmask[3]);
-//		IP4_ADDR(&g_lwip_netif.gw,g_lwipdev.gateway[0],g_lwipdev.gateway[1],g_lwipdev.gateway[2],g_lwipdev.gateway[3]);
-//		
-//		HAL_ETH_Start_IT(&g_eth_handler);
-//		netif_set_up(&g_lwip_netif);
-//		netif_set_link_up(&g_lwip_netif); // 打开netif网口
+		printf("\n本机IP: %d.%d.%d.%d\n", g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);
+		IP4_ADDR(&g_lwip_netif.ip_addr,g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);
+		IP4_ADDR(&g_lwip_netif.netmask,g_lwipdev.netmask[0],g_lwipdev.netmask[1] ,g_lwipdev.netmask[2],g_lwipdev.netmask[3]);
+		IP4_ADDR(&g_lwip_netif.gw,g_lwipdev.gateway[0],g_lwipdev.gateway[1],g_lwipdev.gateway[2],g_lwipdev.gateway[3]);
+		
+		HAL_ETH_Start_IT(&g_eth_handler);
+		netif_set_up(&g_lwip_netif);
+		netif_set_link_up(&g_lwip_netif); // 打开netif网口
 		
 		led_control_function(LD_LAN,LD_ON);
 		g_lwipdev.netif_state = 1;

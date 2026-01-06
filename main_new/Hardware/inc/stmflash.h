@@ -62,6 +62,7 @@ void stmflash_write(uint32_t waddr, uint32_t *pbuf, uint32_t length);    /* 从指
 void stmflash_read(uint32_t raddr, uint32_t *pbuf, uint32_t length);     /* 从指定地址开始读出指定长度的数据 */
 
 void test_write(uint32_t waddr, uint32_t wdata);                        /* 测试写入 */
-
+void stmflash_write_save(uint32_t ReadAddr,uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite);
+void stmflash_test(void);
 #endif
 

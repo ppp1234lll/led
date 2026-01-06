@@ -23,6 +23,7 @@
  */
 
 #include "stmflash.h"
+#include "bsp.h"
 
 /**
  * @brief       从指定地址读取一个字 (32位数据)
@@ -151,6 +152,21 @@ void stmflash_write(uint32_t waddr, uint32_t *pbuf, uint32_t length)
     HAL_FLASH_Lock();                           /* 上锁 */
 }
 
+#define STM_SECTOR_SIZE	   2048  // 最多是2K字节
+uint32_t stmflash_save_buf[STM_SECTOR_SIZE/4];
+void stmflash_write_save(uint32_t ReadAddr,uint32_t WriteAddr,uint32_t *pBuffer,uint32_t NumToWrite)	
+{
+	uint32_t secoff;	   //扇区内偏移地址(32位字计算)
+ 	uint16_t i; 
+	secoff = WriteAddr - ReadAddr;		//扇区内偏移地址
+	stmflash_read(ReadAddr,(uint32_t*)stmflash_save_buf,STM_SECTOR_SIZE/4); //读出2K扇区的内容
+	for(i=0;i<NumToWrite;i++)//复制
+	{
+		stmflash_save_buf[i+secoff]=pBuffer[i];	  
+	}
+	stmflash_write(ReadAddr, stmflash_save_buf,STM_SECTOR_SIZE/4);
+}
+
 /******************************************************************************************/
 /* 测试用代码 */
 
@@ -164,5 +180,60 @@ void test_write(uint32_t waddr, uint32_t wdata)
 {
     stmflash_write(waddr, &wdata, 1);/* 写入一个字 */
 }
+
+/*
+*********************************************************************************************************
+*	函 数 名: stmflash_test
+*	功能说明: stmflash 测试
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+/* 要写入到STM32 FLASH的字符串数组 */
+const uint8_t g_text_buf[] = {"STM32 FLASH TEST"};
+const uint8_t g_text_buf_add[] = {"ADD STM32 FLASH TEST"};
+
+#define TEXT_LENTH sizeof(g_text_buf)   /* 数组长度 */
+#define ADD_LENTH  sizeof(g_text_buf_add)   /* 数组长度 */
+/*SIZE表示半字长(4字节), 大小必须是4的整数倍, 如果不是的话, 强制对齐到4的整数倍 */
+#define SIZE  TEXT_LENTH / 4 + ((TEXT_LENTH % 4) ? 1 : 0)
+#define SIZE2 ADD_LENTH / 4 + ((ADD_LENTH % 4) ? 1 : 0)
+
+#define FLASH_SAVE_ADDR 0X081E0000
+#define FLASH_ADD_ADDR  FLASH_SAVE_ADDR + 64
+
+void stmflash_test(void)
+{
+	uint8_t datatemp[SIZE];
+	uint8_t datatemp2[SIZE2];
+	
+	stmflash_read(FLASH_SAVE_ADDR, (uint32_t *)datatemp, SIZE);
+	for(uint8_t i=0;i<SIZE;i++)
+	{
+		printf("read 1:");
+		printf("%02x ",datatemp[i]);
+		printf("\r\n");
+	}
+	delay_ms(1000);
+	stmflash_write(FLASH_SAVE_ADDR, (uint32_t *)g_text_buf, SIZE);
+	printf("write\r\n");
+	delay_ms(1000);
+	stmflash_read(FLASH_SAVE_ADDR, (uint32_t *)datatemp, SIZE);
+	printf("read 2: %s \r\n",datatemp);
+	delay_ms(1000);
+	
+	stmflash_write_save(FLASH_SAVE_ADDR, FLASH_ADD_ADDR,(uint32_t *)g_text_buf_add, SIZE2);
+	printf("write 2\r\n");
+	delay_ms(1000);
+	stmflash_read(FLASH_SAVE_ADDR, (uint32_t *)datatemp, SIZE);
+	stmflash_read(FLASH_ADD_ADDR , (uint32_t *)datatemp2, SIZE2);
+	printf("read 3: %s \r\n",datatemp);
+	printf("read 3: %s \r\n",datatemp2);
+	delay_ms(1000);
+		
+	while(1);
+
+}
+
 
 

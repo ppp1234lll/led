@@ -7,78 +7,6 @@
 #define COM_NUM_VAERSION (0x11) 	// 数据版本
 static struct com_qn_t sg_comqn_t; // 请求标识码
 	
-/************************************************************
-*
-* Function name	: com_report_get_adapter_status
-* Description	: 获取适配器状态
-* Parameter		: 
-*	@adapter	: 适配器编号
-* Return		: 0-不存在 1-通电 2-断电
-*	
-************************************************************/
-uint8_t com_report_get_adapter_status(uint8_t adapter)
-{
-	uint8_t status = 0;
-	
-	switch(adapter)
-	{
-		case 0:
-			if(relay_get_status(RELAY_1) == RELAY_ON) 
-				status = 1;
-			else 	/* 摄像头断电 */
-				status = 2;
-			
-			break;
-		case 1:
-//			status = 0;
-			if(relay_get_status(RELAY_2) == RELAY_ON) 
-				status = 1;
-			else 			/* 摄像头断电 */
-				status = 2;
-			break;
-		case 2:
-			status = 0;
-			break;
-	}
-	return status;
-}
-
-/************************************************************
-*
-* Function name	: com_report_get_camera_status
-* Description	: 获取摄像机工作状态
-* Parameter		: 
-*	@camera		: 摄像机编号
-* Return		: 0-不存在 1-网络正常 2-网络断开
-*	
-************************************************************/
-uint8_t com_report_get_camera_status(uint8_t camera)
-{
-	uint8_t ip[4]  = {0};
-	uint8_t status = 0;
-	
-	if(app_get_camera_function(ip,camera) < 0)
-	{
-		status = 0;			// 不存在
-	}
-	else
-	{
-		if(eth_get_network_cable_status() == 0)
-		{
-			status = 2; 			// 网络断开
-		}
-		else 
-		{
-			if ( det_get_camera_status(camera) == 1 ) 
-				status = 1;		// 网络正常
-			else if ( det_get_camera_status(camera) == 2 )   // 网络延时时间  20220308
-				status = 4;		// 网络延时严重
-			else 
-				status = 2;		// 网络异常
-		}
-	}
-	return status;
-}
 
 /************************************************************
 *
@@ -201,16 +129,6 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	sprintf((char*)str,"DT=%s;",app_get_report_current_time(0));
 	strcat((char*)data,(char*)str);
 
-	/** 摄像机的网络状态 **/
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"CNS=%01d,%01d,%01d,%01d,%01d,%01d;",
-											com_report_get_camera_status(0),
-											com_report_get_camera_status(1),
-											com_report_get_camera_status(2),
-											com_report_get_camera_status(3),
-											com_report_get_camera_status(4),
-											com_report_get_camera_status(5));
-	strcat((char*)data,(char*)str);
 	/** 主网网络状态 **/
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"MN=%d,%d;", com_report_get_main_network_status(0),
@@ -245,10 +163,12 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	strcat((char*)data,(char*)str);
 	/** 门状态、箱体姿态、防雷状态 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str,"DS=%01d;P=%d;SPD=%01d;",
-											(det_get_door_status()),
-											 det_get_cabinet_posture(),
-											 det_get_spd_status());
+	sprintf((char*)str,"DS=%01d,%01d,%01d,%01d;P=%d;SPD=0;",
+											det_get_door_status(0),\
+											det_get_door_status(1),\
+											det_get_door_status(2),\
+											det_get_door_status(3),\
+											det_get_cabinet_posture());
 	strcat((char*)data,(char*)str);
 	/** 设备供电**/
 	memset(str,0,sizeof(str));
@@ -263,23 +183,22 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 
 	/** 水浸检测 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str,"WATER=%01d;",det_get_water_status());
+	sprintf((char*)str,"WATER=%01d,%01d;",det_get_water_status(0),det_get_water_status(1));
 	strcat((char*)data,(char*)str);
 
 	/** 总功率 总用电量 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-	Vin220_Power_Handler(str_buff[0],0);
-	Vin220_Elec_Handler (str_buff[1],0);
+//	Vin220_Power_Handler(str_buff[0],0);
+//	Vin220_Elec_Handler (str_buff[1],0);
 	sprintf((char*)str,"APOWER=%s;AKW=%s;",str_buff[0],str_buff[1]);
 	strcat((char*)data,(char*)str);	
 	
 	/** 继电器状态 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str,"RELAY=%01d,%01d,%01d,%01d,%01d;",
+	sprintf((char*)str,"RELAY=%01d,%01d,%01d,%01d;",
 											relay_get_status(RELAY_1),relay_get_status(RELAY_2),
-											relay_get_status(RELAY_3),relay_get_status(RELAY_4),
-											relay_get_status(RELAY_5));
+											relay_get_status(RELAY_3),relay_get_status(RELAY_4));
 	strcat((char*)data,(char*)str);
 
 	/** 支路电压 **/
@@ -287,41 +206,41 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str_buff,0,sizeof(str_buff));
 	for(uint8_t i=0;i< 5 ;i++)
 	{
-		if(relay_get_status((RELAY_DEV)i) == 1)
-			Vin220_Handler(str_buff[i],0);
-		else
+//		if(relay_get_status((RELAY_DEV)i) == 1)
+//			Vin220_Handler(str_buff[i],0);
+//		else
 			sprintf(str_buff[i],"%d",0);
 	}	
-	sprintf((char*)str,"CHV=%s,%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3],str_buff[4]);
+	sprintf((char*)str,"CHV=%s,%s,%s,%s;",
+											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
 	
 	/** 支路电流 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-	for(uint8_t i=0;i<5;i++)
-		Vin220_Handler(str_buff[i],2+i);
+//	for(uint8_t i=0;i<5;i++)
+//		Vin220_Handler(str_buff[i],2+i);
 
-	sprintf((char*)str,"CHA=%s,%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3],str_buff[4]);
+	sprintf((char*)str,"CHA=%s,%s,%s,%s;",
+											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
 	
 	/** 功率 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-	for(uint8_t i=0;i< 5;i++)
-		Vin220_Power_Handler(str_buff[i],1+i);
-	sprintf((char*)str,"POWER=%s,%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3],str_buff[4]);
+//	for(uint8_t i=0;i< 5;i++)
+//		Vin220_Power_Handler(str_buff[i],1+i);
+	sprintf((char*)str,"POWER=%s,%s,%s,%s;",
+											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
 
 	/** 用电量 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-	for(uint8_t i=0;i< 5;i++)
-		Vin220_Elec_Handler(str_buff[i],1+i);
-	sprintf((char*)str,"ELEC=%s,%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3],str_buff[4]);
+//	for(uint8_t i=0;i< 5;i++)
+//		Vin220_Elec_Handler(str_buff[i],1+i);
+	sprintf((char*)str,"ELEC=%s,%s,%s,%s;",
+											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
 
 	/** 漏电 **/
@@ -329,56 +248,39 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	sprintf((char*)str,"MIU=%d;",app_get_miu_protec_status());
 	strcat((char*)data,(char*)str);
 
-		/** 继电器状态 **/
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"DCR=%01d,%01d;",
-											relay_get_status(MOS12V_1),relay_get_status(MOS12V_2));
-	strcat((char*)data,(char*)str);
-	
-	/** 直流电压 电流 功率 用电量 **/
-	memset(str,0,sizeof(str));
-	memset(str_buff,0,sizeof(str_buff));
-	DC12_Elec_Handler(str_buff[0],0);		// 电压
-	DC12_Elec_Handler(str_buff[1],1);		// 电流 1
-	DC12_Elec_Handler(str_buff[2],2);		// 功率 2
-	DC12_Elec_Handler(str_buff[3],3);		// 用电量 3
-	sprintf((char*)str,"DCV=%s;DCA=%s;DCP=%s;DCE=%s;",\
-                        str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
-	strcat((char*)data,(char*)str);
-
 	/** 交换机信息 **/
-	snmp_t *switch_data = snmp_get_switch_data();
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"MODEL=%s;UPTIME=%d;",
-										switch_data->device_model,switch_data->uptime_ticks);
-	strcat((char*)data,(char*)str);  
-	
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"PORT_STATUS=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-											switch_data->port_status[0],switch_data->port_status[1],\
-											switch_data->port_status[2],switch_data->port_status[3],\
-											switch_data->port_status[4],switch_data->port_status[5],\
-											switch_data->port_status[6],switch_data->port_status[7],\
-											switch_data->port_status[8],switch_data->port_status[9]);
-	strcat((char*)data,(char*)str);
+//	snmp_t *switch_data = snmp_get_switch_data();
+//	memset(str,0,sizeof(str));
+//	sprintf((char*)str,"MODEL=%s;UPTIME=%d;",
+//										switch_data->device_model,switch_data->uptime_ticks);
+//	strcat((char*)data,(char*)str);  
+//	
+//	memset(str,0,sizeof(str));
+//	sprintf((char*)str,"PORT_STATUS=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
+//											switch_data->port_status[0],switch_data->port_status[1],\
+//											switch_data->port_status[2],switch_data->port_status[3],\
+//											switch_data->port_status[4],switch_data->port_status[5],\
+//											switch_data->port_status[6],switch_data->port_status[7],\
+//											switch_data->port_status[8],switch_data->port_status[9]);
+//	strcat((char*)data,(char*)str);
 
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"PORT_SPEED=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-											switch_data->port_speed[0],switch_data->port_speed[1],\
-											switch_data->port_speed[2],switch_data->port_speed[3],\
-											switch_data->port_speed[4],switch_data->port_speed[5],\
-											switch_data->port_speed[6],switch_data->port_speed[7],\
-											switch_data->port_speed[8],switch_data->port_speed[9]);
-	strcat((char*)data,(char*)str);
+//	memset(str,0,sizeof(str));
+//	sprintf((char*)str,"PORT_SPEED=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
+//											switch_data->port_speed[0],switch_data->port_speed[1],\
+//											switch_data->port_speed[2],switch_data->port_speed[3],\
+//											switch_data->port_speed[4],switch_data->port_speed[5],\
+//											switch_data->port_speed[6],switch_data->port_speed[7],\
+//											switch_data->port_speed[8],switch_data->port_speed[9]);
+//	strcat((char*)data,(char*)str);
 	
-	memset(str,0,sizeof(str));
-	sprintf((char*)str,"PORT_POE=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-											switch_data->port_poe[0],switch_data->port_poe[1],\
-											switch_data->port_poe[2],switch_data->port_poe[3],\
-											switch_data->port_poe[4],switch_data->port_poe[5],\
-											switch_data->port_poe[6],switch_data->port_poe[7],\
-											switch_data->port_poe[8],switch_data->port_poe[9]);
-	strcat((char*)data,(char*)str);	
+//	memset(str,0,sizeof(str));
+//	sprintf((char*)str,"PORT_POE=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
+//											switch_data->port_poe[0],switch_data->port_poe[1],\
+//											switch_data->port_poe[2],switch_data->port_poe[3],\
+//											switch_data->port_poe[4],switch_data->port_poe[5],\
+//											switch_data->port_poe[6],switch_data->port_poe[7],\
+//											switch_data->port_poe[8],switch_data->port_poe[9]);
+//	strcat((char*)data,(char*)str);	
 	
 	/** 北斗定位信息只包含经纬度即可 */
 	atgm336h_data_t *gnss_data = atgm336h_get_gnss_data();
@@ -443,7 +345,7 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%02x",COM_DATA_VERSION);
 	my_cjson_join_string_function(pdata,(uint8_t *)"ver",(uint8_t *)temp,1);
-//	my_cjson_join_string_function(pdata,(uint8_t *)"ver",(uint8_t *)"11",1);
+
 	/* 添加QN */
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%08d%09d",sg_comqn_t.qn1,sg_comqn_t.qn2);
@@ -493,7 +395,12 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	sprintf(temp,"%d",app_get_network_mode());
 	my_cjson_join_string_function(pdata,(uint8_t*)"tm",(uint8_t*)temp,1);
 	/* 网卡MAC地址 */
-	my_cjson_join_string_function(pdata,(uint8_t*)"mac",lwip_get_mac_addr(),1);
+	memset(temp,0,sizeof(temp));
+	sprintf(temp,"%02x-%02x-%02x-%02x-%02x-%02x",\
+								local->mac[0],local->mac[1],local->mac[2],\
+								local->mac[3],local->mac[4],local->mac[5]);
+	my_cjson_join_string_function(pdata,(uint8_t*)"mac",(uint8_t*)temp,1);
+	
 	/* IP */
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%d.%d.%d.%d",local->ip[0],local->ip[1],local->ip[2],local->ip[3]);
@@ -525,31 +432,11 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	sprintf(temp,"%d",comparam->dev_ping/1000);
 	my_cjson_join_string_function(pdata,(uint8_t*)"pn",(uint8_t*)temp,1);
 
-	/* 风扇启动、停止温度 */
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d,%d",threshol->temp_high,threshol->temp_low);
-	my_cjson_join_string_function(pdata,(uint8_t*)"ft",(uint8_t*)temp,1);
-
-	/* 风扇启动湿度 */
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d,%d",threshol->humi_high,threshol->humi_low);
-	my_cjson_join_string_function(pdata,(uint8_t*)"fh",(uint8_t*)temp,1);
-
 	/* 网络延时时间设置  20220308*/  
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%d",comparam->network_time);
 	my_cjson_join_string_function(pdata,(uint8_t*)"pt",(uint8_t*)temp,1);
 
-	/* 摄像机IP */
-	for(index=0;index<10;index++)
-	{
-		memset(temp,0,sizeof(temp));
-		sprintf(temp,"%d.%d.%d.%d", ipc->ip[index][0],ipc->ip[index][1],\
-																ipc->ip[index][2],ipc->ip[index][3]);
-		sprintf((char*)name,"c%d",index+1);
-		my_cjson_join_string_function(pdata,name,(uint8_t*)temp,1);
-	}
-	
 	/* 过压*/
 //	memset(temp,0,sizeof(temp));
 //	sprintf(temp,"%d",threshol->volt_max);
@@ -579,16 +466,6 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	sprintf(temp,"%d,%d,%d,%d,%d",threshol->volt_max,threshol->volt_min,threshol->current,threshol->angle,threshol->miu);
   my_cjson_join_string_function(pdata,(uint8_t*)"opovc",(uint8_t*)temp,1);
 
-	/* 搜索协议模式  20220908*/  
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d",local->search_mode);
-	my_cjson_join_string_function(pdata,(uint8_t*)"sm",(uint8_t*)temp,1);
-	
-	/* 搜索协议时间设置  20220908*/  
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d",comparam->onvif_time);
-	my_cjson_join_string_function(pdata,(uint8_t*)"smt",(uint8_t*)temp,1);
-	
 	/* 更新结果 */  
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%d",threshol->angle);
@@ -819,67 +696,6 @@ int com_ipc_device_information(uint8_t *pdata, uint16_t *size)
 ************************************************************/
 void com_gprs_lbs_information(uint8_t *pdata, uint16_t *size)
 {
-	struct device_param 	*device   = app_get_device_param_function();
-	double longi_data = 0;
-	double lati_data = 0;
-	uint32_t dtemp	 = 0;
-	char  temp[50] 	= {0};
-	char  crc_buff[20]	= {0};
-	uint8_t crc		    = 0;
-
-	/* 生成校验码 */
-	sprintf(crc_buff,"%x%dE1",0x10,device->id.i);
-	crc = calc_crc8((uint8_t*)crc_buff,strlen(crc_buff)-1);	
-	
-	my_cjson_create_function(pdata,0); // 开始
-	my_cjson_join_int_function(pdata,(uint8_t *)"code",0,1);
-	
-	my_cjson_data_create_function(pdata,0); // 开始
-	
-	/* 添加QN */ 
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%08d%09d",sg_comqn_t.qn1,sg_comqn_t.qn2);
-	my_cjson_join_string_function(pdata,(uint8_t *)"qn",(uint8_t *)temp,1);
-	sg_comqn_t.qn1 = 0;
-	sg_comqn_t.qn2 = 0;
-	sg_comqn_t.flag = 0;
-	
-	/* 版本号 */
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%02x",COM_DATA_VERSION);
-	my_cjson_join_string_function(pdata,(uint8_t *)"ver",(uint8_t *)temp,1);
-//	my_cjson_join_string_function(pdata,(uint8_t *)"ver",(uint8_t *)"11",1);		
-	/* ID */
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d",device->id.i);
-	my_cjson_join_string_function(pdata,(uint8_t *)"tid",(uint8_t *)temp,1);
-	/* 通信命令 */
-	my_cjson_join_string_function(pdata,(uint8_t *)"cmd",(uint8_t *)"E6",1);
-
-	memset(temp,0,sizeof(temp));
-	longi_data = gsm_get_location_information_function(0);
-	temp[0] = (uint16_t)longi_data;
-	dtemp   = (longi_data - temp[0]) * 100000000;
-	sprintf((char*)temp,"%d.%08d,", temp[0], dtemp);
-	my_cjson_join_string_function(pdata,(uint8_t*)"longitude",(uint8_t*)temp,1);
-	
-	lati_data	 = gsm_get_location_information_function(1);
-	memset(temp,0,sizeof(temp));
-	temp[0] = (uint16_t)lati_data;
-	dtemp   = (lati_data - temp[0]) * 100000000;
-	sprintf((char*)temp,"%d.%08d,", temp[0], dtemp);
-	my_cjson_join_string_function(pdata,(uint8_t*)"latitude",(uint8_t*)temp,1);
-
-	/* 签名校验 */
-	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%x",crc);
-	my_cjson_join_string_function(pdata,(uint8_t*)"crc",(uint8_t*)temp,0);
-	
-	my_cjson_data_create_function(pdata,1); // 结束
-	my_cjson_create_function(pdata,1); // 结束	
-	*size = strlen((char*)pdata);
-	
-//	printf("%s \r\n",pdata);
 }
 
 /************************************************************
@@ -956,7 +772,7 @@ int8_t com_deal_configure_server_domain_name(com_rec_data_t *buff)
 	/* 设置回传 */
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	OSTimeDlyHMSM(0,0,0,100);  			// 延时10ms
+	vTaskDelay(100);			// 延时10ms
 	
 	switch(mode)
 	{
@@ -983,7 +799,7 @@ void com_deal_configure_server_mode(com_rec_data_t *buff)
 	local->server_mode = buff->buff[0];
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	OSTimeDlyHMSM(0,0,0,100);  			// 延时10ms
+	vTaskDelay(100);
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }
 
@@ -998,19 +814,19 @@ void com_deal_configure_server_mode(com_rec_data_t *buff)
 void com_deal_update_system_function(com_rec_data_t *buff)
 {
 	/* 设置回传 */
-	if( update_get_mode_function() != UPDATE_MODE_NULL) 
-	{
-		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
-	} 
-	else 
-	{
-		app_set_reply_parameters_function(buff->cmd,0x01);
-		OSTimeDlyHMSM(0,0,0,200); 
-		if(app_get_network_mode() == SERVER_MODE_GPRS)
-			update_set_update_mode(UPDATE_MODE_GPRS); 
-		else
-			update_set_update_mode(UPDATE_MODE_LWIP); 
-	}	
+//	if( update_get_mode_function() != UPDATE_MODE_NULL) 
+//	{
+//		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
+//	} 
+//	else 
+//	{
+//		app_set_reply_parameters_function(buff->cmd,0x01);
+//		vTaskDelay(200);
+//		if(app_get_network_mode() == SERVER_MODE_GPRS)
+//			update_set_update_mode(UPDATE_MODE_GPRS); 
+//		else
+//			update_set_update_mode(UPDATE_MODE_LWIP); 
+//	}	
 }
 
 /************************************************************
@@ -1103,7 +919,7 @@ void com_deal_configure_local_network(com_rec_data_t *buff)
 	/* 设置回传 */
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	OSTimeDlyHMSM(0,0,0,100);  			// 延时10ms
+	vTaskDelay(100);
 	
 	/* 保存 */
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
@@ -1133,11 +949,10 @@ void com_deal_configure_mac(com_rec_data_t *buff)
 	/* 设置回传 */
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	OSTimeDlyHMSM(0,0,0,100);  			// 延时10ms
+	vTaskDelay(100);
 	
 	/* 保存 */
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);
-//	STMFLASH_Write(DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&local->mac,2);
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 	eth_set_network_reset();
 	
@@ -1161,14 +976,13 @@ void com_deal_configure_device_id(com_rec_data_t *buff)
 	/* 设置回传 */
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	OSTimeDlyHMSM(0,0,0,100);  			// 延时10ms
+	vTaskDelay(100);
 	
 	/* 保存 */
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
-//	STMFLASH_Write(DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param->id.c,1);
 	app_set_save_infor_function(SAVE_DEVICE_PARAM);
 	
-	OSTimeDlyHMSM(0,0,0,100);
+	vTaskDelay(100);
 	eth_set_tcp_connect_reset();				/* 重启TCP连接 */
 	gsm_set_module_reset_function();				/* 重启无线连接 */
 }
@@ -1544,33 +1358,7 @@ void com_set_main_ping_ip(com_rec_data_t *buff)
 ************************************************************/
 void com_set_work_time(com_rec_data_t *buff,uint8_t mode)
 {
-	int time[4]		= {0};
-	uint16_t temp[2] = {0};
 
-	sscanf((char*)buff->buff,"%d:%d-%d:%d",&time[0],&time[1],&time[2],&time[3]);
-	for(uint8_t i=0;i<4;i++)
-	{
-		if(time[i] < 0)
-			time[i] = 0;	
-	}
-	if(time[0] > 23)
-		time[0] = 23;
-
-	if(time[2] > 23)
-		time[2] = 23;
-	
-	if(time[1] > 59)
-		time[1] = 59;
-
-	if(time[3] > 59)
-		time[3] = 59;
-	
-	temp[0] = time[0]*60+time[1];
-	temp[1] = time[2]*60+time[3];
-	if(mode == 0)
-		app_set_door_time_function(temp);
-	else
-		app_set_fill_light_function(temp);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
 
@@ -1834,7 +1622,7 @@ void com_cache_initialization(uint16_t size)
 {
 	sg_comqueue_t.data = mymalloc(SRAMIN,size);
 	sg_comqueue_t.size = size;
-	mymemset(sg_comqueue_t.data,0,size);
+	memset(sg_comqueue_t.data,0,size);
 	com_queue_init(&sg_comqueue_t);
 }
 
@@ -2060,7 +1848,7 @@ uint16_t com_queue_find_msg(uint8_t *msg,uint16_t size)
 		if((11+8+buff_size) <= msg_pos) {
 			msg_size  = 0;
 			msg_state = 0;						//重新检测帧尾巴
-			msg_pos   = 0;					    //复位指令指针
+			msg_pos   = 0;				    //复位指令指针
 			buff_size = 0;
 			return msg_size;
 		}

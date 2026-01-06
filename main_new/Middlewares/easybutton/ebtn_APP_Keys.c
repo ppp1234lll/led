@@ -23,42 +23,9 @@
 /*
 	4、输入检测
 			按键(恢复出厂设置):    PD4
-			12V电源输入监测:       PD0
-			箱门检测1:             PD15
-			箱门检测2:             PC8
-			箱门检测3:             PA11
-			箱门检测4:             PA12
-			水浸1 :                PD11
-			水浸2 :                PD14		
-
-			空开前220输入检测 :    PE15
 */
 #define RESET_K1_PIN              		GPIO_PIN_4                 
-#define RESET_K1_GPIO_PORT        		GPIOD                      
-
-#define PWR_K2_PIN               			GPIO_PIN_0                
-#define PWR_K2_GPIO_PORT         			GPIOD                      
-
-#define DOOR1_K3_PIN               		GPIO_PIN_15                 
-#define DOOR1_K3_GPIO_PORT         		GPIOD                      
-
-#define DOOR2_K4_PIN               		GPIO_PIN_8                 
-#define DOOR2_K4_GPIO_PORT         		GPIOC                      
-
-#define DOOR3_K5_PIN               		GPIO_PIN_11                 
-#define DOOR3_K5_GPIO_PORT         		GPIOA                      
-
-#define DOOR4_K6_PIN               		GPIO_PIN_12                 
-#define DOOR4_K6_GPIO_PORT         		GPIOA                      
-
-#define WATER1_K7_PIN             		GPIO_PIN_11                 
-#define WATER1_K7_GPIO_PORT       		GPIOD                      
-
-#define WATER2_K8_PIN             		GPIO_PIN_14                 
-#define WATER2_K8_GPIO_PORT       		GPIOD                      
-
-#define MCB_V220_K9_PIN            		GPIO_PIN_15                 
-#define MCB_V220_K9_GPIO_PORT      		GPIOE                      
+#define RESET_K1_GPIO_PORT        		GPIOD                                       
 
 /** ***************************************************************************
  * @brief 定义默认按键参数结构体
@@ -97,14 +64,6 @@ ebtn_btn_param_t buttons_parameters = EBTN_PARAMS_INIT(
 key_config_t keys_config_list[] = {
     // 按键ID,    GPIO端口,            		GPIO引脚,     		触发电平
     {RESET_K1,  	RESET_K1_GPIO_PORT,  		RESET_K1_PIN,  		EBTN_ACTIVE_LOW},  // 复位       PD2， 低电平触发
-    {PWR_K2 ,  		PWR_K2_GPIO_PORT,   		PWR_K2_PIN,   		EBTN_ACTIVE_LOW},  // 箱门       PA11，低电平触发
-    {DOOR1_K3  ,  DOOR1_K3_GPIO_PORT,    	DOOR1_K3_PIN,    	EBTN_ACTIVE_LOW}, // 12V电源    PD0， 高电平触发
-    {DOOR2_K4,  	DOOR2_K4_GPIO_PORT,  		DOOR2_K4_PIN,  		EBTN_ACTIVE_LOW}, // 水浸       PD13，高电平触发
-    {DOOR3_K5 ,  	DOOR3_K5_GPIO_PORT,   	DOOR3_K5_PIN,   	EBTN_ACTIVE_LOW},  // 输入1      PD14，低电平触发
-    {DOOR4_K6,   	DOOR4_K6_GPIO_PORT,   	DOOR4_K6_PIN,   	EBTN_ACTIVE_LOW},  // 输入2      PD15，低电平触发
-    {WATER1_K7,   WATER1_K7_GPIO_PORT,   	WATER1_K7_PIN,   	EBTN_ACTIVE_LOW},  // 输入3      PC8， 低电平触发
-    {WATER2_K8,  	WATER2_K8_GPIO_PORT,		WATER2_K8_PIN,  	EBTN_ACTIVE_LOW}, // 市电火-地  PB1， 高电平触发
-    {MCB_V220_K9, MCB_V220_K9_GPIO_PORT, 	MCB_V220_K9_PIN,  EBTN_ACTIVE_LOW},  // 市电零-地  PC4， 低电平触发
 };
 
 /* --------------------------------- 此处修改组合键配置 -------------------------------- */

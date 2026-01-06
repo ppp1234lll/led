@@ -2,7 +2,7 @@
 #include "appconfig.h"
 /*
 	4、输入检测
-		按键(恢复出厂设置):    PD4
+
 		12V电源输入监测:       PD0
 		箱门检测1:             PD15
 		箱门检测2:             PC8
@@ -22,6 +22,7 @@
 #define WATER1_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_11)   
 #define WATER2_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_14)
 #define MCB_220_READ   	 		HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_15)
+
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitKey
@@ -66,6 +67,30 @@ void bsp_InitKey(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);	
 	
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: bsp_KeyScan10ms
+*	功能说明: 扫描所有按键。非阻塞，被systick中断周期性的调用，10ms一次
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+uint8_t KeyScan10ms(uint8_t id)
+{
+	switch(id)
+	{
+		case 1: return  PWR_TST_READ;
+		case 2: return  DOOR1_READ;
+	  case 3: return  DOOR2_READ;
+		case 4: return  DOOR3_READ;
+		case 5: return  DOOR4_READ;
+	  case 6: return  WATER1_READ;
+		case 7: return  WATER2_READ;
+	  case 8: return  MCB_220_READ;
+		default: return 0;
+	}
 }
 
 /*

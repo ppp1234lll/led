@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include "./TASK/inc/app.h"
 
 /* 发送状态 */
 #define SEND_STATUS_NO      (0) // 当前没有发送
@@ -76,11 +77,11 @@ struct switch_control_t {
 };
 
 /* 参数定义 */
-CCMRAM sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
-CCMRAM sys_operate_t sg_sysoperate_t; // 系统操作参数：包括通信、存储、计时
-CCMRAM sys_param_t   sg_sysparam_t   = {0}; // 系统参数：本地、远端、设备、上报相关参数
-CCMRAM carema_t      sg_carema_param_t;   //onvif 摄像头信息
-CCMRAM com_param_t   sg_comparam_t	 	  = {
+__attribute__((section (".RAM_D1")))  sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
+__attribute__((section (".RAM_D1")))  sys_operate_t sg_sysoperate_t; // 系统操作参数：包括通信、存储、计时
+__attribute__((section (".RAM_D1")))  sys_param_t   sg_sysparam_t   = {0}; // 系统参数：本地、远端、设备、上报相关参数
+__attribute__((section (".RAM_D1")))  carema_t      sg_carema_param_t;   //onvif 摄像头信息
+__attribute__((section (".RAM_D1")))  com_param_t   sg_comparam_t	 	  = {
 	90000,
 	60000,
 	60000,
@@ -88,10 +89,10 @@ CCMRAM com_param_t   sg_comparam_t	 	  = {
 	200,    // 网络延时时间  20220308
 	120,    // ONVIF搜索时间  20230811
 }; 				// 通信参数：心跳、上报、ping间隔时间
-CCMRAM uint8_t     sg_send_buff[2048] = {0}; // 发送缓存区
-CCMRAM uint16_t    sg_send_size =  0;	 // 发送数据长度
-CCMRAM rtc_time_t  sg_rtctime_t = {0}; // rtc采集间隔时间
-CCMRAM struct switch_control_t sg_swcontrol_t = {0};
+__attribute__((section (".RAM_D1")))  uint8_t     sg_send_buff[2048] = {0}; // 发送缓存区
+__attribute__((section (".RAM_D1")))  uint16_t    sg_send_size =  0;	 // 发送数据长度
+__attribute__((section (".RAM_D1")))  rtc_time_t  sg_rtctime_t = {0}; // rtc采集间隔时间
+__attribute__((section (".RAM_D1")))  struct switch_control_t sg_swcontrol_t = {0};
 
 /*
 *********************************************************************************************************
@@ -124,10 +125,10 @@ void app_task_function(void)
 			RTC_Get_Time(&sg_rtctime_t);		/* 时间获取 */
 			
 			/* 内存利用率 */
-			sg_sysparam_t.mem = mem_perused(SRAMIN);
+			sg_sysparam_t.mem = my_mem_perused(SRAMIN);
 		}
-    IWDG_Feed();	
-		OSTimeDlyHMSM(0,0,0,10);  			// 延时10ms
+    iwdg_feed();	
+		vTaskDelay(10);
 	}
 }
 
@@ -145,7 +146,7 @@ void app_detection_collection_param(void)
 {
 	static uint32_t status_error  = 0;  // 故障上报状态
 	static uint32_t status_normal	= 0;  // 正常上报状态：
-	uint16_t now_time = 0;
+ 
 
 	/* 适配器、断电上报 */
 	if(det_get_pwr_status() == 0) // 12V断电
@@ -178,17 +179,17 @@ void app_detection_collection_param(void)
 			{
 				/* 适配器重新上电 - 重启设备*/
 				lfs_unmount(&g_lfs_t);
-				OSTimeDlyHMSM(0,0,0,100);
-				app_system_softreset();
+				vTaskDelay(100);
+				app_system_softreset(1000);
 			}
-			OSTimeDlyHMSM(0,0,0,100);
+			vTaskDelay(100);
 			status_normal |= 0x01;
 			status_error  &=~0x01;
 			
 			status_normal |= 0x02;
 			status_error &=~ 0x02;
 			app_report_information_immediately();
-			OSTimeDlyHMSM(0,0,2,0);  			// 延时10ms
+			vTaskDelay(2000);
 			app_power_open_protection_function();  // 打开继电器
 
 			sg_sysoperate_t.sys.current_protection = 0;
@@ -231,7 +232,7 @@ void app_detection_collection_param(void)
 		{	
 			if((status_error & 0x08) == 0)  // 故障上报标志位是0
 			{
-				OSTimeDlyHMSM(0,0,0,100);
+				vTaskDelay(100);
 				status_error |= 0x08;        // 标志位置1，表示已上报
 				status_normal &=~ 0x08;      // 正常上报标志位清0
 				app_power_fail_protection_function(); // 关闭继电器		
@@ -243,14 +244,14 @@ void app_detection_collection_param(void)
 		{
 			if((status_normal & 0x08) == 0)  // 正常上报标志位是0
 			{
-				OSTimeDlyHMSM(0,0,0,100);
+				vTaskDelay(100);
 				status_normal |= 0x08;  // 标志位置1，表示已上报
 				status_error &=~ 0x08; // 故障上报标志位清0
 				if(sg_sysoperate_t.sys.volt_protection == 1)
 				{
 						sg_sysoperate_t.sys.volt_protection = 0;
 						app_report_information_immediately();
-						OSTimeDlyHMSM(0,0,2,0);  			// 延时10ms
+						vTaskDelay(2000);
 						app_power_open_protection_function();  // 打开继电器
 				}
 			}
@@ -267,7 +268,7 @@ void app_detection_collection_param(void)
 		{	
 			if((status_error & 0x10) == 0)  // 故障上报标志位是0
 			{
-				OSTimeDlyHMSM(0,0,0,100);
+				vTaskDelay(100);
 				status_error |= 0x10;        // 标志位置1，表示已上报
 				status_normal &=~ 0x10;      // 正常上报标志位清0		
 				
@@ -280,7 +281,7 @@ void app_detection_collection_param(void)
 		{
 			if((status_normal & 0x10) == 0)  // 正常上报标志位是0
 			{
-				OSTimeDlyHMSM(0,0,0,100);
+				vTaskDelay(100);
 				status_normal |= 0x10;  // 标志位置1，表示已上报
 				status_error &=~ 0x10; // 故障上报标志位清0
 				if(sg_sysoperate_t.sys.volt_protection == 2)
@@ -371,32 +372,13 @@ void app_detection_collection_param(void)
 	}
 
 	/* 箱门	*/
-	if( det_get_open_door() == 1) 
+	if( det_get_door_status(0) == 1) 
 	{
 		if((status_error & 0x0100) == 0) 
 		{
 			status_error  |= 0x0100;
 			status_normal &=~0x0100;
-			
-			now_time = sg_rtctime_t.hour*60 + sg_rtctime_t.min;
-			if(sg_sysparam_t.threshold.door_open_time > sg_sysparam_t.threshold.door_close_time) // 打开时间大于关闭时间
-			{
-				if((now_time > sg_sysparam_t.threshold.door_open_time)&&\
-					 (now_time < (sg_sysparam_t.threshold.door_close_time+ 1440)))  // 多加一天
-				{
-					app_report_information_immediately();
-				}
-			}
-			else if(sg_sysparam_t.threshold.door_open_time < sg_sysparam_t.threshold.door_close_time)
-			{
-				if((now_time > sg_sysparam_t.threshold.door_open_time)&&\
-					 (now_time < sg_sysparam_t.threshold.door_close_time)) 
-				{
-					app_report_information_immediately();
-				}				
-			}
-			else
-				app_report_information_immediately();
+			app_report_information_immediately();
 		}
 	} 
 	else 
@@ -409,32 +391,10 @@ void app_detection_collection_param(void)
 			app_report_information_immediately();
 		}
 	}
-
-	/* 防雷模块 */
-#ifdef SPD_ENABLE
-	if( det_get_spd_status() == 2 ) 
-	{
-		if((status_error & 0x0200) == 0) 
-		{
-			status_error  |= 0x0200;
-			status_normal &=~0x0200;
-			app_report_information_immediately();
-		}
-	} 
-	else if( det_get_spd_status() == 1)
-	{
-		if((status_normal & 0x0200) == 0) 
-		{
-			status_normal  |= 0x0200;
-			status_error &=~0x0200;
-			app_report_information_immediately();
-		}	
-	}	
-#endif
 	
 	/* 浸水检测模块 */
 #ifdef WATER_ENABLE
-	if(det_get_water_status() == 2)
+	if(det_get_water_status(0) == 2)
 	{
 		if((status_error & 0x0400) == 0) 
 		{
@@ -443,7 +403,7 @@ void app_detection_collection_param(void)
 			app_report_information_immediately();
 		}
 	} 
-	else if( det_get_water_status() == 1)
+	else if( det_get_water_status(0) == 1)
 	{
 		if((status_normal & 0x0400) == 0) 
 		{
@@ -541,7 +501,7 @@ void app_report_information_immediately(void)
 ************************************************************/
 void app_deal_com_flag_function(void)
 {
-	static uint8_t onvif_count = 0;
+	 
 	/* 数据发送 */
 	if(sg_sysoperate_t.com.send_cmd != 0)
 	{
@@ -586,22 +546,6 @@ void app_deal_com_flag_function(void)
 		sg_sysoperate_t.com_flag.version = 0;
 		/* 发送正常上报数据 */
 		com_version_information(sg_send_buff,&sg_send_size);
-		app_send_data_task_function();
-	}
-	
-	/* 查询LBS */
-	if(sg_sysoperate_t.com_flag.lbs_info == 1)
-	{
-		sg_sysoperate_t.com_flag.lbs_info = 0;
-		memset(sg_send_buff,0,sizeof(sg_send_buff));
-		gsm_run_gps_task_function();
-		onvif_count = 0;
-		if(onvif_count < 5)  
-		{
-			onvif_count ++;
-			OSTimeDlyHMSM(0,0,1,0);  //延时5ms
-		}
-		com_gprs_lbs_information(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
 	}
 		
@@ -827,23 +771,7 @@ void app_com_time_function(void)
 ************************************************************/
 void app_set_peripheral_switch(uint8_t cmd, uint8_t data)
 {
-	switch (cmd) 
-	{
-		case CONTROL_FAN:
-			if (data == 1)
-			{
-				fan_control(FAN_ON); // 开风扇1
-			}
-			else if(data == 2)
-			{
-				fan_control(FAN_OFF); // 开风扇1
-			}
-			break;
-		
-		default:
-			break;
-	}
-	
+
 	app_set_reply_parameters_function(cmd,0x01);
 }
 /************************************************************
@@ -935,15 +863,15 @@ REPEAT1:
 				cnt++;
 				if(cnt<=3)
 				{
-					OSTimeDlyHMSM(0,0,0,100); 
+					vTaskDelay(100);
 					goto REPEAT1;
 				}
 			}
 				
 			lfs_unmount(&g_lfs_t);
-			OSTimeDlyHMSM(0,0,0,100); 
+			vTaskDelay(100);
 			/* 重启设备 */
-			app_system_softreset();
+			app_system_softreset(1000);
 			break;
 		case CR_LWIP_NETWORK_RESET:	
 			sg_sysoperate_t.com.return_error = 1;
@@ -961,11 +889,11 @@ REPEAT2:
 				cnt++;
 				if(cnt<=3)
 				{
-					OSTimeDlyHMSM(0,0,0,100); 
+					vTaskDelay(100);
 					goto REPEAT2;
 				}
 			}
-			OSTimeDlyHMSM(0,0,0,100); 
+			vTaskDelay(100);
 			eth_set_network_reset();
 			break;
 			
@@ -985,11 +913,11 @@ REPEAT3:
 				cnt++;
 				if(cnt<=3)
 				{
-					OSTimeDlyHMSM(0,0,0,100); 
+					vTaskDelay(100);
 					goto REPEAT3;
 				}
 			}			
-			OSTimeDlyHMSM(0,0,0,100); 
+			vTaskDelay(100);
 			/* 重启GPRS */
 			gsm_set_module_reset_function();
 			break;
@@ -1007,11 +935,11 @@ REPEAT4:
 				cnt++;
 				if(cnt<=3)
 				{
-					OSTimeDlyHMSM(0,0,0,100); 
+					vTaskDelay(100);
 					goto REPEAT4;
 				}
 			}			
-			OSTimeDlyHMSM(0,0,0,100); 
+			vTaskDelay(100);
 			/* 重启GPRS */
 			gprs_v_reset_function();
 			gsm_set_module_reset_function();
@@ -1030,7 +958,7 @@ REPEAT4:
 void app_sys_operate_timer_function(void)
 {
 	static uint16_t time = 0;
-	static uint16_t dctime = 0;			
+ 	
 	/* 重启指定适配器 */
 	if(sg_sysoperate_t.sys_flag.adapter_reset == 1)
 	{
@@ -1043,7 +971,6 @@ void app_sys_operate_timer_function(void)
 				case 2:	relay_control(RELAY_2,RELAY_OFF);	break;
 				case 3:	relay_control(RELAY_3,RELAY_OFF);	break;
 				case 4:	relay_control(RELAY_4,RELAY_OFF);	break;
-				case 5:	relay_control(RELAY_5,RELAY_OFF);	break;
 				default:	break;
 
 			}
@@ -1066,48 +993,10 @@ void app_sys_operate_timer_function(void)
 				case 2:	relay_control(RELAY_2,RELAY_ON);	break;
 				case 3:	relay_control(RELAY_3,RELAY_ON);	break;
 				case 4:	relay_control(RELAY_4,RELAY_ON);	break;
-				case 5:	relay_control(RELAY_5,RELAY_ON);	break;
 				default:
 					break;
 			}
 			sg_sysoperate_t.sys_flag.adapter_reset = 0;
-		}
-	}
-	
-	/* 重启指定适配器 */
-	if(sg_sysoperate_t.sys_flag.dc_reset == 1)
-	{
-		/* 关闭指的适配器 */
-		if(sg_sysoperate_t.sys.dc_num <= 2)
-		{
-			switch(sg_sysoperate_t.sys.dc_num)
-			{
-				case 1:	relay_control(MOS12V_1,RELAY_OFF);	break;
-				case 2:	relay_control(MOS12V_2,RELAY_OFF);	break;
-				default:	break;
-
-			}
-			sg_sysoperate_t.sys_flag.dc_reset = 2;
-			dctime = 10*1000; // 10s重启
-		}
-		else
-		{
-			sg_sysoperate_t.sys_flag.dc_reset = 0;
-		}
-	}	
-	else if(sg_sysoperate_t.sys_flag.dc_reset == 2)
-	{
-		dctime--;
-		if(dctime == 0)
-		{
-			switch(sg_sysoperate_t.sys.dc_num)
-			{
-				case 1:	relay_control(MOS12V_1,RELAY_ON);	break;
-				case 2:	relay_control(MOS12V_2,RELAY_ON);	break;
-				default:
-					break;
-			}
-			sg_sysoperate_t.sys_flag.dc_reset = 0;
 		}
 	}
 }
@@ -1166,7 +1055,6 @@ void app_get_storage_param_function(void)
 	save_read_threshold_parameter(&sg_sysparam_t.threshold); // 20230720
 	save_read_http_ota_function(&sg_sysparam_t.ota);
 	save_read_backups_function(&sg_backups_t); // 20231022
-
 }
 
 /************************************************************
@@ -1199,9 +1087,9 @@ void app_task_save_function(void)
 		/* 存储本地网络参数信息 */
 		save_stroage_remote_ip_function(&sg_sysparam_t.remote);
 		
-		OSTimeDlyHMSM(0,0,0,100);
+		vTaskDelay(100);
 //		set_reboot_time_function(1000); // 配置服务器后系统重启，防止设备未传到新平台
-		app_system_softreset();
+		app_system_softreset(1000);
 	}
 		/* 存储摄像头参数 */	
 	if(sg_sysoperate_t.save_flag.save_carema == 1)
@@ -1329,7 +1217,7 @@ void app_set_local_network_function_two(struct local_ip_t param)
 	memcpy(sg_sysparam_t.local.multicast_ip,param.multicast_ip,4);
 	sg_sysparam_t.local.multicast_port = param.multicast_port;
 
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&sg_sysparam_t.local.mac,2);
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint32_t *)&sg_sysparam_t.local.mac,2);
 
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }
@@ -1665,9 +1553,7 @@ void app_set_device_param_function(struct device_param param)
 	memset((uint8_t*)&sg_sysparam_t.device,0,sizeof(struct device_param));
 	memcpy((uint8_t*)&sg_sysparam_t.device,&param,sizeof(struct device_param));
 	
-	STMFLASH_Write_SAVE(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param.id.c,1);
-	
-	/* 保存 */
+	stmflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint32_t*)param.id.c,1);
 	app_set_save_infor_function(SAVE_DEVICE_PARAM);
 }
 
@@ -1683,8 +1569,6 @@ void app_set_code_function(struct device_param param)
 {
 	sg_sysparam_t.device.default_password = 0;
 	memcpy(sg_sysparam_t.device.password,param.password,sizeof(param.password));
-	
-	/* 保存 */
 	app_set_save_infor_function(SAVE_DEVICE_PARAM);
 }
 
@@ -1713,7 +1597,6 @@ void app_set_next_report_time(uint16_t time)
 {
 	/* 将时间单位转换为ms */
 	sg_comparam_t.report = time*1000;
-		
 	app_set_save_infor_function(SAVE_COM_PARAMETER);
 }
 
@@ -2311,9 +2194,8 @@ void app_server_link_status_function(void)
 			{
 				save_read_default_remote_ip(&sg_sysparam_t.remote);
 				save_stroage_remote_ip_function(&sg_sysparam_t.remote);
-				OSTimeDlyHMSM(0,0,0,100);
-				app_system_softreset();
-//				set_reboot_time_function(1000); // 配置服务器后系统重启，防止设备未传到新平台
+				vTaskDelay(100);
+				app_system_softreset(1000);
 			}
 		}
 	}
@@ -2363,15 +2245,6 @@ void app_power_fail_protection_function(void)
 	
 	if(relay_get_status(RELAY_4) == RELAY_ON) 
 		relay_control(RELAY_4,RELAY_OFF);
-	
-	if(relay_get_status(RELAY_5) == RELAY_ON) 
-		relay_control(RELAY_5,RELAY_OFF);
-	
-	if(relay_get_status(MOS12V_1) == RELAY_ON) 
-		relay_control(MOS12V_1,RELAY_OFF);
-	
-	if(relay_get_status(MOS12V_2) == RELAY_ON) 
-		relay_control(MOS12V_2,RELAY_OFF);
 }
 /************************************************************
 *
@@ -2385,19 +2258,13 @@ void app_power_open_protection_function(void)
 {
 	/* 开关全部打开 */
 	relay_control(RELAY_1,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
+	vTaskDelay(1000);
 	relay_control(RELAY_2,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
+	vTaskDelay(1000);
 	relay_control(RELAY_3,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
+	vTaskDelay(1000);
 	relay_control(RELAY_4,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
-	relay_control(RELAY_5,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
-	relay_control(MOS12V_1,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
-	relay_control(MOS12V_2,RELAY_ON); // 开继电器
-	OSTimeDlyHMSM(0,0,1,0);  			// 延时10ms
+	vTaskDelay(1000);
 }
 /************************************************************
 *
@@ -2409,15 +2276,7 @@ void app_power_open_protection_function(void)
 ************************************************************/
 void app_open_exec_task_function(void)
 {
-	/* 检测设备是否需要散热 */
-	if( det_get_inside_temp() < (sg_sysparam_t.threshold.temp_high-10))
-	{
-		fan_control(FAN_OFF);
-	}
-	else if( det_get_inside_temp() > sg_sysparam_t.threshold.temp_high)
-	{
-		fan_control(FAN_ON);
-	}
+
 }
 /************************************************************
 *
@@ -2429,10 +2288,10 @@ void app_open_exec_task_function(void)
 ************************************************************/
 void app_send_data_task_function(void)
 {
-	if(sg_sysoperate_t.com.send_mode == 0)
-		tcp_set_send_buff(sg_send_buff,sg_send_size);
-	else
-		gsm_send_tcp_data(sg_send_buff,sg_send_size);
+//	if(sg_sysoperate_t.com.send_mode == 0)
+//		tcp_set_send_buff(sg_send_buff,sg_send_size);
+//	else
+//		gsm_send_tcp_data(sg_send_buff,sg_send_size);
 }
 
 /************************************************************
@@ -2511,10 +2370,30 @@ void app_set_http_ota_function(struct update_addr param)
 * Return		: 
 *	
 ************************************************************/
-void app_system_softreset(void)
+static uint32_t sg_reboot_time = 0;
+
+void app_system_softreset(uint32_t time)
 {
 	save_stroage_electricity_function(sg_datacollec_t.kwh); // 重启之前先保存下用电量
-	set_reboot_time_function(1000);
+	vTaskDelay(100);
+	lfs_unmount(&g_lfs_t);
+	sg_reboot_time = time;
 }
-
+/************************************************************
+*
+* Function name	: 
+* Description	: 
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+void app_reboot_timer_run(void)
+{
+	if(sg_reboot_time != 0) {
+		sg_reboot_time--;
+		if(sg_reboot_time==0) {
+			System_SoftReset();
+		}
+	}
+}
 

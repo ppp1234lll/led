@@ -43,6 +43,9 @@
 #define      OFF     0
 #define      Write_Through()    do{ *(__IO uint32_t*)0XE000EF9C = 1UL << 2; }while(0)     /* Cache透写模式 */
 
+typedef float  fp32;
+typedef double fp64;
+
 union i_c{
     unsigned int  i;
     unsigned char c[4];
@@ -58,6 +61,8 @@ void sys_cache_enable(void);                                                    
 uint8_t sys_stm32_clock_init(uint32_t plln, uint32_t pllm, uint32_t pllp, uint32_t pllq); /* 配置系统时钟 */
 void Error_Handler(char *file, uint32_t line);
 
+void System_SoftReset(void);
+		
 /* 以下为汇编函数 */
 void sys_wfi_set(void);             /* 执行WFI指令 */
 void sys_intx_disable(void);        /* 关闭所有中断 */
