@@ -8,6 +8,7 @@
 *
 *******************************************************************************/
 #include "appconfig.h"
+#include "./TASK/inc/eth.h"
 
 ip4_addr_t DNS_Addr;
 
@@ -46,8 +47,8 @@ void eth_task_function(void)
 		eth_ping_detection_function();		   /* PINGÐ­Òé */
 
 		if( app_get_network_mode() != 2) 
-		{	/* ÍøÂç×´Ì¬¼ì²â */
-//			eth_tcp_connect_control_function();		/* ÍøÂç×´Ì¬¼ì²â */
+		{	 
+//			eth_tcp_connect_control_function();	 
 		} 
 		else 
 		{

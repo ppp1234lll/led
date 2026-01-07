@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include "./TASK/inc/gsm.h"
 
 #define GSM_GET_GPS_TIME    (90*1000)   // 90s
 #define GSM_DET_STATUS_TIME (60*100)    // 60s

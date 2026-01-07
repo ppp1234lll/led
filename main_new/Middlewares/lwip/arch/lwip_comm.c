@@ -124,9 +124,9 @@ uint8_t lwip_comm_init(void)
 		
 		/* 启动网络功能 */
 		igmp_init();
-//		httpd_init();
+		httpd_init();
 		icmp_pcb_init();
-//		dns_init();
+		dns_init();
 		
     return 0;                                       /* 操作OK. */
 }

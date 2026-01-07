@@ -53,100 +53,50 @@ void led_task(void *pvParameters);          /* 任务函数 */
 
 
 /**
- * @breif       加载UI
- * @param       mode :  bit0:0,不加载;1,加载前半部分UI
- *                      bit1:0,不加载;1,加载后半部分UI
- * @retval      无
- */
-void lwip_test_ui(uint8_t mode)
-{
-   uint8_t speed;
-    uint8_t buf[30];
-    
-    if (mode & 1<< 0)
-    {
-			printf("STM32\n");
-			printf("lwIP Ping Test\n");
-			printf("ATOM@ALIENTEK\n");
-    }
-    
-    if (mode & 1 << 1)
-    {
-        printf("lwIP Init Successed\n");
-        sprintf((char*)buf,"Static IP:%d.%d.%d.%d",g_lwipdev.ip[0],g_lwipdev.ip[1],g_lwipdev.ip[2],g_lwipdev.ip[3]);    /* 打印静态IP地址 */
-        printf("%s\n",buf);
-        speed = ethernet_chip_get_speed();      /* 得到网速 */
-        
-        if (speed)
-        {
-					printf("Ethernet Speed:100M\n");
-        }
-        else
-        {
-					printf("Ethernet Speed:10M\n");
-        }
-    }
-}
-
-/**
  * @breif       freertos_demo
  * @param       无
  * @retval      无
  */
-void freertos_demo(void)
-{
-    /* start_task任务 */
-//    xTaskCreate((TaskFunction_t )start_task,
-//                (const char *   )"start_task",
-//                (uint16_t       )START_STK_SIZE,
-//                (void *         )NULL,
-//                (UBaseType_t    )START_TASK_PRIO,
-//                (TaskHandle_t * )&StartTask_Handler);
+//void freertos_demo(void)
+//{
+//    /* start_task任务 */
+////    xTaskCreate((TaskFunction_t )start_task,
+////                (const char *   )"start_task",
+////                (uint16_t       )START_STK_SIZE,
+////                (void *         )NULL,
+////                (UBaseType_t    )START_TASK_PRIO,
+////                (TaskHandle_t * )&StartTask_Handler);
 
-    vTaskStartScheduler(); /* 开启任务调度 */
-}
+//    vTaskStartScheduler(); /* 开启任务调度 */
+//}
 
 /**
  * @brief       start_task
  * @param       pvParameters : 传入参数(未用到)
  * @retval      无
  */
-//void start_task(void *pvParameters)
-//{
-//    pvParameters = pvParameters;
+void freertos_demo(void)
+{
+    taskENTER_CRITICAL();           /* 进入临界区 */
+    
+    /* 创建lwIP任务 */
+    xTaskCreate((TaskFunction_t )lwip_demo_task,
+                (const char*    )"lwip_demo_task",
+                (uint16_t       )LWIP_DMEO_STK_SIZE, 
+                (void*          )NULL,
+                (UBaseType_t    )LWIP_DMEO_TASK_PRIO,
+                (TaskHandle_t*  )&LWIP_Task_Handler);
 
-//    
-//    while (lwip_comm_init() != 0)
-//    {
-//			printf("lwIP Init failed!!\n");
-//        delay_ms(500);
-//			printf("Retrying...       \n");
-//        delay_ms(500);
-////        LED1_TOGGLE();
-//    }
-//    
-//    taskENTER_CRITICAL();           /* 进入临界区 */
-//    
-//    /* 创建lwIP任务 */
-//    xTaskCreate((TaskFunction_t )lwip_demo_task,
-//                (const char*    )"lwip_demo_task",
-//                (uint16_t       )LWIP_DMEO_STK_SIZE, 
-//                (void*          )NULL,
-//                (UBaseType_t    )LWIP_DMEO_TASK_PRIO,
-//                (TaskHandle_t*  )&LWIP_Task_Handler);
+    /* LED测试任务 */
+    xTaskCreate((TaskFunction_t )led_task,
+                (const char*    )"led_task",
+                (uint16_t       )LED_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )LED_TASK_PRIO,
+                (TaskHandle_t*  )&LEDTask_Handler);
 
-//    /* LED测试任务 */
-//    xTaskCreate((TaskFunction_t )led_task,
-//                (const char*    )"led_task",
-//                (uint16_t       )LED_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )LED_TASK_PRIO,
-//                (TaskHandle_t*  )&LEDTask_Handler);
-
-//    vTaskDelete(StartTask_Handler); /* 删除开始任务 */
-//    taskEXIT_CRITICAL();            /* 退出临界区 */
-//    
-//}
+    taskEXIT_CRITICAL();            /* 退出临界区 */
+}
 
 /**
  * @brief       lwIP运行例程
@@ -170,10 +120,14 @@ void lwip_demo_task(void *pvParameters)
  * @param       pvParameters : 传入参数(未用到)
  * @retval      无
  */
+extern void fault_test_by_div0(void);
+extern void fault_test_by_unalign(void);
 void led_task(void *pvParameters)
 {
     pvParameters = pvParameters;
 
+	fault_test_by_div0();
+	
     while (1)
     {
 //        LED1_TOGGLE();

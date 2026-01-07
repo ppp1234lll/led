@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32H743xx,CMSIS_device_header=\"stm32h7xx.h\"</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT;..\..\Middlewares\littlefs;..\..\Middlewares\lis3dh</IncludePath>
+              <IncludePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Include;..\..\Drivers\STM32H7xx_HAL_Driver\Inc;..\..\Drivers\CMSIS\Include;..\..\Middlewares;..\..\Drivers;..\..\User;..\..\Middlewares\lwip\arch;..\..\Middlewares\lwip;..\..\Middlewares\lwip\src\include;..\..\Middlewares\FreeRTOS\include;..\..\Middlewares\FreeRTOS\portable\RVDS\ARM_CM7\r0p1;..\..\Middlewares\lwip\lwip_app;..\..\APP;..\..\INCLUDE;..\..\Hardware\inc;..\..\Middlewares\CJSON;..\..\Middlewares\easybutton;..\..\Middlewares\RTT;..\..\Middlewares\littlefs;..\..\Middlewares\lis3dh;..\..\Middlewares\cm_backtrace</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -414,9 +414,9 @@
               <FilePath>..\..\User\freertos_demo.c</FilePath>
             </File>
             <File>
-              <FileName>demo_spi_flash.c</FileName>
+              <FileName>fault_test.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\demo_spi_flash.c</FilePath>
+              <FilePath>..\..\User\fault_test.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -456,6 +456,31 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>APP/Task</GroupName>
+          <Files>
+            <File>
+              <FileName>app.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\app.c</FilePath>
+            </File>
+            <File>
+              <FileName>det.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\det.c</FilePath>
+            </File>
+            <File>
+              <FileName>eth.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\eth.c</FilePath>
+            </File>
+            <File>
+              <FileName>gsm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\gsm.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>APP/Driver</GroupName>
           <Files>
             <File>
@@ -487,31 +512,6 @@
               <FileName>ATGM336H.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\ATGM336H.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>APP/Task</GroupName>
-          <Files>
-            <File>
-              <FileName>app.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\TASK\src\app.c</FilePath>
-            </File>
-            <File>
-              <FileName>det.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\TASK\src\det.c</FilePath>
-            </File>
-            <File>
-              <FileName>eth.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\TASK\src\eth.c</FilePath>
-            </File>
-            <File>
-              <FileName>gsm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\TASK\src\gsm.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1246,6 +1246,36 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Middlewares/lwip/app/web</GroupName>
+          <Files>
+            <File>
+              <FileName>fs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\web_server\fs.c</FilePath>
+            </File>
+            <File>
+              <FileName>httpd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\web_server\httpd.c</FilePath>
+            </File>
+            <File>
+              <FileName>httpd_cgi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\web_server\httpd_cgi.c</FilePath>
+            </File>
+            <File>
+              <FileName>httpd_cgi_ssi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\web_server\httpd_cgi_ssi.c</FilePath>
+            </File>
+            <File>
+              <FileName>httpd_ssi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\web_server\httpd_ssi.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Middlewares/FreeRTOS_CORE</GroupName>
           <Files>
             <File>
@@ -1302,6 +1332,26 @@
               <FileName>FreeRTOSConfig.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\User\FreeRTOSConfig.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/cmbacktrace</GroupName>
+          <Files>
+            <File>
+              <FileName>cm_backtrace.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\cm_backtrace\cm_backtrace.c</FilePath>
+            </File>
+            <File>
+              <FileName>cmb_fault.S</FileName>
+              <FileType>2</FileType>
+              <FilePath>..\..\Middlewares\cm_backtrace\fault_handler\keil\cmb_fault.S</FilePath>
+            </File>
+            <File>
+              <FileName>cmb_cfg.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\Middlewares\cm_backtrace\cmb_cfg.h</FilePath>
             </File>
           </Files>
         </Group>

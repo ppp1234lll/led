@@ -111,7 +111,7 @@ void start_task(void *pvParameters)
 	bsp_InitRelay();				         // 继电器初始化（未测试）	
 	bsp_InitKey();				           // 按键初始化	
 	bsp_InitRTC();								   // RTC初始化 (已测试)
-	bsp_InitUsart1(115200);
+//	bsp_InitUsart1(115200);
 	bsp_InitUsart2(115200);
   bsp_InitUsart3(115200);
 	bsp_InitUsart4(115200);
@@ -133,13 +133,8 @@ void start_task(void *pvParameters)
 	
 	hal_lis3dh_init(true);
 	aht20_init_function();
-
 	bl0910_init_function();
 	bl0939_init_function();
-
-DemoFlash();
-
-
 	iwdg_feed();
 	bsp_InitSPIBus();	/* 配置SPI总线 */		
 	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
@@ -149,7 +144,7 @@ DemoFlash();
 	app_get_storage_param_function();	// 获取本地存储的数据
 	update_status_init();							// 更新检测
   printf("run here!!\n");
-  while(1);
+//  while(1);
 	if (lwip_comm_init() != 0)
 	{
 		printf("lwIP Init failed!!\n");
@@ -201,7 +196,7 @@ DemoFlash();
 							(void *         )NULL,
 							(UBaseType_t    )LIST_TASK_PRIO,
 							(TaskHandle_t * )&LIST_Task_Handler);
-		
+//	freertos_demo();	
 	vTaskDelete(StartTask_Handler); /* 删除开始任务 */
 	taskEXIT_CRITICAL();            /* 退出临界区 */					 
 }
@@ -270,11 +265,11 @@ void app_task(void *pvParameters)
 */
 void eth_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}
-//	eth_network_line_status_detection_function();
+//		vTaskDelay(500);
+//	}
+	eth_task_function();
 }
 
 /*

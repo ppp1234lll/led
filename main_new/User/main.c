@@ -14,6 +14,7 @@
 
 static void system_setup(void);
 void SystemClock_Config(void);
+
 /*
 *********************************************************************************************************
 *	函 数 名: main
@@ -48,7 +49,7 @@ static void system_setup(void)
 //	SystemClock_Config();
 //	delay_init(400); 
 	delay_init(480);                         /* 延时初始化 */
-	
+	bsp_InitUsart1(115200);
 	/* 
 	   Event Recorder：
 	   - 可用于代码执行时间测量，MDK5.25及其以上版本才支持，IAR不支持。
@@ -65,6 +66,8 @@ static void system_setup(void)
 	/* 配置通道0，下行配置*/	
 	SEGGER_RTT_ConfigDownBuffer(0, "RTTDOWN", NULL, 0, SEGGER_RTT_MODE_NO_BLOCK_SKIP);
 
+	cm_backtrace_init("CmBacktrace", "V1.0.0", "V1.0.0");
+	
 }
 
 void SystemClock_Config(void)

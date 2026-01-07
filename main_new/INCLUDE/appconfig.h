@@ -57,6 +57,7 @@
 #include "ebtn_APP.h"
 #include "ebtn_APP_Keys.h"
 
+#include "cm_backtrace.h"
 
 /*
 *********************************************************************************************************
@@ -107,6 +108,12 @@
 #include "lwip/dns.h"
 
 #include "./ping/lwip_ping.h"
+
+#include "./web_server/httpd.h"
+#include "./web_server/httpd_cgi_ssi.h"
+
+
+
 /*
 *********************************************************************************************************
 *                                         OTAÉý¼¶

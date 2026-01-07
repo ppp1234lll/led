@@ -4,7 +4,7 @@
 #include "./SYSTEM/sys/sys.h"
 
 /* º¯ÊýÉùÃ÷ */
-void eth_network_line_status_detection_function(void);
+void eth_task_function(void);
 int8_t eth_network_line_status_check(void);
 void eth_ping_timer_function(void);
 void eth_ping_detection_function(void);
