@@ -35,44 +35,6 @@ void Vin220_Handler(char *pcInsert, uint8_t num)
 	
 	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
 }
-/************************************************************
-*
-* Function name	: Vin220_Power_Handler
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void Vin220_Power_Handler(char *pcInsert, uint8_t num)
-{
-	fp32 	 temp 	 =  det_get_power_handler(num);
-	uint32_t data[2] = {0};
-	
-	data[0] = (uint32_t)temp;
-	temp	= temp - data[0];  
-	data[1] = temp*100;
-	
-	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
-}
-/************************************************************
-*
-* Function name	: Vin220_Elec_Handler
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void Vin220_Elec_Handler(char *pcInsert, uint8_t num)
-{
-	fp32 	 temp 	 =  det_get_electricity_handler(num);
-	uint32_t data[2] = {0};
-	
-	data[0] = (uint32_t)temp;
-	temp	= temp - data[0];  
-	data[1] = temp*100;
-	
-	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
-}
 
 /************************************************************
 *

@@ -2370,7 +2370,6 @@ static uint32_t sg_reboot_time = 0;
 
 void app_system_softreset(uint32_t time)
 {
-	save_stroage_electricity_function(sg_datacollec_t.kwh); // 重启之前先保存下用电量
 	vTaskDelay(100);
 	lfs_unmount(&g_lfs_t);
 	sg_reboot_time = time;

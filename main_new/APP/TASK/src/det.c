@@ -247,68 +247,12 @@ fp32 det_get_vin220v_handler(uint8_t num)
 {
 	switch(num)
 	{
-		case 0: return sg_datacollec_t.vin220v;
-		case 1: return sg_datacollec_t.total_current; 
+		case 0: return sg_datacollec_t.vin_voltage;
+		case 1: return sg_datacollec_t.vin_current; 
 		case 2: return sg_datacollec_t.current[0];
 		case 3: return sg_datacollec_t.current[1];
 		case 4: return sg_datacollec_t.current[2];
 		case 5: return sg_datacollec_t.current[3];
-//		case 6: return sg_datacollec_t.current[4];
-//		case 7: return sg_datacollec_t.current[5];
-//		case 8: return sg_datacollec_t.current[6];
-//		case 9: return sg_datacollec_t.current[7];
-	}
-	return  0;
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_power_handler
-*	功能说明: 获取220V 功率
-*	形    参: 
-*	@num		: 通道1-8
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-fp32 det_get_power_handler(uint8_t num)
-{
-	switch(num)
-	{
-		case 0: return sg_datacollec_t.total_power;
-		case 1: return sg_datacollec_t.power[0];
-		case 2: return sg_datacollec_t.power[1]; 
-		case 3: return sg_datacollec_t.power[2];
-		case 4: return sg_datacollec_t.power[3];
-//		case 5: return sg_datacollec_t.power[4];
-//		case 6: return sg_datacollec_t.power[5];
-//		case 7: return sg_datacollec_t.power[6];
-//		case 8: return sg_datacollec_t.power[7];
-	}
-	return  0;
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: det_get_electricity_handler
-*	功能说明: 获取220V 用电量
-*	形    参: 
-*	@num		: 通道1-8
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-fp32 det_get_electricity_handler(uint8_t num)
-{
-	switch(num)
-	{
-		case 0: return sg_datacollec_t.kwh.total_electricity;
-		case 1: return sg_datacollec_t.kwh.electricity[0];
-		case 2: return sg_datacollec_t.kwh.electricity[1]; 
-		case 3: return sg_datacollec_t.kwh.electricity[2];
-		case 4: return sg_datacollec_t.kwh.electricity[3];
-//		case 5: return sg_datacollec_t.kwh.electricity[4];
-//		case 6: return sg_datacollec_t.kwh.electricity[5];
-//		case 7: return sg_datacollec_t.kwh.electricity[6];
-//		case 8: return sg_datacollec_t.kwh.electricity[7];
 	}
 	return  0;
 }
@@ -400,51 +344,6 @@ uint8_t det_get_main_network_sub_status(void)
 
 /*
 *********************************************************************************************************
-*	函 数 名: det_set_total_energy_bl0910
-*	功能说明: 计算BL0910电量参数
-*	形    参: 
-*	@num		: 通道
-*	@data		: 数据
-*	返 回 值: 无
-*********************************************************************************************************
-*/
-void det_set_total_energy_bl0910(uint8_t num,float data)
-{
-//	switch(num)
-//	{
-//		case 0: sg_datacollec_t.vin220v = data / BL0910_VOLT_KP; 			break;
-//		case 1: sg_datacollec_t.total_current = data / BL0910_CURR_KP; 	break;
-//		case 2: sg_datacollec_t.current[0] = data / BL0910_CURR_KP; 		break;
-//		case 3: sg_datacollec_t.current[1] = data / BL0910_CURR_KP; 		break;
-//		case 4: sg_datacollec_t.current[2] = data / BL0910_CURR_KP; 		break;
-//		case 5: sg_datacollec_t.current[3] = data / BL0910_CURR_KP; 		break;
-//		case 6: sg_datacollec_t.current[4] = data / BL0910_CURR_KP; 		break;
-//		case 7: sg_datacollec_t.current[5] = data / BL0910_CURR_KP; 		break;
-//		case 8: sg_datacollec_t.current[6] = data / BL0910_CURR_KP; 		break;
-//		case 9: sg_datacollec_t.current[7] = data / BL0910_CURR_KP; 		break;
-//		case 10: sg_datacollec_t.power[0] = data / BL0910_POWER_KP;		break;
-//		case 11: sg_datacollec_t.power[1] = data / BL0910_POWER_KP;		break;
-//		case 12: sg_datacollec_t.power[2] = data / BL0910_POWER_KP;		break;
-//		case 13: sg_datacollec_t.power[3] = data / BL0910_POWER_KP;		break;
-//		case 14: sg_datacollec_t.power[4] = data / BL0910_POWER_KP;		break;
-//		case 15: sg_datacollec_t.power[5] = data / BL0910_POWER_KP;		break;
-//		case 16: sg_datacollec_t.power[6] = data / BL0910_POWER_KP;		break;
-//		case 17: sg_datacollec_t.power[7] = data / BL0910_POWER_KP;		break;
-//		case 18: sg_datacollec_t.total_power = data / BL0910_POWER_KP;break;
-//		case 19: sg_datacollec_t.kwh.electricity[0] = data * BL0910_ELEC_Ke;		break;
-//		case 20: sg_datacollec_t.kwh.electricity[1] = data * BL0910_ELEC_Ke;		break;
-//		case 21: sg_datacollec_t.kwh.electricity[2] = data * BL0910_ELEC_Ke;		break;
-//		case 22: sg_datacollec_t.kwh.electricity[3] = data * BL0910_ELEC_Ke;		break;
-//		case 23: sg_datacollec_t.kwh.electricity[4] = data * BL0910_ELEC_Ke;		break;
-//		case 24: sg_datacollec_t.kwh.electricity[5] = data * BL0910_ELEC_Ke;		break;
-//		case 25: sg_datacollec_t.kwh.electricity[6] = data * BL0910_ELEC_Ke;		break;
-//		case 26: sg_datacollec_t.kwh.electricity[7] = data * BL0910_ELEC_Ke;		break;
-//		case 27: sg_datacollec_t.kwh.total_electricity = data * BL0910_ELEC_Ke;	break;
-//  }
-}
-
-/*
-*********************************************************************************************************
 *	函 数 名: det_set_total_energy_bl0906
 *	功能说明: 计算BL0906电量参数
 *	形    参: 
@@ -457,34 +356,12 @@ void det_set_total_energy_bl0906(uint8_t num,float data)
 {
 	switch(num)
 	{
-		case 0: sg_datacollec_t.vin220v = data / BL0910_VOLT_KP; 			break;
-		case 1: sg_datacollec_t.total_current = data / BL0910_CURR_KP; 	break;
-		case 2: sg_datacollec_t.current[0] = data / BL0910_CURR_KP; 		break;
-		case 3: sg_datacollec_t.current[1] = data / BL0910_CURR_KP; 		break;
-		case 4: sg_datacollec_t.current[2] = data / BL0910_CURR_KP; 		break;
-		case 5: sg_datacollec_t.current[3] = data / BL0910_CURR_KP; 		break;
-//		case 6: sg_datacollec_t.current[4] = data / BL0910_CURR_KP; 		break;
-//		case 7: sg_datacollec_t.current[5] = data / BL0910_CURR_KP; 		break;
-//		case 8: sg_datacollec_t.current[6] = data / BL0910_CURR_KP; 		break;
-//		case 9: sg_datacollec_t.current[7] = data / BL0910_CURR_KP; 		break;
-		case 10: sg_datacollec_t.power[0] = data / BL0910_POWER_KP;		break;
-		case 11: sg_datacollec_t.power[1] = data / BL0910_POWER_KP;		break;
-		case 12: sg_datacollec_t.power[2] = data / BL0910_POWER_KP;		break;
-		case 13: sg_datacollec_t.power[3] = data / BL0910_POWER_KP;		break;
-//		case 14: sg_datacollec_t.power[4] = data / BL0910_POWER_KP;		break;
-//		case 15: sg_datacollec_t.power[5] = data / BL0910_POWER_KP;		break;
-//		case 16: sg_datacollec_t.power[6] = data / BL0910_POWER_KP;		break;
-//		case 17: sg_datacollec_t.power[7] = data / BL0910_POWER_KP;		break;
-		case 18: sg_datacollec_t.total_power = data / BL0910_POWER_KP;break;
-		case 19: sg_datacollec_t.kwh.electricity[0] = data * BL0910_ELEC_Ke;		break;
-		case 20: sg_datacollec_t.kwh.electricity[1] = data * BL0910_ELEC_Ke;		break;
-		case 21: sg_datacollec_t.kwh.electricity[2] = data * BL0910_ELEC_Ke;		break;
-		case 22: sg_datacollec_t.kwh.electricity[3] = data * BL0910_ELEC_Ke;		break;
-//		case 23: sg_datacollec_t.kwh.electricity[4] = data * BL0910_ELEC_Ke;		break;
-//		case 24: sg_datacollec_t.kwh.electricity[5] = data * BL0910_ELEC_Ke;		break;
-//		case 25: sg_datacollec_t.kwh.electricity[6] = data * BL0910_ELEC_Ke;		break;
-//		case 26: sg_datacollec_t.kwh.electricity[7] = data * BL0910_ELEC_Ke;		break;
-		case 27: sg_datacollec_t.kwh.total_electricity = data * BL0910_ELEC_Ke;	break;
+		case 0: sg_datacollec_t.current[0] = data / BL0906_CURR_KP; 		break;
+		case 1: sg_datacollec_t.current[1] = data / BL0906_CURR_KP; 		break;
+		case 2: sg_datacollec_t.current[2] = data / BL0906_CURR_KP; 		break;
+		case 3: sg_datacollec_t.current[3] = data / BL0906_CURR_KP; 		break;
+		case 4: sg_datacollec_t.residual_c[0] = data / BL0906_CURR_KP; 		break;
+		case 5: sg_datacollec_t.residual_c[1] = data / BL0906_CURR_KP; 		break;
   }
 }
 
@@ -502,8 +379,8 @@ void det_set_total_energy_bl0939(uint8_t num,float data)
 {
 	switch(num)
 	{
-//		case 0: sg_datacollec_t.QF_front_vin220v = data / BL0939_VOLT_KP;   break;
-		case 1: sg_datacollec_t.residual_c[0]  = data / BL0939_CURR_KP ; 	break;
+		case 0: sg_datacollec_t.vin_voltage = data / BL0939_VOLT_KP;   break;
+		case 1: sg_datacollec_t.vin_current = data / BL0939_CURR_KP ; 	break;
   }
 }
 
@@ -595,7 +472,7 @@ void det_get_gps_value(void)
 */
 uint8_t det_get_miu_value(uint8_t id)
 {
-	return sg_datacollec_t.residual_c[0];
+	return sg_datacollec_t.residual_c[id];
 }
 
 /*

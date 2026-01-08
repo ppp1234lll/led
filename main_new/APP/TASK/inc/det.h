@@ -30,13 +30,11 @@ typedef struct
 	
 	float attitude_acc; 	// 加速度
 
-	float vin220v;		 // 220V电压检测
-	float current[4]; 		// 电流检测
-	float total_current; 	// 总电流检测
-	float total_power;  	// 总功率1
-	float power[4]; 			// 功率
-	electricity_t kwh;    // 用电量
+	float vin_voltage;		// 总闸电压
+	float vin_current;		// 总闸电流
 	
+	float current[4]; 		// 电流检测
+
 	uint8_t key_s[10];    // 按键数量定义
 	
 	uint8_t residual_c[2];   // 剩余电流
@@ -58,13 +56,10 @@ void det_get_attitude_state_value(void);
 fp32 det_get_inside_temp(uint8_t id);								 // 获取内部温度
 fp32 det_get_inside_humi(uint8_t id); 							 // 获取内部湿度
 fp32 det_get_vin220v_handler(uint8_t num);		 // 获取电压、电流
-fp32 det_get_power_handler(uint8_t num);       // 功率
-fp32 det_get_electricity_handler(uint8_t num); // 用电量
-fp32 det_get_dc_electricity_handler(uint8_t num); // 用电量
+
 
 void det_set_open_door(uint8_t mode);               // 设置箱门状态
 void det_set_220v_in_function(uint8_t status); 			    // 设置市电状态
-void det_set_camera_status(uint8_t num,uint8_t status);		// 设置摄像机状态
 void det_set_main_network_status(uint8_t status);			// 设置主网络状态
 void det_set_main_network_sub_status(uint8_t status);		// 设置主网络状态 - 2
 void det_set_total_energy_bl0910(uint8_t num,float data);			// 设置电量参数
