@@ -19,7 +19,7 @@
 板子插座编号、地址：1/2/3/4 
 
 包头  命令  数据长度    数据     校验     包尾
-F0F0   A1    len       data     crc8     FFFF  
+F0F0   A1    len        data      crc8     FFFF  
                      电压  电流
 
 

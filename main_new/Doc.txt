@@ -59,9 +59,9 @@
 		CLK:    PB3
 		CS:     PD7
 
-	12、ML307（4G模块）：串口2，波特率115200，引脚分配为：   
-        4G-TXD：    PD5
-        4G-RXD：    PD6
+	12、ML307（4G模块）：串口8，波特率115200，引脚分配为：   
+        4G-TXD：    PE0
+        4G-RXD：    PE1
         4G_PWRK:    PE3
         4G_NRST:    PE2
 		4G_CTRL:    PD1
@@ -75,7 +75,7 @@
 	    RTC_SCL：    PB8
         RTC_SDA：    PB9	
 
-	15、LORA： 串口1， 波特率：115200，引脚分配为：
+	15、LORA： 串口7， 波特率：115200，引脚分配为：
 	    TX：    PE7
         RX：    PE8	
 
@@ -89,14 +89,14 @@
 	    串口5   TX：    PD2
                 RX：    PC12			
 		
-	    串口8   TX：    PE0
-                RX：    PE1	
+	    LUSRT   TX：    PB6
+                RX：    PB7	
 
 	16、输出控制：
         硬件看门狗:    PA0
 		
 
-	19、232通信：串口3 ,波特率115200	
-			232_TX : PB6
-			232_RX : PB7
+	19、232通信：串口2 ,波特率115200	
+			232_TX : PD4
+			232_RX : PD5
 

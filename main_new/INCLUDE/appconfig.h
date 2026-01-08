@@ -113,7 +113,6 @@
 #include "./web_server/httpd_cgi_ssi.h"
 
 
-
 /*
 *********************************************************************************************************
 *                                         OTAÉý¼¶
@@ -139,18 +138,19 @@
 #include "./DRIVER/inc/aht201.h"
 #include "./DRIVER/inc/BL0910.h"
 #include "./DRIVER/inc/BL0939.h"
-
+#include "./DRIVER/inc/BL0906.h"
 #include "./DRIVER/inc/ATGM336H.h"
 
 #include "./USER/inc/start.h"
 #include "./USER/inc/com.h"
 #include "./USER/inc/save.h"
+#include "./USER/inc/error.h"
 
 #include "./TASK/inc/app.h"
 #include "./TASK/inc/det.h"
 #include "./TASK/inc/eth.h"
 #include "./TASK/inc/gsm.h"
-
+#include "./TASK/inc/single.h"
 
 #include "./TOOL/inc/crc.h"
 #include "./TOOL/inc/tool.h"

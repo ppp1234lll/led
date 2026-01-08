@@ -1,7 +1,7 @@
 #ifndef _COM_H_
 #define _COM_H_
 
-#include "bsp.h"
+#include "./SYSTEM/sys/sys.h"
 
 /* 配置指令 */
 #define CONFIGURE_SERVER_DOMAIN_NAME        (0xF1) // 配置服务器域名与端口

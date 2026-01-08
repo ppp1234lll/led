@@ -9,57 +9,64 @@ ChipID_t g_chipid_t;
 /* START_TASK 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define START_TASK_PRIO         3           /* 任务优先级 */
-#define START_STK_SIZE          512         /* 任务堆栈大小 */
-TaskHandle_t StartTask_Handler;             /* 任务句柄 */
-void start_task(void *pvParameters);        /* 任务函数 */
+#define START_TASK_PRIO         	2        
+#define START_STK_SIZE          	512      
+TaskHandle_t StartTask_Handler;          
+void start_task(void *pvParameters);     
 
+/* ERROR线程 任务 配置
+ * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
+ */
+#define ALARM_TASK_PRIO     			10       
+#define ALARM_STK_SIZE      			512      
+TaskHandle_t ALARM_Task_Handler;     
+void alarm_task(void *pvParameters); 
 
 /* APP线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define APP_TASK_PRIO     20        /* 任务优先级 */
-#define APP_STK_SIZE      1024      /* 任务堆栈大小 */
-TaskHandle_t APP_Task_Handler;     /* 任务句柄 */
-void app_task(void *pvParameters);  /* 任务函数 */
+#define APP_TASK_PRIO     				5       
+#define APP_STK_SIZE      				512      
+TaskHandle_t APP_Task_Handler;     
+void app_task(void *pvParameters); 
 
 /* 网络线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define ETH_TASK_PRIO           19          /* 任务优先级 */
-#define ETH_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t ETH_Task_Handler;              /* 任务句柄 */
-void eth_task(void *pvParameters);          /* 任务函数 */
+#define ETH_TASK_PRIO           	8      
+#define ETH_STK_SIZE            	256     
+TaskHandle_t ETH_Task_Handler;          
+void eth_task(void *pvParameters);      
 
 /* 网络线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define DET_TASK_PRIO           18          /* 任务优先级 */
-#define DET_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t DET_Task_Handler;              /* 任务句柄 */
-void det_task(void *pvParameters);          /* 任务函数 */
+#define DET_TASK_PRIO           	4      
+#define DET_STK_SIZE            	512     
+TaskHandle_t DET_Task_Handler;          
+void det_task(void *pvParameters);      
 
 /* 网络线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define GSM_TASK_PRIO           17          /* 任务优先级 */
-#define GSM_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t GSM_Task_Handler;              /* 任务句柄 */
-void gsm_task(void *pvParameters);          /* 任务函数 */
+#define GSM_TASK_PRIO           	8      
+#define GSM_STK_SIZE            	256     
+TaskHandle_t GSM_Task_Handler;          
+void gsm_task(void *pvParameters);      
 
 /* 网络线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define PRINT_TASK_PRIO           10          /* 任务优先级 */
-#define PRINT_STK_SIZE            512         /* 任务堆栈大小 */
-TaskHandle_t PRINT_Task_Handler;              /* 任务句柄 */
-void print_task(void *pvParameters);          /* 任务函数 */
+#define PRINT_TASK_PRIO           2      
+#define PRINT_STK_SIZE            256    
+TaskHandle_t PRINT_Task_Handler;         
+void print_task(void *pvParameters);     
 
-/* 查看任务堆栈 */
-#define LIST_TASK_PRIO		    9
-#define LIST_TASK_STK_SIZE 		128
-TaskHandle_t LIST_Task_Handler;
-void list_task(void *p_arg);
+/* 检测板 */
+#define SINGLE_TASK_PRIO		      9
+#define SINGLE_TASK_STK_SIZE 		  512
+TaskHandle_t Single_Task_Handler;
+void single_task(void *p_arg);
 /******************************************************************************************************/
 
 
@@ -124,6 +131,8 @@ void start_task(void *pvParameters)
 	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
 	printf("main run...\n");
 	
+//	lpuart1_test();
+	
 	bsp_InitTimers(TIM2,1000,2,0);
 	bsp_InitTimers(TIM3,1000,2,0);
 	bsp_InitTimers(TIM4,1000,2,0);
@@ -155,6 +164,13 @@ void start_task(void *pvParameters)
   iwdg_feed();  
 	taskENTER_CRITICAL();           /* 进入临界区 */
 
+	xTaskCreate((TaskFunction_t )alarm_task,
+							(const char *   )"alarm_task",
+							(uint16_t       )ALARM_STK_SIZE,
+							(void *         )NULL,
+							(UBaseType_t    )ALARM_TASK_PRIO,
+							(TaskHandle_t * )&ALARM_Task_Handler);
+							
 	xTaskCreate((TaskFunction_t )app_task,
 							(const char *   )"app_task",
 							(uint16_t       )APP_STK_SIZE,
@@ -190,13 +206,14 @@ void start_task(void *pvParameters)
 							(UBaseType_t    )PRINT_TASK_PRIO,
 							(TaskHandle_t * )&PRINT_Task_Handler);
 
-	xTaskCreate((TaskFunction_t )list_task,
+	xTaskCreate((TaskFunction_t )single_task,
 							(const char *   )"list_task",
-							(uint16_t       )LIST_TASK_STK_SIZE,
+							(uint16_t       )SINGLE_TASK_STK_SIZE,
 							(void *         )NULL,
-							(UBaseType_t    )LIST_TASK_PRIO,
-							(TaskHandle_t * )&LIST_Task_Handler);
-//	freertos_demo();	
+							(UBaseType_t    )SINGLE_TASK_PRIO,
+							(TaskHandle_t * )&Single_Task_Handler);
+//	freertos_demo();								
+	printf("Free heap: %d bytes\n", xPortGetFreeHeapSize());			/*打印剩余堆栈大小*/
 	vTaskDelete(StartTask_Handler); /* 删除开始任务 */
 	taskEXIT_CRITICAL();            /* 退出临界区 */					 
 }
@@ -236,6 +253,23 @@ void start_get_device_id(uint32_t *id)
 	id[0] = g_chipid_t.id[0];
 	id[1] = g_chipid_t.id[1];
 	id[2] = g_chipid_t.id[2];
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: alarm_task
+*	功能说明: 主任务
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void alarm_task(void *pvParameters)
+{
+	while(1){
+
+		vTaskDelay(500);
+	}
+//	alarm_task_function();
 }
 
 /*
@@ -332,12 +366,14 @@ void print_task(void *pvParameters)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void list_task(void *pvParameters)
+void single_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}	
+//		vTaskDelay(500);
+//	}	
+	printf("run single_task \n");
+	single_task_function();
 }
 
 

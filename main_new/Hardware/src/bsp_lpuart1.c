@@ -11,6 +11,7 @@
 
 #include "bsp.h"
 #include "bsp_lpuart1.h"
+#include "./TASK/inc/single.h"
 
 #define LPUART1_RX_NE     0    // 使用串口中断
 #define LPUART1_RX_DMA    1    // 使用串口DMA
@@ -228,11 +229,10 @@ void LPUART1_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_LU1RxBuffer, LU1_RX_SIZE);		
-		Lpuart1_SendString("\r\n hlpuart1 dma_recv:\r\n");
-		HAL_UART_Transmit(&hlpuart1, (uint8_t *)g_LU1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
+//		Lpuart1_SendString("\r\n hlpuart1 dma_recv:\r\n");
+//		HAL_UART_Transmit(&hlpuart1, (uint8_t *)g_LU1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 
-//		Usart1_Send_Data("123456789000\n",12);
-		
+    single_recv_board_data(BOARD_4,g_LU1RxBuffer,total_len);
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, g_LU1RxBuffer, LU1_RX_SIZE);
 	}
 #endif
@@ -277,8 +277,9 @@ void BDMA_Channel0_IRQHandler(void)
 */
 void lpuart1_test(void)
 {
-    uint8_t len;
-    uint16_t times = 0;
+	uint8_t len;
+	uint16_t times = 0;
+	uint8_t testdata[10]={"123456789"};
 	while(1)
 	{
         if (g_lpuart1_rx_sta & 0x8000)                                                    /* 接收到了数据? */
@@ -304,6 +305,7 @@ void lpuart1_test(void)
             if (times % 200 == 0)
             {
                 Lpuart1_SendString("请输入数据,以回车键结束\r\n");
+							Lpuart1_Send_Data(testdata,10);
             }
 
             if (times % 30  == 0) 

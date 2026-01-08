@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include "./USER/inc/com.h"
 
 #define COM_HEAD_HEX (0x0F0F) 		// 数据头
 #define COM_TAIL_HEX (0xFFFF) 		// 数据尾
@@ -6,17 +7,15 @@
 #define COM_REC_HAED_HEX (0xF0F0) 	// 接收数据头
 #define COM_NUM_VAERSION (0x11) 	// 数据版本
 static struct com_qn_t sg_comqn_t; // 请求标识码
-	
 
-/************************************************************
-*
-* Function name	: com_report_get_main_network_status
-* Description	: 获取主网络状态
-* Parameter		: 
-*	@main		: 0-主网络1 1-主网络2
-* Return		: 0-未指定IP 1-网络正常 2-网络断开 3-设备网络断开
-*	
-************************************************************/
+/*
+*********************************************************************************************************
+*	函 数 名: com_report_get_main_network_status
+*	功能说明: 获取主网络状态
+*	形    参: 0-主网络1 1-主网络2
+*	返 回 值: 0-未指定IP 1-网络正常 2-网络断开 3-设备网络断开
+*********************************************************************************************************
+*/
 uint8_t com_report_get_main_network_status(uint8_t main)
 {
 	uint8_t ip[4]  = {0};
@@ -136,31 +135,18 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	strcat((char*)data,(char*)str);
 	/** 电压、电流 **/
 	memset(str,0,sizeof(str));
-	temp = det_get_vin220v_handler(0);
-	buff[0] = (uint16_t)temp;
-	buff[1] = temp*100-buff[0]*100;
-	temp = det_get_vin220v_handler(1);
-	buff[2] = (uint16_t)temp;
-	buff[3] = temp*100-buff[2]*100;
-	sprintf((char*)str,"V=%d.%02d;A=%d.%02d;",buff[0],buff[1],buff[2],buff[3]);
+	sprintf((char*)str, "V=%.2f;", det_get_vin220v_handler(0)); 
+	strcat((char*)data,(char*)str);
+	memset(str,0,sizeof(str));
+	sprintf((char*)str, "A=%.2f;", det_get_vin220v_handler(1)); 
 	strcat((char*)data,(char*)str);
 	/** 湿度、温度 **/
 	memset(str,0,sizeof(str));
-	temp = det_get_inside_humi();
-	buff[0] = (uint16_t)temp;
-	buff[1] = temp*100-buff[0]*100;
-	temp = det_get_inside_temp();
-	if(temp < 0) {
-		temp = 0 - temp;
-		buff[2] = (uint16_t)temp;
-		buff[3] = temp*100-buff[2]*100;
-		sprintf((char*)str,"H=%d.%02d;T=-%d.%02d;",buff[0],buff[1],buff[2],buff[3]);
-	} else {
-		buff[2] = (uint16_t)temp;
-		buff[3] = temp*100-buff[2]*100;
-		sprintf((char*)str,"H=%d.%02d;T=%d.%02d;",buff[0],buff[1],buff[2],buff[3]);
-	}	
+	sprintf((char*)str, "H=%.2f;", det_get_inside_humi(0)); 
 	strcat((char*)data,(char*)str);
+	memset(str,0,sizeof(str));
+	sprintf((char*)str, "T=%.2f;", det_get_inside_temp(1)); 
+	strcat((char*)data,(char*)str);	
 	/** 门状态、箱体姿态、防雷状态 **/
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"DS=%01d,%01d,%01d,%01d;P=%d;SPD=0;",
@@ -189,8 +175,8 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	/** 总功率 总用电量 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-//	Vin220_Power_Handler(str_buff[0],0);
-//	Vin220_Elec_Handler (str_buff[1],0);
+	Vin220_Power_Handler(str_buff[0],0);
+	Vin220_Elec_Handler (str_buff[1],0);
 	sprintf((char*)str,"APOWER=%s;AKW=%s;",str_buff[0],str_buff[1]);
 	strcat((char*)data,(char*)str);	
 	
@@ -206,9 +192,9 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str_buff,0,sizeof(str_buff));
 	for(uint8_t i=0;i< 5 ;i++)
 	{
-//		if(relay_get_status((RELAY_DEV)i) == 1)
-//			Vin220_Handler(str_buff[i],0);
-//		else
+		if(relay_get_status((RELAY_DEV)i) == 1)
+			Vin220_Handler(str_buff[i],0);
+		else
 			sprintf(str_buff[i],"%d",0);
 	}	
 	sprintf((char*)str,"CHV=%s,%s,%s,%s;",
@@ -218,8 +204,8 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	/** 支路电流 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-//	for(uint8_t i=0;i<5;i++)
-//		Vin220_Handler(str_buff[i],2+i);
+	for(uint8_t i=0;i<5;i++)
+		Vin220_Handler(str_buff[i],2+i);
 
 	sprintf((char*)str,"CHA=%s,%s,%s,%s;",
 											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
@@ -228,8 +214,8 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	/** 功率 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-//	for(uint8_t i=0;i< 5;i++)
-//		Vin220_Power_Handler(str_buff[i],1+i);
+	for(uint8_t i=0;i< 5;i++)
+		Vin220_Power_Handler(str_buff[i],1+i);
 	sprintf((char*)str,"POWER=%s,%s,%s,%s;",
 											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
@@ -237,8 +223,8 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	/** 用电量 **/
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
-//	for(uint8_t i=0;i< 5;i++)
-//		Vin220_Elec_Handler(str_buff[i],1+i);
+	for(uint8_t i=0;i< 5;i++)
+		Vin220_Elec_Handler(str_buff[i],1+i);
 	sprintf((char*)str,"ELEC=%s,%s,%s,%s;",
 											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);

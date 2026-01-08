@@ -279,7 +279,7 @@ void httpd_ssi_other_data_collection_function(char *pcInsert)
 	float    temp    = 0;
 	uint8_t  unit[] = {0xe2,0x84,0x83};
 	
-	temp = det_get_inside_temp();
+	temp = det_get_inside_temp(0);
 	if(temp < 0) {
 		temp = 0-temp;
 		data[0] = (uint16_t)temp;
@@ -293,7 +293,7 @@ void httpd_ssi_other_data_collection_function(char *pcInsert)
 		sprintf(buff[0],"%d.%02d",data[0],data[1]);			// ÎÂ¶È
 	}
 	
-	temp = det_get_inside_humi();
+	temp = det_get_inside_humi(0);
 	data[0] = (uint16_t)temp;
 	temp	= temp - data[0];  
 	data[1] = temp*100;

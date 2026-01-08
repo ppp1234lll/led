@@ -453,6 +453,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\USER\src\save.c</FilePath>
             </File>
+            <File>
+              <FileName>error.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\USER\src\error.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -477,6 +482,11 @@
               <FileName>gsm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\TASK\src\gsm.c</FilePath>
+            </File>
+            <File>
+              <FileName>single.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\single.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -512,6 +522,11 @@
               <FileName>ATGM336H.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\ATGM336H.c</FilePath>
+            </File>
+            <File>
+              <FileName>BL0906_SPI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\DRIVER\src\BL0906_SPI.c</FilePath>
             </File>
           </Files>
         </Group>

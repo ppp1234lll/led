@@ -20,7 +20,7 @@
 /******************************************************************************************/
 
 void bsp_InitLpuart1(uint32_t bound);
-void lpuart1_send_data(uint8_t *buf, uint8_t len);
+void Lpuart1_Send_Data(uint8_t *buf, uint16_t len);
  
 void lpuart1_test(void);
 

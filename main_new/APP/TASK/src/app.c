@@ -325,7 +325,7 @@ void app_detection_collection_param(void)
 		}
 	}
 	/* Â©µçÔ¤¾¯ */
-  if(det_get_miu_value() > sg_sysparam_t.threshold.miu)
+  if(det_get_miu_value(0) > sg_sysparam_t.threshold.miu)
 	{
 		if((status_error & 0x40) == 0) 
 		{
