@@ -150,7 +150,7 @@ void app_set_save_infor_function(uint8_t mode);									// 设置保存信息
 void app_set_local_network_function(struct local_ip_t param);					// 设置本地网络参数
 void app_set_local_network_function_two(struct local_ip_t param);				// 存储部分网络参数
 void app_set_transfer_mode_function(uint8_t mode);								// 设置传输模式
-void app_set_carema_search_mode_function(uint8_t mode,uint8_t config_mode) ;  // 20230810
+
 void app_set_remote_network_function(struct remote_ip param);					// 设置远端网络参数
 void app_set_reset_function(void);												// 设备重置
 void app_set_mac_reset_function(void);
@@ -201,10 +201,7 @@ uint8_t app_get_network_mode(void);								// 获取网络模式
 uint8_t app_get_carema_search_mode(void);         // 获取搜索协议  20230810
 void app_get_network_connect_status(char *buff);				// 获取网络连接状态
 uint8_t *app_get_device_name(void);
-uint8_t app_get_vlot_protec_status(void);
-uint8_t app_get_current_status(void);							// 获取电流状态
 
-uint8_t app_get_miu_protec_status(void);
 
 void *app_get_carema_param_function(void);
 uint8_t app_get_com_interface_selection_function(void);
@@ -219,7 +216,7 @@ uint8_t app_get_lwip_reset_status(void);
 // 20230720
 void app_set_threshold_param_function(struct threshold_params param); 
 void *app_get_threshold_param_function(void);        
-uint16_t app_get_fault_code_function(void);
+
 
 int8_t app_match_password_function(char *password); // 密码比较函数
 int8_t app_match_set_code_function(void);  // 确认是否需要需要修改默认密码

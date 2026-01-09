@@ -26,6 +26,61 @@ uint32_t complement_to_original(uint32_t data)
 	return data;
 }
 
+/************************************************************
+*
+* Function name	: hex_to_dec
+* Description	: 字符串转十六进制（用于解析URL编码的特殊字符）
+* Parameter		: buff - 2字节字符串（如"2F"→0x2F）
+* Return		: 转换后的十六进制值
+*	
+************************************************************/
+int8_t hex_to_dec(char c)
+{
+	
+    if ('0' <= c && c <= '9') 
+    {
+        return c - '0';
+    } 
+    else if ('a' <= c && c <= 'f')
+    {
+        return c - 'a' + 10;
+    } 
+    else if ('A' <= c && c <= 'F')
+    {
+        return c - 'A' + 10;
+    } 
+    else 
+    {
+        return -1;
+    }
+}
+/************************************************************
+*
+* Function name	: str_to_hex
+* Description	: 字符转hex
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+uint8_t str_to_hex(uint8_t *buff)
+{
+	uint8_t temp;
+	
+	if(buff[0] >= 'A' && buff[0] <= 'F') {
+		temp = buff[0]-'A' + 0x0A;
+	} else if(buff[0] >= '0' && buff[0] <= '9') {
+		temp = buff[0]-'0';
+	}
+	temp = temp<<4;
+	if(buff[1] >= 'A' && buff[1] <= 'F') {
+		temp |= (buff[1]-'A' + 0x0A);
+	} else if(buff[1] >= '0' && buff[1] <= '9') {
+		temp |= (buff[1]-'0');
+	}
+	
+	return temp;
+}
+
 
 
 /*功   能： 浮点数保留小数位数四舍五入*/

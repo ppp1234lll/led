@@ -27,13 +27,15 @@ const char water_ssi_ok[]    = {0xe6,0xad,0xa3,0xe5,0xb8,0xb8,0x00}; // 正常
 void Vin220_Handler(char *pcInsert, uint8_t num)
 {
 	fp32 	 temp 	 =  det_get_vin220v_handler(num);
-	uint32_t data[2] = {0};
-	
-	data[0] = (uint32_t)temp;
-	temp	= temp - data[0];  
-	data[1] = temp*100;
-	
-	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
+//	uint32_t data[2] = {0};
+//	
+//	data[0] = (uint32_t)temp;
+//	temp	= temp - data[0];  
+//	data[1] = temp*100;
+//	
+//	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
+
+	sprintf(pcInsert,"%.2f",temp);
 }
 
 /************************************************************
@@ -44,9 +46,9 @@ void Vin220_Handler(char *pcInsert, uint8_t num)
 * Return		: 
 *	
 ************************************************************/
-static void open_door_status_Handler(char *pcInsert)
+static void open_door_status_Handler(char *pcInsert,uint8_t id)
 {
-	uint8_t data = det_get_door_status(0);
+	uint8_t data = det_get_door_status(id);
 	
 	if(data == 1)
 	{
@@ -72,59 +74,6 @@ static void cabinet_posture_Handler(char *pcInsert)
 	sprintf(pcInsert,"%d",data);
 }
 
-
-/************************************************************
-*
-* Function name	: spd_status_Handler
-* Description	: SPD状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void spd_status_Handler(char *pcInsert)
-{
-	uint8_t data = 0;
-	switch(data)
-	{
-		case 0: sprintf(pcInsert,"%s",spd_ssi_none);  break;
-		case 1: sprintf(pcInsert,"%s",spd_ssi_ok); 	  break;
-		case 2: sprintf(pcInsert,"%s",spd_ssi_error); break;
-		default:break;
-	}
-}
-
-/************************************************************
-*
-* Function name	: sim_status_Handler
-* Description	: sim状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void sim_status_Handler(char *pcInsert)
-{
-
-}
-/************************************************************
-*
-* Function name	: light_status_Handler
-* Description	: bat 状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void light_status_Handler(char *pcInsert)
-{
-	uint8_t data = 0;
-	switch(data)
-	{
-		case 0: sprintf(pcInsert,"%s",water_ssi_none);  break;
-		case 1: sprintf(pcInsert,"%s",cg_ssi_normal); 	  break;
-		case 2: sprintf(pcInsert,"%s",cg_ssi_error); break;
-		default:break;
-	}
-}
-
 /************************************************************
 *
 * Function name	: water_status_Handler
@@ -133,9 +82,9 @@ void light_status_Handler(char *pcInsert)
 * Return		: 
 *	
 ************************************************************/
-void water_status_Handler(char *pcInsert)
+static void water_status_Handler(char *pcInsert,uint8_t id)
 {
-	uint8_t data = det_get_water_status(0);
+	uint8_t data = det_get_water_status(id);
 	switch(data)
 	{
 		case 0: sprintf(pcInsert,"%s",water_ssi_none);  break;
@@ -143,6 +92,27 @@ void water_status_Handler(char *pcInsert)
 		case 2: sprintf(pcInsert,"%s",water_ssi_error); break;
 		default:break;
 	}
+}
+
+/************************************************************
+*
+* Function name	: 漏电_Handler
+* Description	: 
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+static void Miu_Handler(char *pcInsert, uint8_t id)
+{
+	fp32 	 temp 	 =  sg_datacollec_t.residual_c[id];
+//	uint32_t data[2] = {0};
+//	
+//	data[0] = (uint32_t)temp;
+//	temp	= temp - data[0];  
+//	data[1] = temp*100;
+//	
+//	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
+	sprintf(pcInsert,"%.2f",temp);
 }
 
 /************************************************************
@@ -155,7 +125,7 @@ void water_status_Handler(char *pcInsert)
 ************************************************************/
 void httpd_ssi_volt_cur_data_collection_function(char *pcInsert)
 {
-	char buff[10][8] = {0};
+	char buff[6][8] = {0};
 	
 	Vin220_Handler(buff[0],0);		// 总电压
 	Vin220_Handler(buff[1],1);		// 总电流
@@ -163,66 +133,11 @@ void httpd_ssi_volt_cur_data_collection_function(char *pcInsert)
 	Vin220_Handler(buff[3],3);		// 电流通道2
 	Vin220_Handler(buff[4],4);		// 电流通道3
 	Vin220_Handler(buff[5],5);		// 电流通道4
-	Vin220_Handler(buff[6],6);		// 电流通道5
-	Vin220_Handler(buff[7],7);		// 电流通道6
-	Vin220_Handler(buff[8],8);		// 电流通道7
-	Vin220_Handler(buff[9],9);		// 电流通道8
 	
-	sprintf(pcInsert,"[\"%sV\",\"%smA\",\"%smA\",\"%smA\",\"%smA\",\"%smA\",\"%smA\",\"%smA\",\"%smA\",\"%smA\"]",
-										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8],buff[9]);
+	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
+										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5]);
 }
 
-/************************************************************
-*
-* Function name	: httpd_ssi_volt_cur_data_collection_function
-* Description	: 电能参数界面更新
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void httpd_ssi_power_data_collection_function(char *pcInsert)
-{
-	char buff[9][8] = {0};
-	
-	Vin220_Power_Handler(buff[0],0);		// 总功率
-	Vin220_Power_Handler(buff[1],1);		// 功率 1
-	Vin220_Power_Handler(buff[2],2);		// 功率 2
-	Vin220_Power_Handler(buff[3],3);		// 功率 3
-	Vin220_Power_Handler(buff[4],4);		// 功率 4
-	Vin220_Power_Handler(buff[5],5);		// 功率 5
-	Vin220_Power_Handler(buff[6],6);		// 功率 6
-	Vin220_Power_Handler(buff[7],7);		// 功率 7
-	Vin220_Power_Handler(buff[8],8);		// 功率 8
-	
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8]);
-}
-
-/************************************************************
-*
-* Function name	: httpd_ssi_elec_data_collection_function
-* Description	: 用电量
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void httpd_ssi_elec_data_collection_function(char *pcInsert)
-{
-	char buff[9][8] = {0};
-	
-	Vin220_Elec_Handler(buff[0],0);		// 用电量
-	Vin220_Elec_Handler(buff[1],1);		// 用电量 1
-	Vin220_Elec_Handler(buff[2],2);		// 用电量 2
-	Vin220_Elec_Handler(buff[3],3);		// 用电量 3
-	Vin220_Elec_Handler(buff[4],4);		// 用电量 4
-	Vin220_Elec_Handler(buff[5],5);		// 用电量 5
-	Vin220_Elec_Handler(buff[6],6);		// 用电量 6
-	Vin220_Elec_Handler(buff[7],7);		// 用电量 7
-	Vin220_Elec_Handler(buff[8],8);		// 用电量 8
-	
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8]);
-}
 
 /************************************************************
 *
@@ -235,43 +150,58 @@ void httpd_ssi_elec_data_collection_function(char *pcInsert)
 void httpd_ssi_other_data_collection_function(char *pcInsert)
 {
 	char buff[4][8] = {0};
-	char new_buff[4][7] = {0};
+	char new_buff[5][7] = {0};
 	char new_buff1[4][30] = {0};
-	uint16_t data[2] = {0};
+//	uint16_t data[2] = {0};
 	float    temp    = 0;
 	uint8_t  unit[] = {0xe2,0x84,0x83};
 	
+//	temp = det_get_inside_temp(0);
+//	if(temp < 0) {
+//		temp = 0-temp;
+//		data[0] = (uint16_t)temp;
+//		temp	= temp - data[0];  
+//		data[1] = temp*100;
+//		sprintf(buff[0],"-%d.%02d",data[0],data[1]);		// 温度
+//	} else {
+//		data[0] = (uint16_t)temp;
+//		temp	= temp - data[0];  
+//		data[1] = temp*100;
+//		sprintf(buff[0],"%d.%02d",data[0],data[1]);			// 温度
+//	}
+//	
+//	temp = det_get_inside_humi(0);
+//	data[0] = (uint16_t)temp;
+//	temp	= temp - data[0];  
+//	data[1] = temp*100;
+//	sprintf(buff[1],"%d.%02d",data[0],data[1]);			// 湿度
 	temp = det_get_inside_temp(0);
-	if(temp < 0) {
-		temp = 0-temp;
-		data[0] = (uint16_t)temp;
-		temp	= temp - data[0];  
-		data[1] = temp*100;
-		sprintf(buff[0],"-%d.%02d",data[0],data[1]);		// 温度
-	} else {
-		data[0] = (uint16_t)temp;
-		temp	= temp - data[0];  
-		data[1] = temp*100;
-		sprintf(buff[0],"%d.%02d",data[0],data[1]);			// 温度
-	}
-	
+	sprintf(buff[0],"%.2f",temp);
 	temp = det_get_inside_humi(0);
-	data[0] = (uint16_t)temp;
-	temp	= temp - data[0];  
-	data[1] = temp*100;
-	sprintf(buff[1],"%d.%02d",data[0],data[1]);			// 湿度
+	sprintf(buff[1],"%.2f",temp);
+
+	temp = det_get_inside_temp(1);
+	sprintf(buff[2],"%.2f",temp);
+	temp = det_get_inside_humi(1);
+	sprintf(buff[3],"%.2f",temp);
 	
-	cabinet_posture_Handler(new_buff[0]);				// 箱体姿态
-	open_door_status_Handler(new_buff[1]);				// 箱门状态
+	cabinet_posture_Handler(new_buff[0]);		 
+	open_door_status_Handler(new_buff[1],0);	 
+	open_door_status_Handler(new_buff[2],1);	
+	open_door_status_Handler(new_buff[3],2);	
+	open_door_status_Handler(new_buff[4],3);	
 	
-	spd_status_Handler(new_buff1[0]);
-	light_status_Handler(new_buff1[1]);
-	water_status_Handler(new_buff1[2]);
-	Miu_Handler (new_buff1[3],4);
+	water_status_Handler(new_buff1[0],0);
+	water_status_Handler(new_buff1[1],1);
 	
-	sprintf(pcInsert,"[\"%s%s\",\"%s%%\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-			buff[0],unit,buff[1],new_buff[0],new_buff[1],new_buff1[0],\
-			new_buff1[1],new_buff1[2],new_buff1[3]);
+	Miu_Handler (new_buff1[2],0);
+	Miu_Handler (new_buff1[3],1);	
+	sprintf(pcInsert,"[\"%s%s\",\"%s%%\",\"%s%s\",\"%s%%\",\"%s\",\
+										 \"%s\",\"%s\",\"%s\",\"%s\",\
+										 \"%s\",\"%s\",\"%s\",\"%s\"]",
+			buff[0],unit,buff[1],buff[2],unit,buff[3],new_buff[0],\
+			new_buff[0],new_buff[1],new_buff[0],new_buff[1],\
+			new_buff1[0],new_buff1[1],new_buff1[2],new_buff1[3]);
 }
 
 /************************************************************
@@ -285,7 +215,6 @@ void httpd_ssi_other_data_collection_function(char *pcInsert)
 void httpd_ssi_threshold_seting_function(char *pcInsert)
 {
 	char buff[11][5]   = {0};
-	char times[2][15] = {0};
 	struct threshold_params *param = app_get_threshold_param_function();
 
 	sprintf(buff[0],"%d",param->volt_max);
@@ -297,12 +226,9 @@ void httpd_ssi_threshold_seting_function(char *pcInsert)
 	sprintf(buff[6],"%d",param->humi_high);
 	sprintf(buff[7],"%d",param->humi_low);
 	sprintf(buff[8],"%d",param->miu);
-	sprintf(times[0],"%02d:%02d-%02d:%02d",
-               param->door_open_time/60,param->door_open_time%60,\
-		           param->door_close_time/60,param->door_close_time%60);
-	
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],times[0],buff[8],buff[9],buff[10]);
+
+	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
+										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8]);
 
 }
 /************************************************************
@@ -602,7 +528,7 @@ void httpd_ssi_nework_gprs_show_function(char *pcInsert)
 ************************************************************/
 void httpd_ssi_network_setting_function(char* pcInsert)
 {
-	char buff[9][20] = {0};
+	char buff[10][20] = {0};
 	char time[5] = {0};   // 网络延时时间  20220308
 	
 	local_network_Handler(buff[0],0);	// IP
@@ -610,67 +536,17 @@ void httpd_ssi_network_setting_function(char* pcInsert)
 	local_network_Handler(buff[2],1);	// 网关
 	local_network_Handler(buff[3],3);	// DNS
 	local_network_Handler(buff[6],9);	// MAC
-	local_network_Handler(buff[4],7);   // 主网检测地址
-	local_network_Handler(buff[5],8);   // 主网检测地址
+	local_network_Handler(buff[4],7);   // 主网地址
+	local_network_Handler(buff[5],8);   // 主网地址
+	sprintf(buff[9],"%s","0:0:0:0");		// 信号机地址
 	sprintf(time,"%d",app_get_network_delay_time());		// 网络延时时间  20220308
 	local_network_Handler(buff[7],10);	// IP
 	local_network_Handler(buff[8],11);	// 组播
 	
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-			buff[0],buff[1],buff[2],buff[3],buff[6],buff[4],buff[5],time,buff[7],buff[8]);
+	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
+			buff[0],buff[1],buff[2],buff[3],buff[6],buff[4],buff[5],buff[9],time,buff[7],buff[8]);
 
 }
-
-/************************************************************
-*
-* Function name	: camera_ip_get_Handler
-* Description	: 获取摄像机IP信息
-* Parameter		: 
-*	@pcInsert	: 数据指针
-*	@num		: 摄像机编号0-2
-* Return		: 
-*	
-************************************************************/
-static void camera_ip_get_Handler(char *pcInsert, uint8_t num)
-{
-	uint8_t ip[4] = {0};
-	
-	app_get_camera_function(ip,num);
-	sprintf(pcInsert,"%d.%d.%d.%d",ip[0],ip[1],ip[2],ip[3]);
-	
-}
-
-/************************************************************
-*
-* Function name	: httpd_ssi_other_setting_function
-* Description	: 其他设置-摄像头
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void httpd_ssi_other_setting_function(char *pcInsert)
-{
-	char buff[6][20] = {0};
-	char time[4][10] = {0};
-	
-	/* 摄像头1-6 */
-	camera_ip_get_Handler(buff[0],0);
-	camera_ip_get_Handler(buff[1],1);
-	camera_ip_get_Handler(buff[2],2);
-	camera_ip_get_Handler(buff[3],3);
-	camera_ip_get_Handler(buff[4],4);
-	camera_ip_get_Handler(buff[5],5);
-	
-	sprintf(time[0],"%d",app_get_next_ping_time()/1000);		// PING间隔时间
-	sprintf(time[1],"%d",app_get_next_dev_ping_time()/1000);	// PING间隔时间-设备
-	sprintf(time[2],"%d",app_get_onvif_time());	// ONVIF时间  20230811
-//	sprintf(time[3],"%d",app_get_device_reload_time()/3600);	// 重启时间       20240904
-	
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%ss\",\"%ss\",\"%ss\",\"%sh\"]",
-			buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],time[0],time[1],time[2],time[3]);
-
-}
-
 
 /************************************************************
 *

@@ -18,13 +18,14 @@
 *********************************************************************************************************
 */
 
+#include "main.h"
 #include "bsp_spi_bus.h"
 
 /*
 	安富莱STM32-V7开发板口线分配
-	PF7     ------> SPI5_SCK
-	PF8     ------> SPI5_MISO
-	PF9     ------> SPI5_MOSI
+	PB3/SPI3_SCK/SPI1_SCK
+	PB4/SPI3_MISO/SPI1_MISO
+	PB5/SPI3_MOSI/SPI1_MOSI	
 */
 
 
@@ -33,9 +34,9 @@
 *	                             选择DMA，中断或者查询方式
 *********************************************************************************************************
 */
-//#define USE_SPI_DMA    /* DMA方式  */
+#define USE_SPI_DMA    /* DMA方式  */
 //#define USE_SPI_INT    /* 中断方式 */
-#define USE_SPI_POLL   /* 查询方式 */
+//#define USE_SPI_POLL   /* 查询方式 */
 
 
 /*
@@ -43,42 +44,42 @@
 *	                            时钟，引脚，DMA，中断等宏定义
 *********************************************************************************************************
 */
-#define SPIx										SPI5
-#define SPIx_CLK_ENABLE()				__HAL_RCC_SPI5_CLK_ENABLE()
+#define SPIx										SPI1
+#define SPIx_CLK_ENABLE()				__HAL_RCC_SPI1_CLK_ENABLE()
 #define DMAx_CLK_ENABLE()				__HAL_RCC_DMA2_CLK_ENABLE()
 
-#define SPIx_FORCE_RESET()			__HAL_RCC_SPI5_FORCE_RESET()
-#define SPIx_RELEASE_RESET()		__HAL_RCC_SPI5_RELEASE_RESET()
+#define SPIx_FORCE_RESET()			__HAL_RCC_SPI1_FORCE_RESET()
+#define SPIx_RELEASE_RESET()		__HAL_RCC_SPI1_RELEASE_RESET()
 
-#define SPIx_SCK_CLK_ENABLE()		__HAL_RCC_GPIOF_CLK_ENABLE()
-#define SPIx_SCK_GPIO						GPIOF
-#define SPIx_SCK_PIN						GPIO_PIN_7
-#define SPIx_SCK_AF							GPIO_AF5_SPI5
+#define SPIx_SCK_CLK_ENABLE()		__HAL_RCC_GPIOB_CLK_ENABLE()
+#define SPIx_SCK_GPIO						GPIOB
+#define SPIx_SCK_PIN						GPIO_PIN_3
+#define SPIx_SCK_AF							GPIO_AF5_SPI1
 
-#define SPIx_MISO_CLK_ENABLE()	__HAL_RCC_GPIOF_CLK_ENABLE()
-#define SPIx_MISO_GPIO					GPIOF
-#define SPIx_MISO_PIN 					GPIO_PIN_8
-#define SPIx_MISO_AF						GPIO_AF5_SPI5
+#define SPIx_MISO_CLK_ENABLE()	__HAL_RCC_GPIOB_CLK_ENABLE()
+#define SPIx_MISO_GPIO					GPIOB
+#define SPIx_MISO_PIN 					GPIO_PIN_4
+#define SPIx_MISO_AF						GPIO_AF5_SPI1
 
-#define SPIx_MOSI_CLK_ENABLE()	__HAL_RCC_GPIOF_CLK_ENABLE()
-#define SPIx_MOSI_GPIO					GPIOF
-#define SPIx_MOSI_PIN 					GPIO_PIN_9
-#define SPIx_MOSI_AF						GPIO_AF5_SPI5
+#define SPIx_MOSI_CLK_ENABLE()	__HAL_RCC_GPIOB_CLK_ENABLE()
+#define SPIx_MOSI_GPIO					GPIOB
+#define SPIx_MOSI_PIN 					GPIO_PIN_5
+#define SPIx_MOSI_AF						GPIO_AF5_SPI1
 
-#define SPIx_TX_DMA_STREAM			DMA2_Stream3
-#define SPIx_RX_DMA_STREAM			DMA2_Stream2
+#define SPIx_TX_DMA_STREAM               DMA2_Stream3
+#define SPIx_RX_DMA_STREAM               DMA2_Stream2
 
-#define SPIx_TX_DMA_REQUEST			DMA_REQUEST_SPI5_TX
-#define SPIx_RX_DMA_REQUEST			DMA_REQUEST_SPI5_RX
+#define SPIx_TX_DMA_REQUEST              DMA_REQUEST_SPI1_TX
+#define SPIx_RX_DMA_REQUEST              DMA_REQUEST_SPI1_RX
 
-#define SPIx_DMA_TX_IRQn				DMA2_Stream3_IRQn
-#define SPIx_DMA_RX_IRQn				DMA2_Stream2_IRQn
+#define SPIx_DMA_TX_IRQn                 DMA2_Stream3_IRQn
+#define SPIx_DMA_RX_IRQn                 DMA2_Stream2_IRQn
 
-#define SPIx_DMA_TX_IRQHandler	DMA2_Stream3_IRQHandler
-#define SPIx_DMA_RX_IRQHandler	DMA2_Stream2_IRQHandler
+#define SPIx_DMA_TX_IRQHandler           DMA2_Stream3_IRQHandler
+#define SPIx_DMA_RX_IRQHandler           DMA2_Stream2_IRQHandler
 
-#define SPIx_IRQn								SPI5_IRQn
-#define SPIx_IRQHandler					SPI5_IRQHandler
+#define SPIx_IRQn								SPI1_IRQn
+#define SPIx_IRQHandler					SPI1_IRQHandler
 
 enum {
 	TRANSFER_WAIT,
@@ -117,17 +118,11 @@ uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
 
 /* DMA模式使用的SRAM4 */
 #elif defined (USE_SPI_DMA)
-    #if defined ( __CC_ARM )    /* IAR *******/
-        __attribute__((section (".RAM_D3"))) uint8_t g_spiTxBuf[SPI_BUFFER_SIZE];   
-        __attribute__((section (".RAM_D3"))) uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
-    #elif defined (__ICCARM__)   /* MDK ********/
-        #pragma location = ".RAM_D3"
-        uint8_t g_spiTxBuf[SPI_BUFFER_SIZE];   
-        #pragma location = ".RAM_D3"
-        uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
-    #endif
-#endif
 
+__attribute__((section (".RAM_SRAM4"))) uint8_t g_spiTxBuf[SPI_BUFFER_SIZE];   
+__attribute__((section (".RAM_SRAM4"))) uint8_t g_spiRxBuf[SPI_BUFFER_SIZE];
+
+#endif
 
 /*
 *********************************************************************************************************
@@ -222,6 +217,26 @@ void bsp_InitSPIParam(uint32_t _BaudRatePrescaler, uint32_t _CLKPhase, uint32_t 
 */
 void HAL_SPI_MspInit(SPI_HandleTypeDef *_hspi)
 {
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+  {
+  /** Initializes the peripherals clock
+  */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_SPI1;
+    PeriphClkInitStruct.PLL2.PLL2M = 5;
+    PeriphClkInitStruct.PLL2.PLL2N = 160;
+    PeriphClkInitStruct.PLL2.PLL2P = 4;
+    PeriphClkInitStruct.PLL2.PLL2Q = 2;
+    PeriphClkInitStruct.PLL2.PLL2R = 2;
+    PeriphClkInitStruct.PLL2.PLL2RGE = RCC_PLL2VCIRANGE_2;
+    PeriphClkInitStruct.PLL2.PLL2VCOSEL = RCC_PLL2VCOWIDE;
+    PeriphClkInitStruct.PLL2.PLL2FRACN = 0;
+    PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_PLL2;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+      Error_Handler(__FILE__, __LINE__);
+    }
+  }
+	
 	/* 配置 SPI总线GPIO : SCK MOSI MISO */
 	{
 		GPIO_InitTypeDef  GPIO_InitStruct;
@@ -318,15 +333,15 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *_hspi)
 	   __HAL_LINKDMA(_hspi, hdmarx, hdma_rx);	
 
 		/* 配置DMA发送中断 */
-		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_TX_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_TX_IRQn);
 		
 		/* 配置DMA接收中断 */
-		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_DMA_RX_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_DMA_RX_IRQn);
 		
 		/* 配置SPI中断 */
-		HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
+		HAL_NVIC_SetPriority(SPIx_IRQn, 5, 0);
 		HAL_NVIC_EnableIRQ(SPIx_IRQn);
 	}
 	#endif
@@ -466,20 +481,20 @@ uint8_t bsp_SpiBusBusy(void)
 #endif
 
 #ifdef USE_SPI_DMA
-	void SPIx_DMA_RX_IRQHandler(void)
-	{
-		HAL_DMA_IRQHandler(hspi.hdmarx);
-	}
+void SPIx_DMA_RX_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(hspi.hdmarx);
+}
 
-	void SPIx_DMA_TX_IRQHandler(void)
-	{
-		HAL_DMA_IRQHandler(hspi.hdmatx);
-	}
-	
-	void SPIx_IRQHandler(void)
-	{
-		HAL_SPI_IRQHandler(&hspi);
-	}	
+void SPIx_DMA_TX_IRQHandler(void)
+{
+	HAL_DMA_IRQHandler(hspi.hdmatx);
+}
+
+void SPIx_IRQHandler(void)
+{
+	HAL_SPI_IRQHandler(&hspi);
+}	
 #endif
 	
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

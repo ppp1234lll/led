@@ -189,7 +189,7 @@
             <hadIRAM2>1</hadIRAM2>
             <hadIROM2>1</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <nSecure>0</nSecure>
@@ -408,6 +408,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\system_stm32h7xx.c</FilePath>
             </File>
+            <File>
+              <FileName>demo_spi_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\demo_spi_flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -454,6 +459,16 @@
               <FilePath>..\..\Hardware\src\bsp_iwdg.c</FilePath>
             </File>
             <File>
+              <FileName>bsp_cpu_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_cpu_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_usart1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_usart1.c</FilePath>
+            </File>
+            <File>
               <FileName>stmflash.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\stmflash.c</FilePath>
@@ -472,11 +487,6 @@
               <FileName>sys.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\SYSTEM\sys\sys.c</FilePath>
-            </File>
-            <File>
-              <FileName>usart.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\SYSTEM\usart\usart.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -588,16 +598,6 @@
         <Group>
           <GroupName>Drivers/BSP</GroupName>
           <Files>
-            <File>
-              <FileName>led.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\BSP\LED\led.c</FilePath>
-            </File>
-            <File>
-              <FileName>key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Drivers\BSP\KEY\key.c</FilePath>
-            </File>
             <File>
               <FileName>mpu.c</FileName>
               <FileType>1</FileType>

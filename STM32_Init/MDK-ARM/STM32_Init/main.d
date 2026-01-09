@@ -27,6 +27,8 @@ stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_eth.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_eth_ex.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_exti.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_cortex.h
+stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_crc.h
+stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_crc_ex.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_flash.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_flash_ex.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_hsem.h
@@ -40,9 +42,10 @@ stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim_ex.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart.h
 stm32_init\main.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_uart_ex.h
+stm32_init\main.o: ../Core/Inc/crc.h
+stm32_init\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 stm32_init\main.o: ../Core/Inc/dma.h
 stm32_init\main.o: ../Core/Inc/eth.h
-stm32_init\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 stm32_init\main.o: ../Core/Inc/usart.h
 stm32_init\main.o: ../Core/Inc/spi.h
 stm32_init\main.o: ../Core/Inc/tim.h

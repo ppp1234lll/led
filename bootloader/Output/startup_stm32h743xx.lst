@@ -698,15 +698,15 @@ ARM Macro Assembler    Page 11
   240 00000000                 IMPORT           SystemInit
   241 00000000                 IMPORT           __main
   242 00000000         
-  243 00000000 F8DF 0030       LDR.W            R0, =0xE000ED88 ; 使能浮点运算 
+  243 00000000 F8DF 0024       LDR.W            R0, =0xE000ED88 ; 使能浮点运算 
                                                             CP10,CP11
   244 00000004 6801            LDR              R1,[R0]
   245 00000006 F441 0170       ORR              R1,R1,#(0xF << 20)
   246 0000000A 6001            STR              R1,[R0]
   247 0000000C         
-  248 0000000C 480A            LDR              R0, =SystemInit
+  248 0000000C 4807            LDR              R0, =SystemInit
   249 0000000E 4780            BLX              R0
-  250 00000010 480A            LDR              R0, =__main
+  250 00000010 4807            LDR              R0, =__main
   251 00000012 4700            BX               R0
   252 00000014                 ENDP
   253 00000014         
@@ -1259,35 +1259,25 @@ ARM Macro Assembler    Page 20
   590 00000028         ;*******************************************************
                        ************************
   591 00000028                 IF               :DEF:__MICROLIB
-  598 00000028         
-  599 00000028                 IMPORT           __use_two_region_memory
-  600 00000028                 EXPORT           __user_initial_stackheap
-  601 00000028         
-  602 00000028         __user_initial_stackheap
-  603 00000028         
-  604 00000028 4805            LDR              R0, =  Heap_Mem
-  605 0000002A 4906            LDR              R1, =(Stack_Mem + Stack_Size)
-  606 0000002C 4A04            LDR              R2, = (Heap_Mem +  Heap_Size)
-  607 0000002E 4B06            LDR              R3, = Stack_Mem
-  608 00000030 4770            BX               LR
-  609 00000032         
-  610 00000032 00 00           ALIGN
-  611 00000034         
-  612 00000034                 ENDIF
-  613 00000034         
-  614 00000034                 END
+  592 00000028         
+  593 00000028                 EXPORT           __initial_sp
+  594 00000028                 EXPORT           __heap_base
+  595 00000028                 EXPORT           __heap_limit
+  596 00000028         
+  597 00000028                 ELSE
+  612                          ENDIF
+  613 00000028         
+  614 00000028                 END
               E000ED88 
               00000000 
-              00000000 
-              00000000 
-              00000800 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M7.fp.dp --apcs=
 interwork --depend=..\..\output\startup_stm32h743xx.d -o..\..\output\startup_st
 m32h743xx.o -ID:\Keil_v5\Local\Arm\Packs\Keil\STM32H7xx_DFP\4.1.3\Drivers\CMSIS
-\Device\ST\STM32H7xx\Include --predefine="__UVISION_VERSION SETA 536" --predefi
-ne="STM32H743xx SETA 1" --list=..\..\output\startup_stm32h743xx.lst ..\..\Drive
-rs\CMSIS\Device\ST\STM32H7xx\Source\Templates\arm\startup_stm32h743xx.s
+\Device\ST\STM32H7xx\Include --predefine="__MICROLIB SETA 1" --predefine="__UVI
+SION_VERSION SETA 536" --predefine="STM32H743xx SETA 1" --list=..\..\output\sta
+rtup_stm32h743xx.lst ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templates\a
+rm\startup_stm32h743xx.s
 
 
 
@@ -1310,11 +1300,8 @@ Symbol: Stack_Mem
       At line 35 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
    Uses
-      At line 605 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-      At line 607 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-
+      None
+Comment: Stack_Mem unused
 __initial_sp 00000800
 
 Symbol: __initial_sp
@@ -1324,7 +1311,9 @@ es\arm\startup_stm32h743xx.s
    Uses
       At line 61 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
-Comment: __initial_sp used once
+      At line 593 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
+tes\arm\startup_stm32h743xx.s
+
 3 symbols
 
 
@@ -1348,11 +1337,8 @@ Symbol: Heap_Mem
       At line 48 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
    Uses
-      At line 604 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-      At line 606 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-
+      None
+Comment: Heap_Mem unused
 __heap_base 00000000
 
 Symbol: __heap_base
@@ -1360,8 +1346,9 @@ Symbol: __heap_base
       At line 47 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
    Uses
-      None
-Comment: __heap_base unused
+      At line 594 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
+tes\arm\startup_stm32h743xx.s
+Comment: __heap_base used once
 __heap_limit 00000000
 
 Symbol: __heap_limit
@@ -1369,8 +1356,9 @@ Symbol: __heap_limit
       At line 49 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
    Uses
-      None
-Comment: __heap_limit unused
+      At line 595 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
+tes\arm\startup_stm32h743xx.s
+Comment: __heap_limit used once
 4 symbols
 
 
@@ -3406,17 +3394,7 @@ es\arm\startup_stm32h743xx.s
       At line 300 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
 tes\arm\startup_stm32h743xx.s
 
-__user_initial_stackheap 00000028
-
-Symbol: __user_initial_stackheap
-   Definitions
-      At line 602 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-   Uses
-      At line 600 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-Comment: __user_initial_stackheap used once
-152 symbols
+151 symbols
 
 
 
@@ -3432,9 +3410,7 @@ es\arm\startup_stm32h743xx.s
    Uses
       At line 48 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
-      At line 606 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-
+Comment: Heap_Size used once
 Stack_Size 00000800
 
 Symbol: Stack_Size
@@ -3444,9 +3420,7 @@ es\arm\startup_stm32h743xx.s
    Uses
       At line 35 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templat
 es\arm\startup_stm32h743xx.s
-      At line 605 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-
+Comment: Stack_Size used once
 __Vectors_Size 00000298
 
 Symbol: __Vectors_Size
@@ -3484,14 +3458,5 @@ tes\arm\startup_stm32h743xx.s
       At line 250 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
 tes\arm\startup_stm32h743xx.s
 Comment: __main used once
-__use_two_region_memory 00000000
-
-Symbol: __use_two_region_memory
-   Definitions
-      At line 599 in file ..\..\Drivers\CMSIS\Device\ST\STM32H7xx\Source\Templa
-tes\arm\startup_stm32h743xx.s
-   Uses
-      None
-Comment: __use_two_region_memory unused
-3 symbols
-505 symbols in table
+2 symbols
+502 symbols in table

@@ -87,13 +87,13 @@ void freertos_demo(void)
                 (UBaseType_t    )LWIP_DMEO_TASK_PRIO,
                 (TaskHandle_t*  )&LWIP_Task_Handler);
 
-    /* LED测试任务 */
-    xTaskCreate((TaskFunction_t )led_task,
-                (const char*    )"led_task",
-                (uint16_t       )LED_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )LED_TASK_PRIO,
-                (TaskHandle_t*  )&LEDTask_Handler);
+//    /* LED测试任务 */
+//    xTaskCreate((TaskFunction_t )led_task,
+//                (const char*    )"led_task",
+//                (uint16_t       )LED_STK_SIZE,
+//                (void*          )NULL,
+//                (UBaseType_t    )LED_TASK_PRIO,
+//                (TaskHandle_t*  )&LEDTask_Handler);
 
     taskEXIT_CRITICAL();            /* 退出临界区 */
 }
@@ -126,7 +126,7 @@ void led_task(void *pvParameters)
 {
     pvParameters = pvParameters;
 
-	fault_test_by_div0();
+//	fault_test_by_div0();
 	
     while (1)
     {

@@ -22,12 +22,21 @@ Dialog DLL:      TCM.DLL V1.53.0.0
  
 <h2>Project:</h2>
 F:\ต๗สิ\single_led\bootloader\Projects\MDK-ARM\atk_h743.uvprojx
-Project File Date:  12/20/2025
+Project File Date:  01/09/2026
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'MALLOC'
-"..\..\Output\atk_h743.axf" - 0 Error(s), 0 Warning(s).
+compiling main.c...
+..\..\User\main.c(74): warning:  #550-D: variable "read_addr"  was set but never used
+  	unsigned int read_addr = 0, write_addr = 0;
+..\..\User\main.c(149): warning:  #550-D: variable "ret"  was set but never used
+  	uint8_t ret=0;
+..\..\User\main.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=33494 RO-data=818 RW-data=8316 ZI-data=32057092  
+FromELF: creating hex file...
+"..\..\Output\atk_h743.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 

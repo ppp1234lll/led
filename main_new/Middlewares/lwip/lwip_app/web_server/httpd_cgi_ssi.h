@@ -42,18 +42,16 @@ void httpd_ssi_other_setting_function(char *pcInsert);	  // 其他信息-摄像头ip
 void http_ssi_server_setting_function(char *pcInsert);	  // 远端服务器信息
 void httpd_ssi_threshold_seting_function(char *pcInsert); // 阈值 20230720
 void httpd_ssi_bd_data_collection_function(char *pcInsert);
-void httpd_ssi_power_data_collection_function(char *pcInsert); // 功率
+
 void httpd_ssi_other_data_collection_function(char *pcInsert); // 温湿度
 void httpd_ssi_volt_cur_data_collection_function(char *pcInsert); // 水浸
-void httpd_ssi_elec_data_collection_function(char *pcInsert); // 用电量
+
 void http_ssi_update_addr_function(char *pcInsert);
 
 void Vin220_Elec_Handler(char *pcInsert, uint8_t num);
 void Vin220_Power_Handler(char *pcInsert, uint8_t num);
 void Vin220_Handler(char *pcInsert, uint8_t num);
-void lighting_protector_detection(char *pcInsert); // 防雷开关检测
-void open_door_status_Handler(char *pcInsert); // 箱门状态
-void cabinet_posture_Handler(char *pcInsert);  // 箱体姿态
+
 void device_parameter_handler(char *pcInsert,uint8_t num);
 void local_network_Handler(char *pcInsert, uint8_t mode);
 void camera_ip_get_Handler(char *pcInsert, uint8_t num);

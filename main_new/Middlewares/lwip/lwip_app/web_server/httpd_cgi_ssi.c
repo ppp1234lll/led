@@ -11,7 +11,7 @@ const char* SETTING_CGI_Handler(int iIndex,int iNumParams,char *pcParam[],char *
 uint8_t g_return_t[300] =  {0};
 uint16_t g_return_flag  = 0;
 
-#define PPCTAGS_SIZE (49)
+#define PPCTAGS_SIZE (37)
 static const char *ppcTAGs[PPCTAGS_SIZE]=  //SSI的Tag
 {
 	"a", // 同步时间
@@ -23,12 +23,6 @@ static const char *ppcTAGs[PPCTAGS_SIZE]=  //SSI的Tag
 	"g", // 网关
 	"h", // DNS
 	"i", // 主网检测地址
-	"m", // 摄像头1
-	"n", // 摄像头2
-	"o", // 摄像头3
-	"p", // 摄像头4
-	"q", // 摄像头5
-	"r", // 摄像头6
 	"s", // 每轮ping间隔时间
 	"t", // 下次ping的时间
 	"C", // 网络连接状态
@@ -43,24 +37,18 @@ static const char *ppcTAGs[PPCTAGS_SIZE]=  //SSI的Tag
 	"N", // 网络延时时间  20220308
 	"O", // 组播IP
 	"P", // 组播端口  
-	"Q", // ONVIF时间 20230811 
-	"aa", // 高压  20230720
-	"ab", // 低压  
-	"ac", // 电流  
-	"ad", // 姿态 
-	"ae", // 风扇启动温度
-	"af", // 风扇停止温度  
-	"ag", // 风扇启动湿度  
-	"ah", // 风扇停止湿度 
-	"ai", // 本机端口
-	"aj", // 重启 	
-	"ak", // 箱门开启时间	
-	"al", // 补光灯开启时间
-	"am", // 漏电
-	"ba", // 升级url 
-	"bb", // 升级端口 
-	"bc", // 重启次数 
-	"bd", // 重启时间
+	"A", // 高压  20230720
+	"B", // 低压  
+	"Q", // 电流  
+	"R", // 姿态 
+	"S", // 风扇启动温度
+	"T", // 风扇停止温度  
+	"U", // 风扇启动湿度  
+	"V", // 风扇停止湿度 
+	"W", // 漏电
+	"aa", // 升级url 
+	"ab", // 升级端口 
+	"ac", // 信号机 
 
 
   "Y",
@@ -169,11 +157,6 @@ const char *SETTING_CGI_Handler(int iIndex,int iNumParams,char *pcParam[],char *
 		}
 		/* 网络设置 */
 		ret = httpd_cgi_set_network_function(iNumParams,pcParam,pcValue);
-		if(ret == 0) {
-			goto EXIT;
-		}
-		/* 摄像机IP */
-		ret = httpd_cgi_set_camera_ip_function(iNumParams,pcParam,pcValue);
 		if(ret == 0) {
 			goto EXIT;
 		}

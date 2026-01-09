@@ -13,7 +13,7 @@
 #include "freertos_demo.h"
 
 static void system_setup(void);
-void SystemClock_Config(void);
+ 
 
 /*
 *********************************************************************************************************
@@ -40,7 +40,7 @@ int main(void)
 */
 static void system_setup(void)
 {
-//	sys_nvic_set_vector_table(FLASH_BASE, 0x20000);	/* 设置中断向量偏移 */ 
+	sys_nvic_set_vector_table(FLASH_BASE, 0x20000);	/* 设置中断向量偏移 */ 
 	Write_Through();
 	mpu_memory_protection();                 /* 保护相关存储区域 */
 	sys_cache_enable();                      /* 打开L1-Cache */

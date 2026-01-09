@@ -275,7 +275,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
+                <StartAddress>0x8020000</StartAddress>
                 <Size>0x200000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -584,6 +584,11 @@
               <FilePath>..\..\Hardware\src\bsp_iwdg.c</FilePath>
             </File>
             <File>
+              <FileName>bsp_cpu_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_cpu_flash.c</FilePath>
+            </File>
+            <File>
               <FileName>bsp_led.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_led.c</FilePath>
@@ -697,11 +702,6 @@
               <FileName>bsp_siic_rh1.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_siic_rh1.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_cpu_flash.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_cpu_flash.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -862,6 +862,16 @@
               <FileName>stm32h7xx_hal_usart_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_usart_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_crc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32h7xx_hal_crc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_crc_ex.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1262,6 +1272,16 @@
               <FileName>lwip_ping.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\lwip\lwip_app\ping\lwip_ping.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/lwip/app/tcp_client</GroupName>
+          <Files>
+            <File>
+              <FileName>tcp_client.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\tcp_client\tcp_client.c</FilePath>
             </File>
           </Files>
         </Group>

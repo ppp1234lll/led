@@ -14,8 +14,6 @@
 #ifndef __BSP_SPI_BUS_H
 #define __BSP_SPI_BUS_H
 
-#include "./SYSTEM/sys/sys.h"
-
 /* 重定义下SPI SCK时钟，方便移植 */
 #define SPI_BAUDRATEPRESCALER_100M      SPI_BAUDRATEPRESCALER_2			/* 100M */
 #define SPI_BAUDRATEPRESCALER_50M       SPI_BAUDRATEPRESCALER_4			/* 50M */

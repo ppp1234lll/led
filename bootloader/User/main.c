@@ -19,16 +19,7 @@
  */
 
 #include "main.h"
-#include "./SYSTEM/usart/usart.h"
-#include "./SYSTEM/delay/delay.h"
-#include "./BSP/SDRAM/sdram.h"
-#include "./USMART/usmart.h"
-#include "./BSP/LED/led.h"
-#include "./BSP/LCD/lcd.h"
-#include "./BSP/KEY/key.h"
-#include "./BSP/MPU/mpu.h"
-#include "./BSP/LCD/ltdc.h"
-#include "./MALLOC/malloc.h"
+
 
 #define PWR_TST_READ  HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_1) 
 
@@ -50,10 +41,16 @@ int main(void)
 	bsp_InitLed();         		/* LED初始化 */ 
 	pwr_test_init();
 	bsp_InitUsart2(115200);
-	usart_init(115200);				/* 串口初始化 */
+	bsp_InitUsart1(115200);				/* 串口初始化 */
 	DeviceRstReason();
 	iwdg_init(IWDG_PRESCALER_64, 1000); /* 预分频数为 64,重载值为 1000,溢出时间为 2s */
+
+	bsp_InitSPIBus();	/* 配置SPI总线 */		
+	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+	
   update_check_function();
+	
+//	DemoSpiFlash();
 	while(1)
 	{
 		printf("usart1\n");

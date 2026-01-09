@@ -119,7 +119,7 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"VER=%02x;",COM_DATA_VERSION);
 	strcat((char*)data,(char*)str);
-//	strcat((char*)data,"VER=11;");
+ 
 	/* 指令参数CP */
 	strcat((char*)data,"CP=&&");
 	
@@ -163,22 +163,14 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	
 	/** 过压 欠压、过流保护 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str,"OV=%01d;OCPS=%01d;",app_get_vlot_protec_status(),\
-                                          app_get_current_status());
+	sprintf((char*)str,"OV=%01d;OCPS=%01d;",alarm_get_vlot_protec_status(),\
+                                          alarm_get_current_protec_status());
 	strcat((char*)data,(char*)str);
 
 	/** 水浸检测 **/
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"WATER=%01d,%01d;",det_get_water_status(0),det_get_water_status(1));
 	strcat((char*)data,(char*)str);
-
-	/** 总功率 总用电量 **/
-	memset(str,0,sizeof(str));
-	memset(str_buff,0,sizeof(str_buff));
-	Vin220_Power_Handler(str_buff[0],0);
-	Vin220_Elec_Handler (str_buff[1],0);
-	sprintf((char*)str,"APOWER=%s;AKW=%s;",str_buff[0],str_buff[1]);
-	strcat((char*)data,(char*)str);	
 	
 	/** 继电器状态 **/
 	memset(str,0,sizeof(str));
@@ -193,7 +185,8 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	for(uint8_t i=0;i< 5 ;i++)
 	{
 		if(relay_get_status((RELAY_DEV)i) == 1)
-			Vin220_Handler(str_buff[i],0);
+			sprintf(str_buff[i],"%.2f",det_get_vin220v_handler(0));
+//			Vin220_Handler(str_buff[i],0);
 		else
 			sprintf(str_buff[i],"%d",0);
 	}	
@@ -205,33 +198,16 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str,0,sizeof(str));
 	memset(str_buff,0,sizeof(str_buff));
 	for(uint8_t i=0;i<5;i++)
-		Vin220_Handler(str_buff[i],2+i);
+		sprintf(str_buff[i],"%.2f",det_get_vin220v_handler(2+i));
+//		Vin220_Handler(str_buff[i],2+i);
 
 	sprintf((char*)str,"CHA=%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
-	strcat((char*)data,(char*)str);
-	
-	/** 功率 **/
-	memset(str,0,sizeof(str));
-	memset(str_buff,0,sizeof(str_buff));
-	for(uint8_t i=0;i< 5;i++)
-		Vin220_Power_Handler(str_buff[i],1+i);
-	sprintf((char*)str,"POWER=%s,%s,%s,%s;",
-											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
-	strcat((char*)data,(char*)str);
-
-	/** 用电量 **/
-	memset(str,0,sizeof(str));
-	memset(str_buff,0,sizeof(str_buff));
-	for(uint8_t i=0;i< 5;i++)
-		Vin220_Elec_Handler(str_buff[i],1+i);
-	sprintf((char*)str,"ELEC=%s,%s,%s,%s;",
 											str_buff[0],str_buff[1],str_buff[2],str_buff[3]);
 	strcat((char*)data,(char*)str);
 
 	/** 漏电 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str,"MIU=%d;",app_get_miu_protec_status());
+	sprintf((char*)str,"MIU=%d;",alarm_get_miu_protec_status());
 	strcat((char*)data,(char*)str);
 
 	/** 交换机信息 **/
@@ -270,6 +246,7 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	
 	/** 北斗定位信息只包含经纬度即可 */
 	atgm336h_data_t *gnss_data = atgm336h_get_gnss_data();
+	memset(str,0,sizeof(str));
 	sprintf((char*)str,"LAT=%.06f;LNG=%.06f;",
 										fabs(gnss_data->latitude),fabs(gnss_data->longitude));
 	strcat((char*)data,(char*)str);
@@ -1148,28 +1125,6 @@ void com_set_device_reload_time_function(com_rec_data_t *buff)
 
 /************************************************************
 *
-* Function name	: com_set_onvif_mode_function
-* Description	: 设置配置搜索协议模式
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void com_set_onvif_mode_function(com_rec_data_t *buff)
-{	
-	uint8_t  mode  = buff->buff[0];
-
-	if((mode==0)||(mode > 3))
-	{
-		app_set_reply_parameters_function(buff->cmd,0x74);		/* 设置回传 */
-	}
-	else
-	{
-		app_set_carema_search_mode_function(mode,1);
-		app_set_reply_parameters_function(buff->cmd,0x01);		/* 设置回传 */
-	}
-}
-/************************************************************
-*
 * Function name	: com_deal_fan_temp_parmaeter
 * Description	: 处理风扇温度
 * Parameter		: 
@@ -1482,12 +1437,6 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_LOCAL_NETWORK: 		// 设置本地网络信息
 				com_deal_configure_local_network(&recdata_t);
 				break;
-			case CONFIGURE_CAMERA_CONFIG:		// 设置摄像头IP
-				com_deal_camera_config(&recdata_t);
-				break;
-			case CONFIGURE_IPC_LOGIN_INFO:		// 设置摄像头用户名、密码  20220329
-				com_deal_camera_login(&recdata_t);
-				break;
 			case CONFIGURE_FAN_PARAMETER:		// 设置风扇温度
 				com_deal_fan_temp_parmaeter(&recdata_t);
 				break;
@@ -1515,48 +1464,20 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_NOW_TIME:		   	  // 配置当前时间
 				com_set_now_time_function(&recdata_t);
 				break;
-			case CONFIGURE_IPC_TIME_SYNC:			// 配置摄像机时间  20220329
-				com_set_ipc_time_function(&recdata_t);
-				break;
 			case CONFIGURE_DEVICE_NAME:				// 设置设备名称  20220416
 				com_set_device_name_function(&recdata_t);
 				break;
 			case CONFIGURE_THRESHOLD_PARAMS:	// 配置阈值  20230721
 				com_set_threshold_params_function(&recdata_t);
 				break;
-			case CONFIGURE_ONVIF_TIME:				// 配置搜索协议时间  20230721
-				com_set_onvif_time_function(&recdata_t);
-				break;
-			case CONFIGURE_SEARCH_MODE:				// 配置搜索协议模式  20230721
-				com_set_onvif_mode_function(&recdata_t);
-				break;
-			case CONFIGURE_DEVICE_PASSWORD:		// 密码恢复出厂
-				com_set_device_password(&recdata_t);
-				break;
 			case CONFIGURE_DEVICE_ID: 			// 设置设备ID  20231026
 				com_deal_configure_device_id(&recdata_t);
 				break;
-			case CONFIGURE_ONVIF_CAREMA: 		 // 搜索协议配置摄像机IP  20240201
-				com_deal_configure_onvif_carema(&recdata_t);
-				break;
-			case CONFIGURE_RELOAD_TIME: 		 // 设备重启
-				com_set_onvif_time_function(&recdata_t);
-				break;
-			case CONFIGURE_FILL_LIGHT_TIME:		// 设置补光灯时间
-				com_set_work_time(&recdata_t,1);
-				break;
-			case CONFIGURE_DOOR_TIME:		      // 设置箱门时间
-				com_set_work_time(&recdata_t,0);
-				break;	
-			
-			
+	
 			/* 查询指令 */
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报
 			case CR_QUERY_SOFTWARE_VERSION: // 查询设备软件版本号
-			case CR_QUERY_IPC_IP:       		// 查询摄像机IP地址    20220329
-			case CR_QUERY_IPC_INFO:					// 查询摄像机相关参数  20220329
-			case CR_QUERY_LBS_INFO:					// 查询基站定位信息
 				sg_comqn_t.flag = 1;
 				com_query_processing_function(recdata_t.cmd,recdata_t.buff[0]-1);
 				break;
@@ -1566,9 +1487,7 @@ int8_t com_deal_main_function(void)
 			case CR_POWER_RESETART:
 			case CR_GPRS_NETWORK_RESET:
 			case CR_LWIP_NETWORK_RESET:
-			case CR_IPC_REBOOT:            // IPC重启  20220329
 			case CR_GPRS_NETWORK_V_RESET:
-			case CR_SINGLE_DC12_CONTROL:
 				app_set_sys_opeare_function(recdata_t.cmd,recdata_t.buff[0]);
 				break;
 			

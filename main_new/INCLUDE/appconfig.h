@@ -108,6 +108,7 @@
 #include "lwip/dns.h"
 
 #include "./ping/lwip_ping.h"
+#include "./tcp_client/tcp_client.h"
 
 #include "./web_server/httpd.h"
 #include "./web_server/httpd_cgi_ssi.h"
@@ -151,6 +152,7 @@
 #include "./TASK/inc/eth.h"
 #include "./TASK/inc/gsm.h"
 #include "./TASK/inc/single.h"
+#include "./TASK/inc/alarm.h"
 
 #include "./TOOL/inc/crc.h"
 #include "./TOOL/inc/tool.h"

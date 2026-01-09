@@ -27,20 +27,16 @@ typedef struct
 {
 	float temp_inside[2]; // 内部温度值
 	float humi_inside[2]; // 内部湿度值
-	
 	float attitude_acc; 	// 加速度
-
 	float vin_voltage;		// 总闸电压
 	float vin_current;		// 总闸电流
-	
 	float current[4]; 		// 电流检测
 
 	uint8_t key_s[10];    // 按键数量定义
-	
 	uint8_t residual_c[2];   // 剩余电流
-
 	uint8_t main_ip;	   // 主网络状态：0：离线 1：在线，2：延时严重
 	uint8_t main_sub_ip; // 主网络状态sub: 0：离线 1：在线，2：延时严重
+	uint8_t single_ip;	
 	uint8_t ping_status; // ping结束标志位
 } data_collection_t;
 
@@ -72,7 +68,6 @@ void det_set_ping_status(uint8_t status);
 void det_set_spd_status(uint8_t mode);   //  设置防雷开关状态
 void det_set_water_status(uint8_t mode);
 
-
 uint16_t det_get_cabinet_posture(void);						// 获取箱体姿态
 uint8_t det_get_camera_status(uint8_t num);					// 获取摄像机状态
 uint8_t det_get_main_network_status(void);					// 获取主网络状态
@@ -80,10 +75,9 @@ uint8_t det_get_main_network_sub_status(void);				// 获取主网络状态 - 2
 
 void *det_get_collect_data(void);
 void det_set_key_value(uint8_t key_id,uint8_t key_value);
-void Miu_Handler(char *pcInsert, uint8_t num);
-
+ 
 void det_get_gps_value(void);
-void det_get_lux_function(void);
+ 
 uint8_t det_get_pwr_status(void);
 uint8_t det_get_door_status(uint8_t id);
 uint8_t det_get_water_status(uint8_t id);

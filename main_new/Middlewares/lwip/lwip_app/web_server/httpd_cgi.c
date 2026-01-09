@@ -172,46 +172,6 @@ int8_t httpd_cgi_switch_function(int iNumParams, char *pcParam[], char *pcValue[
 
 /************************************************************
 *
-* Function name	: setting_threshold_time
-* Description	: 配置时间段
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-static void setting_threshold_time(char *buff,uint8_t mode)
-{
-	int time[4]		= {0};
-	uint16_t temp[2] = {0};
-	
-	sscanf((char*)buff,"%d:%d-%d:%d",&time[0],&time[1],&time[2],&time[3]);
-	
-	for(uint8_t i=0;i<4;i++)
-	{
-		if(time[i] < 0)
-			time[i] = 0;	
-	}
-	if(time[0] > 23)
-		time[0] = 23;
-
-	if(time[2] > 23)
-		time[2] = 23;
-	
-	if(time[1] > 59)
-		time[1] = 59;
-
-	if(time[3] > 59)
-		time[3] = 59;
-	
-	temp[0] = time[0]*60+time[1];
-	temp[1] = time[2]*60+time[3];
-	
-	if(mode == 0)
-		app_set_door_time_function(temp);
-	else
-		app_set_fill_light_function(temp);
-}
-/************************************************************
-*
 * Function name	: Setting_threshold_parameter_function
 * Description	: 阈值
 * Parameter		: 
@@ -256,15 +216,10 @@ static int8_t Setting_threshold_parameter_function(char *pcParam[], char *pcValu
 	{
 		param.humi_low = atoi(pcValue[i]);  return ret; 
 	}
-	if (strcmp(pcParam[i] , "ak")==0) // 箱门时间
-	{
-		setting_threshold_time(pcValue[i],0);  return ret;
-		
-	}
-
 	if (strcmp(pcParam[i] , "am")==0) // 漏电
 	{
-		param.miu = atoi(pcValue[i]); return ret;
+		param.miu = atoi(pcValue[i]);
+		app_set_threshold_param_function(param);
 	}
 	
 	return ret;
@@ -310,61 +265,6 @@ int8_t httpd_cgi_set_threshold_function(int iNumParams, char *pcParam[], char *p
 	return -1;
 }
 
-/************************************************************
-*
-* Function name	: str_to_hex
-* Description	: 字符转hex
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-static uint8_t str_to_hex(uint8_t *buff)
-{
-	uint8_t temp;
-	
-	if(buff[0] >= 'A' && buff[0] <= 'F') {
-		temp = buff[0]-'A' + 0x0A;
-	} else if(buff[0] >= '0' && buff[0] <= '9') {
-		temp = buff[0]-'0';
-	}
-	temp = temp<<4;
-	if(buff[1] >= 'A' && buff[1] <= 'F') {
-		temp |= (buff[1]-'A' + 0x0A);
-	} else if(buff[1] >= '0' && buff[1] <= '9') {
-		temp |= (buff[1]-'0');
-	}
-	
-	return temp;
-}
-
-/************************************************************
-*
-* Function name	: hex_to_dec
-* Description	: 字符串转十六进制（用于解析URL编码的特殊字符）
-* Parameter		: buff - 2字节字符串（如"2F"→0x2F）
-* Return		: 转换后的十六进制值
-*	
-************************************************************/
-static int8_t hex_to_dec(char c)
-{
-	
-    if ('0' <= c && c <= '9') 
-    {
-        return c - '0';
-    } 
-    else if ('a' <= c && c <= 'f')
-    {
-        return c - 'a' + 10;
-    } 
-    else if ('A' <= c && c <= 'F')
-    {
-        return c - 'A' + 10;
-    } 
-    else 
-    {
-        return -1;
-    }
-}
 
 /************************************************************
 *
@@ -443,13 +343,6 @@ static int8_t Setting_device_parameter_function(char *pcParam[], char *pcValue[]
 		mode = atoi(pcValue[i]);
 		app_set_transfer_mode_function(mode);
 		
-	}
-	if (strcmp(pcParam[i] , "camera_tran") == 0) { // 搜索模式
-	
-		mode = atoi(pcValue[i]);
-		
-		/* 处理完最后一个参数后保存 */
-		app_set_carema_search_mode_function(mode,0);
 		app_set_device_param_function(param);
 	}
 	return ret;
@@ -1016,14 +909,6 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 		app_system_softreset(1000);
 		return 0;
 	}
-
-	/* 读取基站定位信息 */
-	if (strcmp(pcValue[0] , "lbsgps")==0)
-	{
-		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
-		gsm_run_gps_task_function();
-		return 0;
-	}
 	
 	if ( strcmp(pcValue[0] , "loginInit")==0 ) {
 		set_return_status_function(0,(uint8_t*)"[\"root\",\" \"]");
@@ -1046,18 +931,6 @@ int8_t httpd_cgi_show_function(char *pcValue[], uint16_t *data, uint8_t *buff)
 	if ( strcmp(pcValue[0] , "VACollection")==0 ) {  // 电压电流
 		*data = 0;
 		httpd_ssi_volt_cur_data_collection_function((char*)buff);
-		return 0;
-	}
-	
-	if ( strcmp(pcValue[0] , "PowerCollection")==0 ) {  // 功率
-		*data = 0;
-		httpd_ssi_power_data_collection_function((char*)buff);
-		return 0;
-	}
-
-	if ( strcmp(pcValue[0] , "ElecCollection")==0 ) {  // 用电量
-		*data = 0;
-		httpd_ssi_elec_data_collection_function((char*)buff);
 		return 0;
 	}
 	
@@ -1109,13 +982,6 @@ int8_t httpd_cgi_show_function(char *pcValue[], uint16_t *data, uint8_t *buff)
 		httpd_ssi_network_setting_function((char*)buff);
 		return 0;
 	}
-
-	if ( strcmp(pcValue[0] , "otherSetting")==0 ) {	/* 摄像头IP */
-		*data = 0;
-		httpd_ssi_other_setting_function((char*)buff);
-		return 0;
-	}
-
 	/* 服务器信息 */
 	if ( strcmp(pcValue[0] , "serverset")==0 ) {
 		*data = 0;

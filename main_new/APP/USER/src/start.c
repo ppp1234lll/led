@@ -265,11 +265,11 @@ void start_get_device_id(uint32_t *id)
 */
 void alarm_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}
-//	alarm_task_function();
+//		vTaskDelay(500);
+//	}
+	alarm_task_function();
 }
 
 /*
@@ -282,11 +282,11 @@ void alarm_task(void *pvParameters)
 */
 void app_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}
-//	app_task_function();
+//		vTaskDelay(500);
+//	}
+	app_task_function();
 }
 
 /*
@@ -333,10 +333,10 @@ void det_task(void *pvParameters)
 */
 void gsm_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}
+//		vTaskDelay(500);
+//	}
 	printf("gsm_task run \n");
 	gsm_task_function();
 }

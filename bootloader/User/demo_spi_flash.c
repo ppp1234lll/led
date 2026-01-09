@@ -15,7 +15,7 @@
 *********************************************************************************************************
 */
 #include "demo_spi_flash.h"
-#include "bsp.h"
+#include "main.h"
 
 #define TEST_ADDR		0			/* 读写测试地址 */
 #define TEST_SIZE		4096		/* 读写测试数据大小 */
@@ -30,7 +30,7 @@ static void sfWriteAll(uint8_t _ch);
 static void sfTestReadSpeed(void);
 
 static uint8_t buf[TEST_SIZE];
-
+extern uint8_t g_U1RxBuffer[2048];
 /*
 *********************************************************************************************************
 *	函 数 名: DemoSpiFlash
@@ -41,7 +41,7 @@ static uint8_t buf[TEST_SIZE];
 */
 void DemoSpiFlash(void)
 {
-	uint8_t cmd;
+	char ch  ;
 	uint32_t uiReadPageNo = 0;
 
 	
@@ -50,23 +50,14 @@ void DemoSpiFlash(void)
 	printf("    容量 : %dM字节, 扇区大小 : %d字节\r\n", g_tSF.TotalSize/(1024*1024), g_tSF.SectorSize);
 
 	sfDispMenu();		/* 打印命令提示 */
-	
-	bsp_StartAutoTimer(0, 100);	/* 启动1个100ms的自动重装的定时器 */
-	
+
 	while(1)
 	{
-		bsp_Idle();		/* 这个函数在bsp.c文件。用户可以修改这个函数实现CPU休眠和喂狗 */
-		
-		/* 判断定时器超时时间 */
-		if (bsp_CheckTimer(0))	
+		ch=getchar();
+		printf("接收到字符：%c\n",ch);
+//		if (comGetChar(COM1, &cmd))	/* 从串口读入一个字符(非阻塞方式) */
 		{
-			/* 每隔100ms 进来一次 */  
-			bsp_LedToggle(2);
-		}
-		
-		if (comGetChar(COM1, &cmd))	/* 从串口读入一个字符(非阻塞方式) */
-		{
-			switch (cmd)
+			switch (ch)
 			{
 				case '1':
 					printf("\r\n【1 - 读串行Flash, 地址:0x%X,长度:%d字节】\r\n", TEST_ADDR, TEST_SIZE);
@@ -128,6 +119,7 @@ void DemoSpiFlash(void)
 			}
 		}
 	}
+	
 }
 
 /*
@@ -143,11 +135,10 @@ static void sfReadTest(void)
 	uint16_t i;
 	int32_t iTime1, iTime2;
 	
-
 	/* 起始地址 = 0， 数据长度为 256 */
-	iTime1 = bsp_GetRunTime();	/* 记下开始时间 */
+	iTime1 = HAL_GetTick();	/* 记下开始时间 */
 	sf_ReadBuffer(buf, TEST_ADDR, TEST_SIZE);
-	iTime2 = bsp_GetRunTime();	/* 记下结束时间 */
+	iTime2 = HAL_GetTick();	/* 记下结束时间 */
 	printf("读串行Flash成功，数据如下：\r\n");
 
 	/* 打印数据 */
@@ -185,13 +176,13 @@ static void sfTestReadSpeed(void)
 	uint32_t uiAddr;
 
 	/* 起始地址 = 0， 数据长度为 256 */
-	iTime1 = bsp_GetRunTime();	/* 记下开始时间 */
+	iTime1 = HAL_GetTick();	/* 记下开始时间 */
 	uiAddr = 0;
 	for (i = 0; i < g_tSF.TotalSize / TEST_SIZE; i++, uiAddr += TEST_SIZE)
 	{
 		sf_ReadBuffer(buf, uiAddr, TEST_SIZE);
 	}
-	iTime2 = bsp_GetRunTime();	/* 记下结束时间 */
+	iTime2 = HAL_GetTick();	/* 记下结束时间 */
 
 	/* 打印读速度 */
 	printf("数据长度: %d字节, 读耗时: %dms, 读速度: %lld Bytes/s\r\n", g_tSF.TotalSize, iTime2 - iTime1, (uint64_t)g_tSF.TotalSize * 1000 / (iTime2 - iTime1));
@@ -217,7 +208,7 @@ static void sfWriteTest(void)
 	}
 
 	/* 写EEPROM, 起始地址 = 0，数据长度为 256 */
-	iTime1 = bsp_GetRunTime();	/* 记下开始时间 */
+	iTime1 = HAL_GetTick();	/* 记下开始时间 */
 	if (sf_WriteBuffer(buf, TEST_ADDR, TEST_SIZE) == 0)
 	{
 		printf("写串行Flash出错！\r\n");
@@ -225,7 +216,7 @@ static void sfWriteTest(void)
 	}
 	else
 	{
-		iTime2 = bsp_GetRunTime();	/* 记下结束时间 */
+		iTime2 = HAL_GetTick();	/* 记下结束时间 */
 		printf("写串行Flash成功！\r\n");
 	}
 
@@ -254,7 +245,7 @@ static void sfWriteAll(uint8_t _ch)
 	}
 
 	/* 写EEPROM, 起始地址 = 0，数据长度为 256 */
-	iTime1 = bsp_GetRunTime();	/* 记下开始时间 */
+	iTime1 = HAL_GetTick();	/* 记下开始时间 */
 	for (i = 0; i < g_tSF.TotalSize / g_tSF.SectorSize; i++)
 	{
 		if (sf_WriteBuffer(buf, i * g_tSF.SectorSize, g_tSF.SectorSize) == 0)
@@ -268,7 +259,7 @@ static void sfWriteAll(uint8_t _ch)
 			printf("\r\n");
 		}
 	}
-	iTime2 = bsp_GetRunTime();	/* 记下结束时间 */
+	iTime2 = HAL_GetTick();	/* 记下结束时间 */
 
 	/* 打印读速度 */
 	printf("数据长度: %dK字节, 写耗时: %dms, 写速度: %dB/s\r\n", g_tSF.TotalSize / 1024, iTime2 - iTime1, (g_tSF.TotalSize * 1000) / (iTime2 - iTime1));
@@ -286,9 +277,9 @@ static void sfErase(void)
 {
 	int32_t iTime1, iTime2;
 
-	iTime1 = bsp_GetRunTime();	/* 记下开始时间 */
+	iTime1 = HAL_GetTick();	/* 记下开始时间 */
 	sf_EraseChip();
-	iTime2 = bsp_GetRunTime();	/* 记下结束时间 */
+	iTime2 = HAL_GetTick();	/* 记下结束时间 */
 
 	/* 打印读速度 */
 	printf("擦除串行Flash完成！, 耗时: %dms\r\n", iTime2 - iTime1);

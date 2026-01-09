@@ -22,7 +22,6 @@ typedef struct
 		uint8_t		  send_cmd;  	   // 发送内容，直接使用对应命令字
 		uint8_t 	  return_cmd; 	 // 回复标志
 		uint8_t 	  return_error;	 // 回复内容
-		uint16_t 	  fault_code;	   // 故障码
 	} com;
 	struct
 	{
@@ -31,7 +30,6 @@ typedef struct
 		uint8_t save_remote_network; 	// 保存远端网络参数
 		uint8_t save_update_addr;    	// 保存更新地址
 		uint8_t com_parameter;			 	// 通信相关参数
-    uint8_t save_carema;       		// 摄像头参数 20230712
 		uint8_t save_threshold;       // 阈值
 		uint8_t save_reset;		     		// 恢复出厂化
 	} save_flag;
@@ -42,22 +40,16 @@ typedef struct
 		uint8_t heart_pack;			     // 心跳包
 		uint8_t version;			       // 版本信息
 		uint8_t config_return;		   // 配置回复
-		uint8_t lbs_info;					   // 参数查询   20220329
 	} com_flag;
 	struct
 	{
 		uint8_t adapter_num;		  // 适配器 - 编号
-		uint8_t dc_num;		        // 适配器 - 编号
-		uint8_t current_protection;	  // 电流保护
-		uint8_t volt_protection;	  // 电压保护
-		uint8_t miu_protection;	  // 漏电
 	} sys;
 	struct
 	{
 		uint8_t lwip_reset;         // 网络重启标志
 		uint8_t adapter_reset;		  // 适配器-重启标志
 		uint8_t relay_reset[8];		   
-    uint8_t dc_reset;		        // 适配器-重启标志	
 	} sys_flag;
 	struct
 	{
@@ -65,16 +57,6 @@ typedef struct
 	} update;
 }sys_operate_t;
 
-struct switch_control_t {
-	uint8_t adapter1; // 适配器1
-	uint8_t adapter2; // 适配器2
-	uint8_t adapter3; // 适配器3
-	uint8_t adapter4; // 适配器4
-	uint8_t adapter5; // 适配器5
-	uint8_t adapter6; // 适配器6
-	uint8_t adapter7; // 适配器7
-	uint8_t adapter8; // 适配器8
-};
 
 /* 参数定义 */
 __attribute__((section (".RAM_D1")))  sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
@@ -92,7 +74,6 @@ __attribute__((section (".RAM_D1")))  com_param_t   sg_comparam_t	 	  = {
 __attribute__((section (".RAM_D1")))  uint8_t     sg_send_buff[2048] = {0}; // 发送缓存区
 __attribute__((section (".RAM_D1")))  uint16_t    sg_send_size =  0;	 // 发送数据长度
 __attribute__((section (".RAM_D1")))  rtc_time_t  sg_rtctime_t = {0}; // rtc采集间隔时间
-__attribute__((section (".RAM_D1")))  struct switch_control_t sg_swcontrol_t = {0};
 
 /*
 *********************************************************************************************************
@@ -111,7 +92,7 @@ void app_task_function(void)
 
 	for(;;)
 	{
-		app_detection_collection_param(); 	// 采集数据监测任务
+ 
 		app_task_save_function();   				// 存储相关任务
 		com_deal_main_function(); 					// 处理接收数据
 		app_com_send_function();						// 通信发送
@@ -130,290 +111,6 @@ void app_task_function(void)
     iwdg_feed();	
 		vTaskDelay(10);
 	}
-}
-
-/*
-*********************************************************************************************************
-*	函 数 名: app_detection_collection_param
-*	功能说明: 检测采集数据，判断状态 
-*	形    参: baudrate: 波特率
-*	返 回 值: 无
-*	status_error -> 0:高压  1:低压  2:电流  3:姿态  4:箱门 5:断电  6:适配器  7:SPD
-                  8:SIM   9:电池  10:网口
-*********************************************************************************************************
-*/
-void app_detection_collection_param(void)
-{
-	static uint32_t status_error  = 0;  // 故障上报状态
-	static uint32_t status_normal	= 0;  // 正常上报状态：
- 
-
-	/* 适配器、断电上报 */
-	if(det_get_pwr_status() == 0) // 12V断电
-	{
-		if(det_get_vin220v_handler(0) < 50)  // 市电电压 < 50V，说明断电
-		{
-			if( (status_error & 0x01) == 0) 
-			{
-				status_error |= 0x01;
-				status_normal &=~0x01;
-				app_power_fail_protection_function();  // 关闭继电器
-				app_report_information_immediately();
-			}						
-		}
-		else 					   // 市电电压 > 50V，说明适配器故障
-		{
-			if((status_error & 0x02) == 0) 
-			{
-				status_error  |= 0x02;
-				status_normal &=~0x02;
-				app_report_information_immediately();
-			}
-		}
-	}		
-	else            // 12V有电，220V存在
-	{
-		if(((status_normal & 0x01) == 0) || ((status_normal&0x02) == 0))
-		{
-			if((status_error&0x01) || (status_error&0x02))// 适配器故障、220断电
-			{
-				/* 适配器重新上电 - 重启设备*/
-				lfs_unmount(&g_lfs_t);
-				vTaskDelay(100);
-				app_system_softreset(1000);
-			}
-			vTaskDelay(100);
-			status_normal |= 0x01;
-			status_error  &=~0x01;
-			
-			status_normal |= 0x02;
-			status_error &=~ 0x02;
-			app_report_information_immediately();
-			vTaskDelay(2000);
-			app_power_open_protection_function();  // 打开继电器
-
-			sg_sysoperate_t.sys.current_protection = 0;
-			sg_sysoperate_t.sys.volt_protection = 0;
-		}		
-	}
-
-	/* 运维网口 */
-	if(eth_get_network_cable_status() == 0) 
-	{
-		if((status_error & 0x04) == 0) 
-		{
-			status_error  |= 0x04;
-			status_normal &=~0x04;
-			app_report_information_immediately();
-		}
-	} 
-	else
-	{
-		if((status_normal & 0x04) == 0) 
-		{
-			status_normal |= 0x04;
-			status_error  &=~0x04;
-			app_report_information_immediately();
-		}	
-	}		
-	
-	/* 检测主网与摄像头是否发送状态变化 */
-	if(det_main_network_and_camera_network() == 1) 
-	{
-		app_report_information_immediately();
-	}
-		
-	// 高压报警
-	if( sg_sysparam_t.threshold.volt_max == 0 )  // 阈值为0，不作处理
-	{	}
-	else
-	{
-		if(det_get_vin220v_handler(0) >= sg_sysparam_t.threshold.volt_max) 
-		{	
-			if((status_error & 0x08) == 0)  // 故障上报标志位是0
-			{
-				vTaskDelay(100);
-				status_error |= 0x08;        // 标志位置1，表示已上报
-				status_normal &=~ 0x08;      // 正常上报标志位清0
-				app_power_fail_protection_function(); // 关闭继电器		
-				sg_sysoperate_t.sys.volt_protection = 1;
-				app_report_information_immediately();	
-			}
-		}
-		else if(det_get_vin220v_handler(0) >= 50) // 市电有电情况下
-		{
-			if((status_normal & 0x08) == 0)  // 正常上报标志位是0
-			{
-				vTaskDelay(100);
-				status_normal |= 0x08;  // 标志位置1，表示已上报
-				status_error &=~ 0x08; // 故障上报标志位清0
-				if(sg_sysoperate_t.sys.volt_protection == 1)
-				{
-						sg_sysoperate_t.sys.volt_protection = 0;
-						app_report_information_immediately();
-						vTaskDelay(2000);
-						app_power_open_protection_function();  // 打开继电器
-				}
-			}
-		}	
-	}
-
-	// 低压报警
-	if( sg_sysparam_t.threshold.volt_min == 0 )  // 阈值为0，不作处理
-	{	}
-	else
-	{
-		if((det_get_vin220v_handler(0) <= sg_sysparam_t.threshold.volt_min) && \
-			  det_get_vin220v_handler(0) >= 20)
-		{	
-			if((status_error & 0x10) == 0)  // 故障上报标志位是0
-			{
-				vTaskDelay(100);
-				status_error |= 0x10;        // 标志位置1，表示已上报
-				status_normal &=~ 0x10;      // 正常上报标志位清0		
-				
-				app_power_fail_protection_function();  // 关闭继电器
-				sg_sysoperate_t.sys.volt_protection = 2;
-				app_report_information_immediately();
-			}
-		}
-		else if(det_get_vin220v_handler(0) >= sg_sysparam_t.threshold.volt_min) // 市电有电情况下
-		{
-			if((status_normal & 0x10) == 0)  // 正常上报标志位是0
-			{
-				vTaskDelay(100);
-				status_normal |= 0x10;  // 标志位置1，表示已上报
-				status_error &=~ 0x10; // 故障上报标志位清0
-				if(sg_sysoperate_t.sys.volt_protection == 2)
-				{
-						sg_sysoperate_t.sys.volt_protection = 0;
-					  app_report_information_immediately();
-						app_power_open_protection_function();  // 打开继电器
-				}
-			}
-		}
-	}
-
-	/* 检测市电电流使用情况 */
-	if( sg_sysparam_t.threshold.current == 0 )  // 阈值为0，不作处理
-	{	}
-	else
-	{
-		if(det_get_vin220v_handler(1) >= sg_sysparam_t.threshold.current)
-		{
-			/* 电流过大 , 关闭所有外设，并报警 */
-			app_power_fail_protection_function(); // 关闭继电器
-			if( (status_error & 0x20) == 0) 
-			{
-				status_error |= 0x20;
-				status_normal &=~ 0x20;
-				sg_sysoperate_t.sys.current_protection = 1;
-				
-				app_report_information_immediately();
-			}
-		} 
-		else  if(det_get_vin220v_handler(1) >= 30)
-		{
-			if( (status_normal & 0x20) == 0)
-			{
-				status_normal |= 0x20;
-				status_error &=~ 0x20;
-				sg_sysoperate_t.sys.current_protection = 0;
-
-				app_report_information_immediately();
-			}
-		}
-	}
-	/* 漏电预警 */
-  if(det_get_miu_value(0) > sg_sysparam_t.threshold.miu)
-	{
-		if((status_error & 0x40) == 0) 
-		{
-			status_error  |= 0x40;
-			status_normal &=~0x40;
-			app_power_fail_protection_function();  // 关闭继电器
-			sg_sysoperate_t.sys.miu_protection = 2;
-			app_report_information_immediately();
-		}
-	} 
-	else 
-	{
-		if((status_normal & 0x40) == 0) 
-		{
-			status_normal |= 0x40;
-			status_error  &=~0x40;
-			if(sg_sysoperate_t.sys.miu_protection == 2)
-			{
-					sg_sysoperate_t.sys.miu_protection = 0;
-					app_report_information_immediately();
-					app_power_open_protection_function();  // 打开继电器
-			}
-		}	
-	}	
-	
-	/* 箱体姿态 */
-	if( det_get_cabinet_posture() >= sg_sysparam_t.threshold.angle) 
-	{
-		if( (status_error & 0x80) == 0) 
-		{
-			status_error  |= 0x80;
-			status_normal &=~0x80;
-			app_report_information_immediately();
-		}
-	} 
-	else 
-	{
-		if((status_normal&0x80) == 0) 
-		{
-			status_normal |= 0x80;
-			status_error  &=~0x80;
-			app_report_information_immediately();
-		}
-	}
-
-	/* 箱门	*/
-	if( det_get_door_status(0) == 1) 
-	{
-		if((status_error & 0x0100) == 0) 
-		{
-			status_error  |= 0x0100;
-			status_normal &=~0x0100;
-			app_report_information_immediately();
-		}
-	} 
-	else 
-	{
-		if( (status_normal & 0x0100) == 0) 
-		{
-			status_normal |= 0x0100;
-			status_error  &=~0x0100;
-		
-			app_report_information_immediately();
-		}
-	}
-	
-	/* 浸水检测模块 */
-#ifdef WATER_ENABLE
-	if(det_get_water_status(0) == 2)
-	{
-		if((status_error & 0x0400) == 0) 
-		{
-			status_error  |= 0x0400;
-			status_normal &=~0x0400;
-			app_report_information_immediately();
-		}
-	} 
-	else if( det_get_water_status(0) == 1)
-	{
-		if((status_normal & 0x0400) == 0) 
-		{
-			status_normal |= 0x0400;
-			status_error  &=~0x0400;
-			app_report_information_immediately();
-		}	
-	}	
-#endif		
-
 }
 
 /************************************************************
@@ -437,9 +134,7 @@ void app_set_com_send_flag_function(uint8_t cmd, uint8_t data)
 		case CR_QUERY_SOFTWARE_VERSION:
 			sg_sysoperate_t.com_flag.version = 1;
 			break;
-		case CR_QUERY_LBS_INFO:          // 查询LBS信息
-			sg_sysoperate_t.com_flag.lbs_info = 1;
-			break;
+
 	}
 }
 
@@ -827,25 +522,6 @@ void app_set_sys_opeare_function(uint8_t cmd, uint8_t data)
 				app_set_reply_parameters_function(CR_SINGLE_CAMERA_CONTROL,0x74);
 			}
 			break;
-		case CR_SINGLE_DC12_CONTROL:
-			if(data>=0x01 && data <= 2)
-			{
-				if(sg_sysoperate_t.sys_flag.dc_reset == 0)
-				{
-					sg_sysoperate_t.sys_flag.dc_reset = 1;
-					sg_sysoperate_t.sys.dc_num = data;
-					app_set_reply_parameters_function(CR_SINGLE_DC12_CONTROL,0x01);
-				}
-				else
-				{
-					app_set_reply_parameters_function(CR_SINGLE_DC12_CONTROL,0x77);
-				}
-			}
-			else
-			{
-				app_set_reply_parameters_function(CR_SINGLE_DC12_CONTROL,0x74);
-			}
-			break;
 			
 		case CR_POWER_RESETART:
 			sg_sysoperate_t.com.return_error = 1;
@@ -1087,12 +763,7 @@ void app_task_save_function(void)
 		vTaskDelay(100);
 		app_system_softreset(1000);
 	}
-		/* 存储摄像头参数 */	
-	if(sg_sysoperate_t.save_flag.save_carema == 1)
-	{
-		sg_sysoperate_t.save_flag.save_carema = 0;
-		save_stroage_carema_parameter(&sg_carema_param_t);
-	}
+
 	/* 存储通信相关参数 */	
 	if(sg_sysoperate_t.save_flag.com_parameter == 1)
 	{
@@ -1144,9 +815,6 @@ void app_set_save_infor_function(uint8_t mode)
 			break;
 		case SAVE_UPDATE:
 			sg_sysoperate_t.save_flag.save_update_addr = 1;
-			break;
-		case SAVE_CAREMA:
-			sg_sysoperate_t.save_flag.save_carema = 1;
 			break;
 		case SAVE_THRESHOLD:
 			sg_sysoperate_t.save_flag.save_threshold = 1;
@@ -1239,27 +907,6 @@ void app_set_transfer_mode_function(uint8_t mode)
 		case 2:
 			sg_sysparam_t.local.server_mode = 4;
 			break;
-	}
-	/* 保存 */
-	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
-}
-/************************************************************
-*
-* Function name	: app_set_carema_search_mode_function
-* Description	: 设置摄像机搜索协议
-* Parameter		: config_mode:配置方式 web/平台
-* Return		: 
-*	   20230810
-************************************************************/
-void app_set_carema_search_mode_function(uint8_t mode,uint8_t config_mode)  
-{
-	if(config_mode == 0 )  // web
-	{		
-		sg_sysparam_t.local.search_mode = mode+1;
-	}
-	else if(config_mode == 1 )  // 平台
-	{
-		sg_sysparam_t.local.search_mode = mode;
 	}
 	/* 保存 */
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
@@ -2070,45 +1717,6 @@ void app_detect_function(void)
 
 /************************************************************
 *
-* Function name	: app_get_vlot_protec_status
-* Description	: 获取电压保护状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-uint8_t app_get_vlot_protec_status(void)
-{
-	return sg_sysoperate_t.sys.volt_protection;
-}
-
-/************************************************************
-*
-* Function name	: app_get_current_status
-* Description	: 获取电流状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-uint8_t app_get_current_status(void)
-{
-	return sg_sysoperate_t.sys.current_protection;
-}
-
-
-/************************************************************
-*
-* Function name	: app_get_miu_protec_status
-* Description	: 获取漏电保护状态
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-uint8_t app_get_miu_protec_status(void)
-{
-	return sg_sysoperate_t.sys.miu_protection;
-}
-/************************************************************
-*
 * Function name	: app_set_threshold_param_function
 * Description	: 设置阈值
 * Parameter		: 
@@ -2139,19 +1747,6 @@ void app_set_threshold_param_function(struct threshold_params param)
 void *app_get_threshold_param_function(void)
 {
 	return (&sg_sysparam_t.threshold);
-}
-
-/************************************************************
-*
-* Function name	: app_get_fault_code_function
-* Description	: 获取故障码
-* Parameter		: 
-* Return		: 
-*	   20230720
-************************************************************/
-uint16_t app_get_fault_code_function(void)
-{
-	return sg_sysoperate_t.com.fault_code;
 }
 
 /************************************************************

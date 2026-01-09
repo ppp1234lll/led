@@ -111,12 +111,16 @@
 ..\..\output\bsp_usart2.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdbool.h
 ..\..\output\bsp_usart2.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\..\output\bsp_usart2.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+..\..\output\bsp_usart2.o: ..\..\User\demo_spi_flash.h
 ..\..\output\bsp_usart2.o: ..\..\Drivers\./SYSTEM/delay/delay.h
+..\..\output\bsp_usart2.o: ..\..\Drivers\./BSP/MPU/mpu.h
+..\..\output\bsp_usart2.o: ..\..\Middlewares\./MALLOC/malloc.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_led.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_iwdg.h
+..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_usart1.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_spi_flash.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_spi_bus.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\stmflash.h
-..\..\output\bsp_usart2.o: ..\..\Hardware\inc\w25qxx.h
+..\..\output\bsp_usart2.o: ..\..\Hardware\inc\bsp_cpu_flash.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\iap.h
 ..\..\output\bsp_usart2.o: ..\..\Hardware\inc\crc.h

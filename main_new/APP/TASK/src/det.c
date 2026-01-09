@@ -73,7 +73,8 @@ uint8_t det_main_network_and_camera_network(void)
 	/* ¼ì²âÖ÷ÍøÂç */
 	if(sg_datacollec_t.main_ip == 0 && sg_datacollec_t.main_sub_ip == 0) 
 	{
-		if(main_ip[0] == 1 || main_ip[1] == 1) {
+		if(main_ip[0] == 1 || main_ip[1] == 1) 
+		{
 			main_ip[0] = sg_datacollec_t.main_ip;
 			main_ip[1] = sg_datacollec_t.main_sub_ip;
 			return 1;
@@ -255,26 +256,6 @@ fp32 det_get_vin220v_handler(uint8_t num)
 		case 5: return sg_datacollec_t.current[3];
 	}
 	return  0;
-}
-
-/************************************************************
-*
-* Function name	: Â©µç_Handler
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void Miu_Handler(char *pcInsert, uint8_t num)
-{
-	fp32 	 temp 	 =  sg_datacollec_t.residual_c[0];
-	uint32_t data[2] = {0};
-	
-	data[0] = (uint32_t)temp;
-	temp	= temp - data[0];  
-	data[1] = temp*100;
-	
-	sprintf(pcInsert,"%d.%02d",data[0],data[1]);
 }
 
 /*

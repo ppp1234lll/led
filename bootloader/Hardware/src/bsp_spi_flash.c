@@ -18,20 +18,21 @@
 *********************************************************************************************************
 */
 
-#include "bsp_spi_flash.h"
 #include "main.h"
+#include "bsp_spi_flash.h"
+
 
 /* 串行Flash的片选GPIO端口， PD13  */
-#define SF_CS_CLK_ENABLE() 			__HAL_RCC_GPIOD_CLK_ENABLE()
+#define SF_CS_CLK_ENABLE()	__HAL_RCC_GPIOD_CLK_ENABLE()
 #define SF_CS_GPIO					GPIOD
-#define SF_CS_PIN					GPIO_PIN_13
+#define SF_CS_PIN						GPIO_PIN_7
 
-#define SF_CS_0()					SF_CS_GPIO->BSRR = ((uint32_t)SF_CS_PIN << 16U) 
-#define SF_CS_1()					SF_CS_GPIO->BSRR = SF_CS_PIN
+#define SF_CS_0()						SF_CS_GPIO->BSRR = ((uint32_t)SF_CS_PIN << 16U) 
+#define SF_CS_1()						SF_CS_GPIO->BSRR = SF_CS_PIN
 	
 #define CMD_AAI       0xAD  	/* AAI 连续编程指令(FOR SST25VF016B) */
-#define CMD_DISWR	  0x04		/* 禁止写, 退出AAI状态 */
-#define CMD_EWRSR	  0x50		/* 允许写状态寄存器的命令 */
+#define CMD_DISWR	  	0x04		/* 禁止写, 退出AAI状态 */
+#define CMD_EWRSR	  	0x50		/* 允许写状态寄存器的命令 */
 #define CMD_WRSR      0x01  	/* 写状态寄存器命令 */
 #define CMD_WREN      0x06		/* 写使能命令 */
 #define CMD_READ      0x03  	/* 读数据区命令 */
@@ -699,7 +700,13 @@ void sf_ReadInfo(void)
 				g_tSF.TotalSize = 16 * 1024 * 1024;	/* 总容量 = 8M */
 				g_tSF.SectorSize = 4 * 1024;		/* 扇区大小 = 4K */
 				break;			
-
+			
+			case W25Q32_ID:
+				strcpy(g_tSF.ChipName, "W25Q32");
+				g_tSF.TotalSize = 4 * 1024 * 1024;	/* 总容量 = 8M */
+				g_tSF.SectorSize = 4 * 1024;		/* 扇区大小 = 4K */
+				break;	
+			
 			default:
 				strcpy(g_tSF.ChipName, "Unknow Flash");
 				g_tSF.TotalSize = 2 * 1024 * 1024;

@@ -8,6 +8,7 @@
                 width: 100%;
                 height: 100%;
             }
+            
             *{
                 margin: 0;
                 padding: 0;
@@ -15,6 +16,7 @@
                 cursor: pointer;
 
             }
+            
             .switch {
                 position: relative;
                 display: inline-block;
@@ -62,7 +64,6 @@
                 transform: translateX(26px);
             }
 
-            /* Rounded sliders */
             .slider.round {
                 border-radius: 34px;
             }
@@ -70,18 +71,22 @@
             .slider.round:before {
                 border-radius: 50%;
             }
+            
             .nav{
                 font-size: 40px;
 
             }
+            
             .blue{
                 background: #00f9;
             }
+            
             button{
                 padding: 10px;
                 width: 300px;
 
             }
+            
             #content{
                 display: flex;
                 flex-direction: column;
@@ -102,6 +107,7 @@
                 position: fixed;
                 display: flex;
             }
+            
             #login{
                 display: flex;
                 flex-direction: column;
@@ -111,17 +117,20 @@
                 height: 400px;
                 justify-content: center;
             }
+            
             .from {
                 display: flex;
                 margin: 20px 0;
-                width: 300px;
-
+                width: 450px;
+                align-items: center;
             }
 
             .from span{
-               min-width: 100px;
+               min-width: 150px;
                text-align: left;
+               white-space: nowrap;
             }
+            
             input,select {
                 width: 200px;
                 height: 30px;
@@ -149,7 +158,8 @@
         </div>
     </body>
     <script>
-        var loopTime=2000
+        var loopTime=1000
+        
         var modelChangePassword={
             divid:"login",
             btntype:"changePassword",
@@ -160,6 +170,7 @@
                 ["修改","changePassword"]
             ]
         }
+        
         var model=[
             {
                 divid:"login",
@@ -177,48 +188,12 @@
                 btntype:"VACollection",
                 divid:"content",
                 nodes:[
-                    ["总电压(V)","",'vol'],
-                    ["总电流(mA)","",'cur'],
+                    ["总闸电压(V)","",'vol'],
+                    ["总闸电流(mA)","",'cur'],
                     ["电流通道1(mA)","",'curr1'],
                     ["电流通道2(mA)","",'curr2'],
                     ["电流通道3(mA)","",'curr3'],
                     ["电流通道4(mA)","",'curr4'],
-					["电流通道5(mA)","",'curr5'],
-					["电流通道6(mA)","",'curr6'],
-					["电流通道7(mA)","",'curr7'],
-					["电流通道8(mA)","",'curr8'],
-                ],
-            },
-            {
-                label:"功率",
-                btntype:"PowerCollection",
-                divid:"content",
-                nodes:[
-                    ["总功率(W)","",'totalpower'],
-                    ["输出功率1(W)","",'power1'],
-                    ["输出功率2(W)","",'power2'],
-                    ["输出功率3(W)","",'power3'],
-                    ["输出功率4(W)","",'power4'],
-					["输出功率5(W)","",'power5'],
-					["输出功率6(W)","",'power6'],
-					["输出功率7(W)","",'power7'],
-					["输出功率8(W)","",'power8'],
-                ],
-            },
-            {
-                label:"用电量",
-                btntype:"ElecCollection",
-                divid:"content",
-                nodes:[
-                    ["总用电量(度)","",'totalelec'],
-                    ["用电量1(度)","",'elec1'],
-                    ["用电量2(度)","",'elec2'],
-                    ["用电量3(度)","",'elec3'],
-                    ["用电量4(度)","",'elec4'],
-					["用电量5(度)","",'elec5'],
-					["用电量6(度)","",'elec6'],
-					["用电量7(度)","",'elec7'],
-					["用电量8(度)","",'elec8'],
                 ],
             },
             {
@@ -226,14 +201,19 @@
                 btntype:"otherCollection",
                 divid:"content",
                 nodes:[
-                    ["温度","",'temp'],
-                    ["湿度","",'humi'],
-                    ["箱体姿态","",'pose'],
-                    ["箱门状态","",'door'],
-					["防雷器状态","",'spd'],
-					["光敏","",'light'],
-					["水浸状态","",'water'],
-                    ["漏电","",'ld'],
+                    ["温度1","",'temp1'],
+                    ["湿度1","",'humi1'],
+                    ["温度2","",'temp2'],
+                    ["湿度2","",'humi2'],
+                    ["角度","",'pose'],
+                    ["箱门1","",'door1'],
+                    ["箱门2","",'door2'],
+                    ["箱门3","",'door3'],
+                    ["箱门4","",'door4'],
+					["水浸1","",'water1'],
+					["水浸2","",'water2'],
+                    ["漏电1","",'ld1'],
+                    ["漏电2","",'ld2'],
                 ],
             },
             {
@@ -241,18 +221,15 @@
                 btntype:"ThresholdData",
                 divid:"content",
                 nodes:[
-                    ["高压(V)","<!--#aa-->",'aa'],
-					["低压(V)","<!--#ab-->",'ab'],
-                    ["电流(mA)","<!--#ac-->",'ac'],
-                    ["姿态角度(°)","<!--#ad-->",'ad'],
-                    ["温度_高","<!--#ae-->",'ae'],
-                    ["温度_低","<!--#af-->",'af'],
-                    ["湿度_高","<!--#ag-->",'ag'],
-                    ["湿度_低","<!--#ah-->",'ah'],
-					["箱门时间","<!--#ak-->",'ak'],
-                    ["漏电(mA)","<!--#am-->",'am'],
-					["重启次数","<!--#bc-->",'bc'],
-                    ["重启时间","<!--#bd-->",'bd'],
+                    ["高压(V)","<!--#A-->",'A'],
+					["低压(V)","<!--#B-->",'B'],
+                    ["电流(mA)","<!--#Q-->",'Q'],
+                    ["角度(°)","<!--#R-->",'R'],
+                    ["温度_高","<!--#S-->",'S'],
+                    ["温度_低","<!--#T-->",'T'],
+                    ["湿度_高","<!--#U-->",'U'],
+                    ["湿度_低","<!--#V-->",'V'],
+                    ["漏电(mA)","<!--#W-->",'W'],
                 ],
                 btns:[
                     ["保存","threshold_save"]
@@ -275,18 +252,6 @@
 					["继电器4","",'sw4',{
                         type:"switch",
                     }],
-					["继电器5","",'sw5',{
-                        type:"switch",
-                    }],
-					["继电器6","",'sw6',{
-                        type:"switch",
-                    }],
-					["继电器7","",'sw7',{
-                        type:"switch",
-                    }],
-					["继电器8","",'sw8',{
-                        type:"switch",
-                    }],
                 ],
             },
             {
@@ -305,8 +270,8 @@
 
             {
                 label:"系统状态",
-                divid:"content",
                 btntype:"systemStatus",
+                divid:"content",
                 nodes:[
                     ["终端序列号","",'no1'],
                     ["软件版本号","",'no2'],
@@ -315,8 +280,8 @@
             },
             {
                 label:"系统设置",
-                divid:"content",
                 btntype:"systemSetting",
+                divid:"content",
                 nodes:[
                     ["同步时间","<!--#a-->",'a'],
                     ["本机ID","<!--#b-->",'b'],
@@ -327,10 +292,6 @@
                         type:"select",
                         options:["有线传输","无线传输","自动切换"],
                     }],
-                    ['摄像机检测方式','','camera_tran',{
-                        type:"select",
-                        options:["PING方式","端口扫描","RTSP拉流测试"],
-                    }],
                 ],
                 btns:[
                     ["保存","set_save"],
@@ -338,8 +299,8 @@
             },
             {
                 label:"无线网络",
-                divid:"content",
                 btntype:"gprsSetting",
+                divid:"content",
                 nodes:[
                     ["信息强度","",'sign'],
                     ["模块状态","",'gprs'],
@@ -350,16 +311,17 @@
             },
             {
                 label:"有线网络",
-                divid:"content",
                 btntype:"networkSetting",
+                divid:"content",
                 nodes:[
                     ["IP","<!--#e-->",'e'],
                     ["子网掩码","<!--#f-->",'f'],
                     ["网关","<!--#g-->",'g'],
                     ["DNS","<!--#h-->","h"],
                     ["MAC","<!--#L-->","L"],
-                    ["主网检测地址1","<!--#i-->","i"],
-                    ["主网检测地址2","<!--#K-->","K"],
+                    ["主网地址1","<!--#i-->","i"],
+                    ["主网地址2","<!--#K-->","K"],
+                    ["信号机地址","<!--#ac-->","ac"],
 					["网络延时时间","<!--#N-->","N"],
                     ["组播IP","<!--#O-->","O"],
                     ["组播端口","<!--#P-->","P"],
@@ -369,36 +331,18 @@
                 ]
             },
             {
-                label:"摄像头设置",
-                divid:"content",
-                btntype:"otherSetting",
-                nodes:[
-                    ["摄像头1","<!--#m-->",'m'],
-                    ["摄像头2","<!--#n-->",'n'],
-                    ["摄像头3","<!--#o-->",'o'],
-                    ["摄像头4","<!--#p-->",'p'],
-                    ["摄像头5","<!--#q-->",'q'],
-                    ["摄像头6","<!--#r-->",'r'],
-                    ["ping间隔时间","<!--#s-->",'s'],
-                    ["ping间隔时间-设备","<!--#t-->",'t'],
-                ],
-                btns:[
-                    ["保存","camera_save"]
-                ]
-            },
-            {
                 label:"服务器设置",
-                divid:"content",
                 btntype:"serverset",
+                divid:"content",
                 nodes:[
                     ["内网1地址","<!--#D-->",'D'],
                     ["内网1端口","<!--#E-->",'E'],
                     ["外网1地址","<!--#F-->",'F'],
                     ["外网1端口","<!--#G-->",'G'],
-                    ["内网1地址_备份","<!--#ae-->",'ae'],
-                    ["内网1端口_备份","<!--#af-->",'af'],
-                    ["外网1地址_备份","<!--#ag-->",'ag'],
-                    ["外网1端口_备份","<!--#ah-->",'ah'],
+                    ["内网1地址_备份","",'back1'],
+                    ["内网1端口_备份","",'back2'],
+                    ["外网1地址_备份","",'back3'],
+                    ["外网1端口_备份","",'back4'],
                     ["上报间隔时间","<!--#J-->",'J'],
                 ],
                 btns:[
@@ -407,11 +351,11 @@
             },
             {
                 label:"升级服务器",
-                divid:"content",
                 btntype:"update_addr",
+                divid:"content",
                 nodes:[
-                    ["升级url","<!--#ba-->",'ba'],
-                    ["升级端口","<!--#bb-->",'bb'],
+                    ["升级url","<!--#aa-->",'aa'],
+                    ["升级端口","<!--#ab-->",'ab'],
                 ],
                 btns:[
                     ["保存","update_save"]
@@ -419,13 +363,12 @@
             },
             {
                 label:"系统操作",
-                divid:"content",
                 btntype:"system",
+                divid:"content",
                 nodes:[],
                 btns:[
                     ["系统升级-有线","updatelwip"],
 					["系统升级-无线","updategprs"],
-					["基站定位","lbsgps"],
                     ["恢复出厂","reset"],
                     ["设备重启","reboot"],
 					["擦除存储芯片","eacres"]
@@ -577,7 +520,7 @@
 		            xmlhttp=new XMLHttpRequest();
                 }
                 else if (window.ActiveXObject)
-		        {// code for IE6, IE5
+		        {
 		            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
 		        }
 		        if (xmlhttp!=null)
@@ -592,7 +535,6 @@
                             }
                             back(data)
                         }
-                        //console.log(xmlhttp.readyState,xmlhttp.status)
                     }
                     xmlhttp.open("GET",url,true);
                     xmlhttp.send(null);
@@ -645,11 +587,11 @@
                 }
             }
         }
+        
         View.init(model,document.getElementById('nav'))
+        
         if(loopTime){
             setInterval(()=>View.loop(),loopTime)
         }
-        //View.clickback([0,''])
-        //View.setNav(0)
     </script>
 </html>
