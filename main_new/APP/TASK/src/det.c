@@ -80,6 +80,15 @@ uint8_t det_main_network_and_camera_network(void)
 			return 1;
 		}
 	}
+	else if(sg_datacollec_t.main_ip == 1 || sg_datacollec_t.main_sub_ip == 1) 
+	{
+		if(main_ip[0] == 0 && main_ip[1] == 0) 
+		{
+			main_ip[0] = sg_datacollec_t.main_ip;
+			main_ip[1] = sg_datacollec_t.main_sub_ip;
+			return 1;
+		}	
+	}
 	main_ip[0] = sg_datacollec_t.main_ip;
 	main_ip[1] = sg_datacollec_t.main_sub_ip;
 	

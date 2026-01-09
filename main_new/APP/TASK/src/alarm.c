@@ -302,6 +302,10 @@ void alarm_net_collection_param(void)
 	/* 检测主网与摄像头是否发送状态变化 */
 	if(det_main_network_and_camera_network() == 1) 
 	{
+		if((det_get_main_network_status() == 0)&&(det_get_main_network_sub_status() == 0))
+			Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
+		else if((det_get_main_network_status() == 1)||(det_get_main_network_sub_status() == 1))
+			Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
 		app_report_information_immediately();
 	}	
 	
@@ -327,6 +331,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_error  |= 0x01;
 			sensor_normal &=~0x01;
+			Error_Set(ERR_TYPE_SENSOR,SENSOR_BOX_TILT);
 			app_report_information_immediately();
 		}
 	} 
@@ -336,6 +341,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_normal |= 0x01;
 			sensor_error  &=~0x01;
+			Error_Clear(ERR_TYPE_SENSOR,SENSOR_BOX_TILT);
 			app_report_information_immediately();
 		}
 	}
@@ -350,6 +356,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_error  |= 0x02;
 			sensor_normal &=~0x02;
+			Error_Set(ERR_TYPE_SENSOR,SENSOR_DOOR_OPEN);
 			app_report_information_immediately();
 		}
 	} 
@@ -359,6 +366,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_normal |= 0x02;
 			sensor_error  &=~0x02;
+			Error_Clear(ERR_TYPE_SENSOR,SENSOR_DOOR_OPEN);
 			app_report_information_immediately();
 		}
 	}
@@ -371,6 +379,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_error  |= 0x04;
 			sensor_normal &=~0x04;
+			Error_Set(ERR_TYPE_SENSOR,SENSOR_WATER_LEAK);
 			app_report_information_immediately();
 		}
 	} 
@@ -380,6 +389,7 @@ void alarm_sensor_collection_param(void)
 		{
 			sensor_normal |= 0x04;
 			sensor_error  &=~0x04;
+			Error_Clear(ERR_TYPE_SENSOR,SENSOR_WATER_LEAK);
 			app_report_information_immediately();
 		}	
 	}		
