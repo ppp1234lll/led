@@ -48,7 +48,7 @@ void eth_task_function(void)
 
 		if( app_get_network_mode() != 2) 
 		{	 
-//			eth_tcp_connect_control_function();	 
+			eth_tcp_connect_control_function();	 
 		} 
 		else 
 		{
@@ -210,7 +210,7 @@ void eth_ping_detection_function(void)
 	uint16_t times = 0;
 	uint8_t delay_time = app_get_network_delay_time(); // 网络延时时间  20220308
 	
-	ping_dev_num = 2;
+	ping_dev_num = 3;
 	
 	/* 检测是否可以开始一轮ping */
 	if(sg_ethping_t.ping_next == 0 || sg_ethping_t.dev_next == 0)
@@ -264,7 +264,26 @@ void eth_ping_detection_function(void)
 					ping_cmd = 1;
 				}
 				break;
-			default: 		break;
+			default: 
+				app_get_single_ping_ip_addr(ip);
+				if(ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0)	 
+				{
+					det_set_single_net_status(0);
+					sg_ethping_t.cnt++;
+					if(sg_ethping_t.cnt >= ping_dev_num)
+					{
+						det_set_ping_status(1);
+						sg_ethping_t.cnt = 0;						/* 开始新的一轮计时 */
+						sg_ethping_t.ping_next = 0;
+					}
+					ping_cmd = 0;
+				}
+				else					/* 检测到主机ip，开始ping */
+				{
+					lwip_ping_clear();
+					ping_cmd = 1;
+				}
+			break;
 		}
 	}
 	if(ping_cmd == 1)
@@ -291,8 +310,11 @@ void eth_ping_detection_function(void)
 							det_set_main_network_sub_status(2);
 						break;
 					default:
+						if(times <= delay_time) 
+							det_set_single_net_status(1);							
+						else
+							det_set_single_net_status(2);
 						break;
-
 				}
 			}
 			else
@@ -306,6 +328,7 @@ void eth_ping_detection_function(void)
 						det_set_main_network_sub_status(0);
 						break;
 					default:
+						det_set_single_net_status(0);
 						break;
 				}
 			}

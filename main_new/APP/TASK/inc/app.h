@@ -24,6 +24,7 @@ struct local_ip_t				// 本地网络信息
 	uint8_t multicast_ip[4];	// 组播IP
 	uint32_t multicast_port;	// 组播端口	
 	uint8_t search_mode;			// 摄像机检测模式:1-PING 2-协议  20230810
+	uint8_t single_ip[4];		
 };
 
 struct remote_ip				
@@ -49,12 +50,7 @@ struct device_param
 	uint8_t  default_password; // 0-已修改过默认密码 1-未修改默认密码
 };
 
-#define FLAG_DOOR     ((uint8_t)0x01) 
-#define FLAG_SPD      ((uint8_t)0x02) 
-#define FLAG_SIM      ((uint8_t)0x04) 
-#define FLAG_BAT      ((uint8_t)0x08) 
-#define FLAG_WATER    ((uint8_t)0x10)
-
+ 
 typedef struct
 {
 	int8_t   JumpResult;
@@ -73,12 +69,7 @@ struct threshold_params {
 	int8_t   temp_low;	// 
 	int8_t   humi_high;		// 
 	int8_t   humi_low;  // 
-
-	uint16_t door_open_time;  // 箱门时间
-	uint16_t door_close_time;  // 箱门时间
-	uint16_t light_open_time;  // 补光灯时间
-	uint16_t light_close_time;  // 补光灯时间
-	
+ 
 	uint16_t miu;         //漏电阈值
 };
 
@@ -104,11 +95,6 @@ typedef struct
 
 typedef struct
 {
-	uint8_t ip[10][4];		// 摄像头IP信息
-} carema_t;  // 对比参数
-
-typedef struct
-{
 	uint32_t heart;			   // 心跳包
 	uint32_t report;		   // 上报时间
 	uint32_t ping;			   // ping的间隔时间
@@ -128,127 +114,95 @@ typedef enum
 	SR_SEND_ERROR = 4, // 发送错误
 } send_result_e;
 
+
 /* 函数声明 */
-
-/** 执行函数 **/
 void app_task_function(void);
-void app_sw_control_function(void);			  // 开关控制
-void app_detection_collection_param(void);	  // 检测采集数据: 市电电压、市电电流、适配器1-3 、 防雷模块 、 箱门、 箱体姿态
-void app_task_save_function(void);			  // 存储任务
-void app_com_send_function(void);			  // 通信发送函数
-void app_com_time_function(void);  // 通信计时函数
-void app_sys_operate_timer_function(void);  // 继电器处理函数
-
-
-void app_set_switch_control_function(uint8_t mode, uint8_t cmd);			// 设置开关状态
-void app_set_com_send_flag_function(uint8_t cmd, uint8_t data);				// 设置发送标志位
-void app_set_reply_parameters_function(uint8_t cmd, uint8_t error);		// 设置回复参数
-void app_set_send_result_function(send_result_e data);							// 设置发送结果函数
-void app_set_peripheral_switch(uint8_t cmd, uint8_t data);						// 设置外设开关状态
-void app_set_sys_opeare_function(uint8_t cmd, uint8_t data);					// 设置操作任务 - 立即回发
-void app_set_save_infor_function(uint8_t mode);									// 设置保存信息
-void app_set_local_network_function(struct local_ip_t param);					// 设置本地网络参数
-void app_set_local_network_function_two(struct local_ip_t param);				// 存储部分网络参数
-void app_set_transfer_mode_function(uint8_t mode);								// 设置传输模式
-
-void app_set_remote_network_function(struct remote_ip param);					// 设置远端网络参数
-void app_set_reset_function(void);												// 设备重置
-void app_set_mac_reset_function(void);
-void app_set_camera_function(uint8_t *ip);										// 设置摄像头IP
-void app_set_camera_num_function(uint8_t *ip, uint8_t num);						// 设置指定位数摄像头IP
-
-void app_set_device_param_function(struct device_param param);					// 设置设备参数
-void app_set_next_report_time(uint16_t time);									  // 设置下一次上报时间
-void app_set_next_report_time_other(uint16_t time,uint8_t sel);					// 设置上报间隔时间-可选择
-void app_set_next_ping_time(uint16_t time, uint8_t time_dev);					// 设置下一次ping的时间
-void app_set_network_delay_time(uint8_t time_dev);             // 设置网络延时时间  20220308
-void app_set_current_time(int *time,uint8_t conv);								// 设置当前时间
-void app_set_main_network_ping_ip(uint8_t *ip);									// 设置主PING地址
-void app_set_com_interface_selection_function(uint8_t mode);					// 通信接口选择函数
-void app_set_com_time_param_function(uint32_t *time,uint8_t mode) ;				// 设置通信相关时间参数:ping、上报
-
-void app_set_code_function(struct device_param param);   // 设置密码
-void app_set_onvif_reload_time(uint8_t time_dev,uint8_t mode);
-
-void app_report_information_immediately(void); // 立即上报数据
-void app_deal_com_flag_function(void);   // 用来处理通信发送标志
-void app_deal_com_send_wait_function(void);  // 发送等待处理任务
-void app_sys_operate_timer_function(void);  // 继电器处理函数
-void app_send_once_heart_infor(void);							// 立刻发送一次心跳信息
-void app_send_query_configuration_infor(void);  // 立刻发送配置
-
-uint8_t app_get_com_send_status_function(void);  // 获取当前通信状态
-void app_get_storage_param_function(void);	// 用于获取存储的参数的函数
-void *app_get_local_network_function(void);  					// 获取本机网络信息
-void *app_get_remote_network_function(void); 					// 获取远端网络信息
-void *app_get_backups_function(void);             // 20231022
-int8_t app_get_camera_function(uint8_t *ip, uint8_t num);		// 获取指定摄像头ip
-int8_t app_get_camera_mac_function(uint8_t *mac, uint8_t num);// 获取指定摄像头mac
-void *app_get_device_param_function(void);						// 获取设备参数
-uint16_t app_get_com_heart_time(void);							// 获取心跳
-void app_get_current_time(char *time);							// 获取当前时间
-void *app_get_current_times(void);									// 获取当前时间
-uint8_t* app_get_report_current_time(uint8_t mode);
-uint32_t app_get_next_ping_time(void);							// 下次ping的时间
-uint32_t app_get_next_dev_ping_time(void);						// 获取下一个设备ping的时间
-uint32_t app_get_report_time(void);								// 上报时间
-uint8_t app_get_network_delay_time(void) ;  // 获取网络延时时间 20220308
-uint8_t app_get_onvif_time(void);          // 获取ONVIF时间  20230811
-void app_get_main_network_ping_ip_addr(uint8_t* ip);			// 获取主网ip1
-void app_get_main_network_sub_ping_ip_addr(uint8_t* ip);		// 获取主网pingip地址 2
-void *app_get_com_time_infor(void);								// 获取通信间隔时间
-uint8_t app_get_network_mode(void);								// 获取网络模式
-uint8_t app_get_carema_search_mode(void);         // 获取搜索协议  20230810
-void app_get_network_connect_status(char *buff);				// 获取网络连接状态
-uint8_t *app_get_device_name(void);
-
-
-void *app_get_carema_param_function(void);
-uint8_t app_get_com_interface_selection_function(void);
-
+void app_task_save_function(void);			   
+void app_com_send_function(void);			   
+void app_server_link_status_function(void);  
+void app_deal_com_flag_function(void);
+void app_deal_com_send_wait_function(void);
+void app_com_send_function(void);
+void app_com_time_function(void);
 void app_detect_function(void);
-int8_t app_match_local_camera_ip(uint8_t *ip);					// 匹配摄像头地址
-int8_t app_match_password_function(char *password);				// 密码校验函数
 
-void app_set_lwip_reset_status(uint8_t sta); // 设置网络复位标志位
-uint8_t app_get_lwip_reset_status(void);
-
-// 20230720
-void app_set_threshold_param_function(struct threshold_params param); 
-void *app_get_threshold_param_function(void);        
+void app_set_com_send_flag_function(uint8_t cmd, uint8_t data);
+void app_set_reply_parameters_function(uint8_t cmd, uint8_t error);
+void app_set_send_result_function(send_result_e data);
+void app_set_sys_opeare_function(uint8_t cmd, uint8_t data);
 
 
-int8_t app_match_password_function(char *password); // 密码比较函数
-int8_t app_match_set_code_function(void);  // 确认是否需要需要修改默认密码
+void app_report_information_immediately(void);
+void app_send_once_heart_infor(void);
+void app_send_query_configuration_infor(void);
 
-void app_server_link_status_function(void); // 20231022
-void app_save_backups_remote_param_function(void); // 20231024
+uint8_t app_get_com_send_status_function(void);
 
-void app_open_exec_task_function(void);
-void app_power_fail_protection_function(void);
-void app_power_open_protection_function(void);
+void app_sys_operate_timer_function(void);
+void app_sys_ctrl_relay_reload(void);
+void app_set_relay_switch(uint8_t cmd, uint8_t id,uint8_t status);
 
-// 20240903
+void app_get_storage_param_function(void);
+void app_task_save_function(void);
+
+void app_set_save_infor_function(uint8_t mode);
+void app_set_local_network_function_two(struct local_ip_t param);
+void app_set_transfer_mode_function(uint8_t mode) ;
+void app_set_remote_network_function(struct remote_ip param);
+void app_set_reset_function(void);
 void app_set_fan_humi_param_function(uint8_t *data);
 void app_set_fan_param_function(int8_t *data);
 void app_set_vol_current_param(uint16_t *data);
-void app_send_data_task_function(void);
-void my_app_run_param_init(void);
-void app_sys_operate_relay(void);
-uint32_t app_get_device_reload_time(void);
-
-uint8_t app_get_update_status_function(void);
+void app_set_device_param_function(struct device_param param);	
+void app_set_next_report_time(uint16_t time);
+void app_set_next_report_time_other(uint16_t time,uint8_t sel);
+void app_set_next_ping_time(uint16_t time, uint8_t time_dev);
+void app_set_network_delay_time(uint8_t time_dev);
+void app_set_code_function(struct device_param param);
+void app_set_current_time(int *time,uint8_t conv);
+void app_set_main_network_ping_ip(uint8_t *ip);
+void app_set_single_device_ping_ip(uint8_t *ip);
+void app_set_com_interface_selection_function(uint8_t mode);	
+void app_set_com_time_param_function(uint32_t *time,uint8_t mode);
+void app_set_threshold_param_function(struct threshold_params param);
 void app_set_update_status_function(uint8_t flag);
-
-void app_set_fill_light_function(uint16_t *time);
-void app_set_door_time_function(uint16_t *time);
-
-
-// 更新地址 20241101
-void *app_get_http_ota_function(void);
 void app_set_http_ota_function(struct update_addr param);
 
+
+void *app_get_local_network_function(void);
+void *app_get_remote_network_function(void);
+void *app_get_backups_function(void);
+void *app_get_device_param_function(void);
+void app_get_current_time(char *time);
+uint8_t* app_get_report_current_time(uint8_t mode);
+uint32_t app_get_next_ping_time(void);
+uint32_t app_get_next_dev_ping_time(void);
+uint32_t app_get_report_time(void);
+uint8_t app_get_network_delay_time(void); 
+uint16_t app_get_com_heart_time(void);
+void app_get_main_network_ping_ip_addr(uint8_t* ip);
+void app_get_main_network_sub_ping_ip_addr(uint8_t* ip);
+void app_get_single_ping_ip_addr(uint8_t* ip);
+uint8_t app_get_com_interface_selection_function(void);
+void *app_get_com_time_infor(void);
+uint8_t app_get_network_mode(void);
+void app_get_network_connect_status(char *buff);
+uint8_t *app_get_device_name(void);
+void *app_get_threshold_param_function(void);
+void *app_get_backups_param_function(void);
+uint8_t app_get_update_status_function(void);
+void *app_get_http_ota_function(void);
+
+
+int8_t app_match_password_function(char *password);
+int8_t app_match_set_code_function(void);
+void app_save_backups_remote_param_function(void);
+void app_power_fail_protection_function(void);
+void app_power_open_protection_function(void)	;
+void app_send_data_task_function(void);
 void app_system_softreset(uint32_t time);
+void System_SoftReset(void);
 void app_reboot_timer_run(void);
+
 
 #endif

@@ -5,6 +5,8 @@
 #include "./SYSTEM/sys/sys.h"
 #include <stdint.h>
 
+int printf(const char *format, ...);
+
 extern uint32_t SystemCoreClock;
 
 /* 基础配置选项 */

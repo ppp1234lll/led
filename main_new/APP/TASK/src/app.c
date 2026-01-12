@@ -62,7 +62,6 @@ typedef struct
 __attribute__((section (".RAM_D1")))  sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
 __attribute__((section (".RAM_D1")))  sys_operate_t sg_sysoperate_t; // 系统操作参数：包括通信、存储、计时
 __attribute__((section (".RAM_D1")))  sys_param_t   sg_sysparam_t   = {0}; // 系统参数：本地、远端、设备、上报相关参数
-__attribute__((section (".RAM_D1")))  carema_t      sg_carema_param_t;   //onvif 摄像头信息
 __attribute__((section (".RAM_D1")))  com_param_t   sg_comparam_t	 	  = {
 	90000,
 	60000,
@@ -92,13 +91,12 @@ void app_task_function(void)
 
 	for(;;)
 	{
- 
 		app_task_save_function();   				// 存储相关任务
 		com_deal_main_function(); 					// 处理接收数据
 		app_com_send_function();						// 通信发送
 		app_server_link_status_function();
-		app_open_exec_task_function();		
-//		app_sys_operate_relay();
+		app_sys_ctrl_relay_reload();
+		
 		get_time_cnt++;
 		if(get_time_cnt>100)
 		{
@@ -113,14 +111,14 @@ void app_task_function(void)
 	}
 }
 
-/************************************************************
-*
-* Function name	: app_set_com_send_flag_function
-* Description	: 设置发送函数
-* Parameter		: 
-* Return		: 
-*	修改：增加摄像机ID号  20220329	
-************************************************************/
+/*
+*********************************************************************************************************
+*	函 数 名: app_set_com_send_flag_function
+*	功能说明: 设置发送函数 
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
 void app_set_com_send_flag_function(uint8_t cmd, uint8_t data)
 {
 	switch(cmd)
@@ -219,7 +217,6 @@ void app_deal_com_flag_function(void)
 		sg_sysoperate_t.com_flag.report_normally = 0;
 		memset(sg_send_buff,0,sizeof(sg_send_buff));
 		com_report_normally_function(sg_send_buff,&sg_send_size,CR_QUERY_INFO);		/* 发送正常上报数据 */
-		/* 设置发送参数 */
 		sg_sysoperate_t.com.send_cmd = CR_QUERY_INFO;
 		sg_sysoperate_t.com.repeat   = 0; 		// 重启一次正常上报计时   
 	}
@@ -229,7 +226,6 @@ void app_deal_com_flag_function(void)
 	if(sg_sysoperate_t.com_flag.query_configuration == 1)
 	{
 		sg_sysoperate_t.com_flag.query_configuration = 0;
-		/* 发送查询配置 */
 		memset(sg_send_buff,0,sizeof(sg_send_buff));
 		com_query_configuration_function(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
@@ -239,7 +235,6 @@ void app_deal_com_flag_function(void)
 	if(sg_sysoperate_t.com_flag.version == 1)
 	{
 		sg_sysoperate_t.com_flag.version = 0;
-		/* 发送正常上报数据 */
 		com_version_information(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
 	}
@@ -248,11 +243,8 @@ void app_deal_com_flag_function(void)
 	if(sg_sysoperate_t.com_flag.config_return == 1)
 	{
 		sg_sysoperate_t.com_flag.config_return = 0;
-		/* 数据回传 */
 		com_ack_function(sg_send_buff,&sg_send_size,sg_sysoperate_t.com.return_cmd,sg_sysoperate_t.com.return_error);
-		
 		app_send_data_task_function();
-
 	}
 	
 }
@@ -456,37 +448,6 @@ void app_com_time_function(void)
 	}
 }
 
-/************************************************************
-*
-* Function name	: app_set_peripheral_switch
-* Description	: 外设开关控制
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_peripheral_switch(uint8_t cmd, uint8_t data)
-{
-
-	app_set_reply_parameters_function(cmd,0x01);
-}
-/************************************************************
-*
-* Function name	: app_opeare_relay_function
-* Description	: 操作继电器
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-int app_opeare_relay_function(uint8_t num, uint8_t relay,uint8_t status)
-{
-	if(sg_sysoperate_t.sys_flag.relay_reset[relay-1] == 0)
-	{
-		sg_sysoperate_t.sys_flag.relay_reset[relay-1] = 1;
-		return 0;
-	}
-	else
-		return -1;
-}
 
 /************************************************************
 *
@@ -504,12 +465,13 @@ void app_set_sys_opeare_function(uint8_t cmd, uint8_t data)
 	switch(cmd)
 	{
 		case CR_SINGLE_CAMERA_CONTROL:
-			if(data>=0x01 && data <= 8)
+			if(data>=1 && data <= 8)
 			{
 				if(sg_sysoperate_t.sys_flag.adapter_reset == 0)
 				{
-					sg_sysoperate_t.sys_flag.adapter_reset = 1;
-					sg_sysoperate_t.sys.adapter_num = data;
+					sg_sysoperate_t.sys_flag.relay_reset[data] = 1;
+//					sg_sysoperate_t.sys_flag.adapter_reset = 1;
+//					sg_sysoperate_t.sys.adapter_num = data;
 					app_set_reply_parameters_function(CR_SINGLE_CAMERA_CONTROL,0x01);
 				}
 				else
@@ -549,55 +511,7 @@ REPEAT1:
 			/* 重启设备 */
 			app_system_softreset(1000);
 			break;
-		case CR_LWIP_NETWORK_RESET:	
-			sg_sysoperate_t.com.return_error = 1;
-			/* 数据回传 */
-			com_ack_function(sg_send_buff,&sg_send_size,\
-							 sg_sysoperate_t.com.return_cmd,\
-							 sg_sysoperate_t.com.return_error);
-			cnt = 0;
-REPEAT2:
-			/* 立即发送 */
-			app_send_data_task_function();	
 
-			if(ret < 0)
-			{
-				cnt++;
-				if(cnt<=3)
-				{
-					vTaskDelay(100);
-					goto REPEAT2;
-				}
-			}
-			vTaskDelay(100);
-			eth_set_network_reset();
-			break;
-			
-		case CR_GPRS_NETWORK_RESET:
-			sg_sysoperate_t.com.return_error = 1;
-			/* 数据回传 */
-			com_ack_function(sg_send_buff,&sg_send_size,\
-							 sg_sysoperate_t.com.return_cmd,\
-							 sg_sysoperate_t.com.return_error);
-			cnt = 0;
-REPEAT3:
-			/* 立即发送 */
-			app_send_data_task_function();	
-
-			if(ret < 0)
-			{
-				cnt++;
-				if(cnt<=3)
-				{
-					vTaskDelay(100);
-					goto REPEAT3;
-				}
-			}			
-			vTaskDelay(100);
-			/* 重启GPRS */
-			gsm_set_module_reset_function();
-			break;
-			
 			case CR_GPRS_NETWORK_V_RESET:
 			sg_sysoperate_t.com.return_error = 1;
 			/* 数据回传 */
@@ -679,13 +593,13 @@ void app_sys_operate_timer_function(void)
 
 /************************************************************
 *
-* Function name	: app_sys_operate_relay
+* Function name	: app_sys_ctrl_relay_reload
 * Description	: 继电器重启
 * Parameter		: 
 * Return		: 
 *	
 ************************************************************/
-void app_sys_operate_relay(void)
+void app_sys_ctrl_relay_reload(void)
 {
 	static uint16_t relay_time[8] = {0};
 		
@@ -709,6 +623,34 @@ void app_sys_operate_relay(void)
 	}
 }
 
+/************************************************************
+*
+* Function name	: app_set_relay_switch
+* Description	: 外设开关控制
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+void app_set_relay_switch(uint8_t cmd, uint8_t id,uint8_t status)
+{
+	switch (cmd) 
+	{
+		case CTRL_RELAY_POWER:
+			if (status == 1)
+			{
+				relay_control((RELAY_DEV)id,RELAY_ON);
+			}
+			else if(status == 2)
+			{
+				relay_control((RELAY_DEV)id,RELAY_OFF);
+			}
+			break;
+		
+		default:
+			break;
+	}
+	app_set_reply_parameters_function(cmd,0x01);
+}
 /***********************************************************************************
 					参数的配置与获取
 ***********************************************************************************/
@@ -727,7 +669,6 @@ void app_get_storage_param_function(void)
 	save_read_remote_ip_function(&sg_sysparam_t.remote);
 	save_read_device_paramter_function(&sg_sysparam_t.device);
 	save_read_com_param_function(&sg_comparam_t);
-	save_read_carema_parameter(&sg_carema_param_t);   //20230712
 	save_read_threshold_parameter(&sg_sysparam_t.threshold); // 20230720
 	save_read_http_ota_function(&sg_sysparam_t.ota);
 	save_read_backups_function(&sg_backups_t); // 20231022
@@ -759,8 +700,7 @@ void app_task_save_function(void)
 	{
 		sg_sysoperate_t.save_flag.save_remote_network = 0;
 		save_stroage_remote_ip_function(&sg_sysparam_t.remote);
-		
-		vTaskDelay(100);
+
 		app_system_softreset(1000);
 	}
 
@@ -835,29 +775,6 @@ void app_set_save_infor_function(uint8_t mode)
 void *app_get_local_network_function(void)
 {
 	return (&sg_sysparam_t.local);
-}
-
-/************************************************************
-*
-* Function name	: app_set_local_network_function
-* Description	: 设置本地网络参数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_local_network_function(struct local_ip_t param)
-{
-	uint8_t mac[6] = {0};
-	uint8_t main_ip[4] = {0};
-	
-	memcpy(mac,sg_sysparam_t.local.mac,6); 			// 备份
-	memcpy(main_ip,sg_sysparam_t.local.ping_ip,4); 	// 备份
-	memset((uint8_t*)&sg_sysparam_t.local,0,sizeof(struct local_ip_t));
-	memcpy((uint8_t*)&sg_sysparam_t.local,&param,sizeof(struct local_ip_t));
-	memcpy(sg_sysparam_t.local.mac,mac,6); 			// 还原
-	memcpy(sg_sysparam_t.local.ping_ip,main_ip,4); 	// 还原
-	/* 保存 */
-	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }
 
 /************************************************************
@@ -947,9 +864,7 @@ void *app_get_backups_function(void)
 void app_set_remote_network_function(struct remote_ip param)
 {
 	app_save_backups_remote_param_function();  // 备份服务器信息
-	
 	memcpy(&sg_sysparam_t.remote,&param,sizeof(struct remote_ip));
-	/* 存储 */
 	app_set_save_infor_function(SAVE_REMOTE_IP);
 }
 
@@ -964,103 +879,6 @@ void app_set_remote_network_function(struct remote_ip param)
 void app_set_reset_function(void)
 {
 	sg_sysoperate_t.save_flag.save_reset = 1;
-}
-
-/************************************************************
-*
-* Function name	: app_get_camera_function
-* Description	: 获取相机IP信息
-* Parameter		: 
-*	@ip			: ip数据
-*	@num		: 摄像机号数
-* Return		: 
-*	
-************************************************************/
-int8_t app_get_camera_function(uint8_t *ip, uint8_t num)
-{	
-	/* 验证是否有ip地址 */
-	if( sg_carema_param_t.ip[num][0] == 0 && \
-		  sg_carema_param_t.ip[num][1] == 0 && \
-		  sg_carema_param_t.ip[num][2] == 0 && \
-		  sg_carema_param_t.ip[num][3] == 0)
-	{
-		return -1;
-	}
-	else
-	{
-		memcpy(ip,sg_carema_param_t.ip[num],4);
-	}
-	return 0;
-}
-
-/************************************************************
-*
-* Function name	: app_set_camera_function
-* Description	: 设置摄像机ip地址
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_camera_function(uint8_t *ip)
-{
-	memset(sg_carema_param_t.ip,0,sizeof(sg_carema_param_t.ip));
-	memcpy(sg_carema_param_t.ip,ip,sizeof(sg_carema_param_t.ip));
-	/* 存储 */
-	app_set_save_infor_function(SAVE_CAREMA);
-}
-
-/************************************************************
-*
-* Function name	: app_get_carema_param_function
-* Description	: 获取摄像机参数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void *app_get_carema_param_function(void)
-{
-	return (&sg_carema_param_t);
-}
-
-/************************************************************
-*
-* Function name	: app_set_camera_num_function
-* Description	: 设置摄像机ip - 指定摄像机
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_camera_num_function(uint8_t *ip, uint8_t num)
-{
-	sg_carema_param_t.ip[num][0] = ip[0];
-	sg_carema_param_t.ip[num][1] = ip[1];
-	sg_carema_param_t.ip[num][2] = ip[2];
-	sg_carema_param_t.ip[num][3] = ip[3];
-	app_set_save_infor_function(SAVE_CAREMA);
-}
-
-/************************************************************
-*
-* Function name	: app_match_local_camera_ip
-* Description	: 匹配本地IP
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-int8_t app_match_local_camera_ip(uint8_t *ip)
-{
-	int8_t  ret   = 0;
-	uint8_t index = 0;
-	
-	for(index = 0; index<10; index++)
-	{
-		if(memcmp(sg_carema_param_t.ip[index],ip,4) == 0)
-		{
-			ret = -1;
-			break;
-		}
-	}
-	return ret;
 }
 
 /************************************************************
@@ -1091,36 +909,6 @@ void app_set_fan_param_function(int8_t *data)
 	sg_sysparam_t.threshold.temp_high = data[0];
 	sg_sysparam_t.threshold.temp_low = data[1];
 	app_set_save_infor_function(SAVE_THRESHOLD);	/* 存储 */
-}
-
-/************************************************************
-*
-* Function name	: app_set_fill_light_function
-* Description	: 设置补光灯开启时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_fill_light_function(uint16_t *time)
-{
-	sg_sysparam_t.threshold.light_open_time = time[0];
-	sg_sysparam_t.threshold.light_close_time= time[1];
-	app_set_save_infor_function(SAVE_THRESHOLD);
-}
-
-/************************************************************
-*
-* Function name	: app_set_door_time_function
-* Description	: 设置箱门开启时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_door_time_function(uint16_t *time)
-{
-	sg_sysparam_t.threshold.door_open_time = time[0];
-	sg_sysparam_t.threshold.door_close_time= time[1];
-	app_set_save_infor_function(SAVE_THRESHOLD);
 }
 
 /************************************************************
@@ -1294,25 +1082,6 @@ void app_set_network_delay_time(uint8_t time_dev)
 
 /************************************************************
 *
-* Function name	: app_set_onvif_reload_time
-* Description	: 设置搜索协议时间、重启时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_set_onvif_reload_time(uint8_t time_dev,uint8_t mode)
-{
-	switch(mode)
-	{
-		case 0: sg_comparam_t.onvif_time = time_dev; break;
-		default: break;
-	}
-	app_set_save_infor_function(SAVE_COM_PARAMETER);
-}
-
-
-/************************************************************
-*
 * Function name	: app_get_current_time
 * Description	: 获取当前时间
 * Parameter		: 
@@ -1328,18 +1097,6 @@ void app_get_current_time(char *time)
 												 sg_rtctime_t.hour,\
 												 sg_rtctime_t.min,\
 												 sg_rtctime_t.sec);
-}
-/************************************************************
-*
-* Function name	: app_get_current_times
-* Description	: 获取当前时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void *app_get_current_times(void)
-{
-	return &sg_rtctime_t;
 }
 
 /************************************************************
@@ -1465,18 +1222,6 @@ uint8_t app_get_network_delay_time(void)
 {
 	return sg_comparam_t.network_time;
 }
-/************************************************************
-*
-* Function name	: app_get_onvif_time
-* Description	: 获取ONVIF间隔时间
-* Parameter		: 
-* Return		: 
-*	  20230811
-************************************************************/
-uint8_t app_get_onvif_time(void) 
-{
-	return sg_comparam_t.onvif_time;
-}
 
 /************************************************************
 *
@@ -1509,7 +1254,21 @@ void app_get_main_network_sub_ping_ip_addr(uint8_t* ip)
 	ip[2] = sg_sysparam_t.local.ping_sub_ip[2];
 	ip[3] = sg_sysparam_t.local.ping_sub_ip[3];
 }
-	
+/************************************************************
+*
+* Function name	: app_get_single_ping_ip_addr
+* Description	: 获取信号机IP
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+void app_get_single_ping_ip_addr(uint8_t* ip)
+{
+	ip[0] = sg_sysparam_t.local.single_ip[0];
+	ip[1] = sg_sysparam_t.local.single_ip[1];
+	ip[2] = sg_sysparam_t.local.single_ip[2];
+	ip[3] = sg_sysparam_t.local.single_ip[3];
+}
 /************************************************************
 *
 * Function name	: app_set_main_network_ping_ip
@@ -1530,6 +1289,25 @@ void app_set_main_network_ping_ip(uint8_t *ip)
 	sg_sysparam_t.local.ping_sub_ip[2] = ip[6];
 	sg_sysparam_t.local.ping_sub_ip[3] = ip[7];
 	
+	/* 保存 */
+	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: app_set_single_device_ping_ip
+*	功能说明: 设置信号机IP.  
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_set_single_device_ping_ip(uint8_t *ip)
+{
+	sg_sysparam_t.local.single_ip[0] = ip[0];
+	sg_sysparam_t.local.single_ip[1] = ip[1];
+	sg_sysparam_t.local.single_ip[2] = ip[2];
+	sg_sysparam_t.local.single_ip[3] = ip[3];
+
 	/* 保存 */
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }
@@ -1590,7 +1368,6 @@ void app_send_query_configuration_infor(void)
 	sg_sysoperate_t.com_flag.query_configuration = 1;
 }
 
-
 /************************************************************
 *
 * Function name	: app_get_com_time_infor
@@ -1622,18 +1399,6 @@ uint8_t app_get_network_mode(void)
         default:
             return 4;
     }
-}
-/************************************************************
-*
-* Function name	: app_get_carema_search_mode
-* Description	: 获取摄像机搜索协议
-* Parameter		: 
-* Return		: 
-*	   20230810
-************************************************************/
-uint8_t app_get_carema_search_mode(void) 
-{
-	return sg_sysparam_t.local.search_mode;
 }
 
 /************************************************************
@@ -1857,18 +1622,7 @@ void app_power_open_protection_function(void)
 	relay_control(RELAY_4,RELAY_ON); // 开继电器
 	vTaskDelay(1000);
 }
-/************************************************************
-*
-* Function name	: app_open_exec_task_function
-* Description	: 开关状态执行函数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void app_open_exec_task_function(void)
-{
 
-}
 /************************************************************
 *
 * Function name	: app_send_data_task_function
@@ -1879,10 +1633,10 @@ void app_open_exec_task_function(void)
 ************************************************************/
 void app_send_data_task_function(void)
 {
-//	if(sg_sysoperate_t.com.send_mode == 0)
-//		tcp_set_send_buff(sg_send_buff,sg_send_size);
-//	else
-//		gsm_send_tcp_data(sg_send_buff,sg_send_size);
+	if(sg_sysoperate_t.com.send_mode == 0)
+		tcp_set_send_buff(sg_send_buff,sg_send_size);
+	else
+		gsm_send_tcp_data(sg_send_buff,sg_send_size);
 }
 
 /************************************************************
@@ -1913,21 +1667,6 @@ uint8_t app_get_update_status_function(void)
 	return sg_sysoperate_t.update.status;
 }
 
-/************************************************************
-*
-* Function name	: my_app_run_param_init
-* Description	: 程序运行参数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void my_app_run_param_init(void)
-{
-//	run_result_t  sg_run_param = {0};
-//	save_read_run_param(&sg_run_param);
-//	sg_run_param.JumpResult = 1; // 跳转成功
-//	save_write_run_param(sg_run_param);
-}
 /************************************************************
 *
 * Function name	: app_get_http_ota_function
@@ -1969,6 +1708,20 @@ void app_system_softreset(uint32_t time)
 	lfs_unmount(&g_lfs_t);
 	sg_reboot_time = time;
 }
+/*
+*********************************************************************************************************
+*	函 数 名: System_SoftReset
+*	形    参: 无 
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void System_SoftReset(void)
+{
+	taskENTER_CRITICAL();
+	sys_intx_disable( ); //关闭所有中断 
+	HAL_NVIC_SystemReset(); //复位
+}
+
 /************************************************************
 *
 * Function name	: 

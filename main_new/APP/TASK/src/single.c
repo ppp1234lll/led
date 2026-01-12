@@ -15,11 +15,20 @@
 #define RECV_END_BYTE1 (0xFF) 	 
 #define RECV_END_BYTE2 (0xFF) 	 
 		
+typedef void (*UartSendFuncPtr)(uint8_t *data, uint16_t len);	
+	
+static const UartSendFuncPtr uart_send_table[BOARD_MAX] = {
+    Lpuart1_Send_Data,  
+    Usart1_Send_Data,    
+    Usart4_Send_Data,    
+    Uart5_Send_Data     
+};		
+		
 single_data_t g_singleboard_t[BOARD_MAX];
 
 uint8_t single_send_buf[16];  
 uint8_t single_send_len;
-uint8_t single_recv_buf[BOARD_MAX][128] ;
+uint8_t single_recv_buf[BOARD_MAX][200] ;
 uint16_t single_recv_sta[BOARD_MAX]  ;  
 /*
 *********************************************************************************************************
@@ -33,14 +42,14 @@ void single_task_function(void)
 {
 	uint8_t send_status = 0;
 	printf("run here\n");
+	uint8_t index;
+	
+	single_cmd_board_data(single_send_buf,&single_send_len);  
 	while(1)
 	{
-		if(send_status == 0)
+		for(index = 0;index<BOARD_MAX;index++)
 		{
-			single_cmd_board_data(single_send_buf,&single_send_len);  
-			Lpuart1_Send_Data(single_send_buf,single_send_len);
-			
-			send_status = 1;
+			Uart_Send_Data((borad_id_t)index,single_send_buf,single_send_len);
 		}
 		if(single_deal_board_data(BOARD_4) == 0)
 		{
@@ -50,6 +59,22 @@ void single_task_function(void)
 		iwdg_feed();      			
 		vTaskDelay(100);  	 	  
 	}
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: single_cmd_board_data
+*	功能说明: 获取检测板数据
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void Uart_Send_Data(borad_id_t num, uint8_t *data, uint16_t len)
+{
+	if (num >= BOARD_MAX || data == NULL || len == 0) {
+		return; 
+	}
+	uart_send_table[num](data, len);
 }
 
 /*

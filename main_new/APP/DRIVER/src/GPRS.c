@@ -14,8 +14,8 @@
 
 #include "bsp.h"
 #include "./DRIVER/inc/GPRS.h"
-#include "FreeRTOS.h"
-#include "task.h"
+#include "appconfig.h"
+
 /*
 *********************************************************************************************************
 *	                            时钟，引脚，DMA，中断等宏定义
@@ -467,7 +467,7 @@ int8_t gprs_status_check_function(void)
 					memset(time,0,sizeof(time));
 					sscanf((char*)p1,"%d/%d/%d,%d:%d:%d",&time[0],&time[1],&time[2],&time[3],&time[4],&time[5]);
 					time[0] += 2000;
-//					app_set_current_time((int*)time,1);
+					app_set_current_time((int*)time,1);
 					repeat = 0;
 					sg_gprs_status_t.step = 8;
 				} else {
@@ -934,10 +934,10 @@ void gprs_get_receive_data_function(uint8_t *buff, uint16_t len)
 	if( (len == 0) || (buff == NULL) ) { return; }
 
 	/* 检测当前模块模式 */
-//	if
-//	(	(sg_gprs_status_t.cmdon == 1)  || // 发送指令
-//	  ((update_get_mode_function() == UPDATE_MODE_GPRS) && (gsm_get_network_connect_status_function() == 1)) // 无线更新时
-//	)
+	if
+	(	(sg_gprs_status_t.cmdon == 1)  || // 发送指令
+	  ((update_get_mode_function() == UPDATE_MODE_GPRS) && (gsm_get_network_connect_status_function() == 1)) // 无线更新时
+	)
 	{
 		// 防止溢出
 		if( !(gprs_rx_status & 0x8000) )
@@ -965,7 +965,7 @@ void gprs_get_receive_data_function(uint8_t *buff, uint16_t len)
 			trace_gprs_recv_buff( buff,len );
 		#endif
 	} 
-//	else
+	else
 	{
 		/* 云平台命令数据 */
 		#if 0 // 测试完立即注释掉!
@@ -990,7 +990,7 @@ void gprs_get_receive_data_function(uint8_t *buff, uint16_t len)
 		pt++; // 此时指向真实的数据
 
 		//printf("\ngprs接收 %d 个字节\n", gprs_data_len);
-//		com_stroage_cache_data((uint8_t *)pt, gprs_data_len);
+		com_stroage_cache_data((uint8_t *)pt, gprs_data_len);
 	}
 }
 ////////////////////

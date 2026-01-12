@@ -100,10 +100,6 @@ void save_read_default_device_paramter_function(struct device_param *param);
 void save_read_default_remote_ip(struct remote_ip *remote);
 void save_read_default_com_param_function(com_param_t *param);
 
-// 20230712 摄像机相关参数
-int8_t save_read_carema_parameter(carema_t *param);
-void save_read_default_carema_parameter(carema_t *param);
-int8_t save_stroage_carema_parameter(carema_t *param);
 
 // 20230723 阈值
 int8_t save_stroage_threshold_parameter(struct threshold_params *param);

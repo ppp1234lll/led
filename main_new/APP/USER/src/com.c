@@ -63,6 +63,23 @@ uint8_t com_report_get_main_network_status(uint8_t main)
 					status = 2;				// 网络断开
 			}
 			break;
+			
+		case 2:
+			app_get_single_ping_ip_addr(ip); 
+			if(ip[0] == 0 && ip[1] == 0 && ip[2] == 0 && ip[3] == 0) 
+			{
+				status = 0;					// 不存在
+			} 
+			else 
+			{
+				if( det_get_single_net_status() == 1) 
+					status = 1;			 
+				else if( det_get_single_net_status() == 2)  
+					status = 4;		 
+				else 
+					status = 2;				 
+			}
+			break;
 	}
 	return status;
 }
@@ -83,8 +100,6 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	uint8_t			crc			= 0;
 	uint8_t  		str[64] ={0};
 	uint8_t			*p			= 0;
-	uint16_t		buff[4] ={0};
-	fp32				temp 		= 0;
 	char 			  str_buff[8][8] = {0};
 	
 	/* 数据头 */
@@ -287,14 +302,13 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	struct remote_ip    	*remote     = app_get_remote_network_function();
 	struct local_ip_t   	*local      = app_get_local_network_function();
 	       com_param_t    *comparam   = app_get_com_time_infor();
-	       carema_t       *ipc        = app_get_carema_param_function();
 	struct threshold_params *threshol = app_get_threshold_param_function();
 	struct update_addr    *ota        = app_get_http_ota_function();	
-	uint8_t name[5]     = {0};
+
 	char  temp[128] 	= {0};
 	char  crc_buff[20]	= {0};
 	uint8_t crc		    = 0;
-	uint8_t index 		= 0;
+
 	
 	/* 生成校验码 */
 	sprintf(crc_buff,"%x%dE1",0x10,device->id.i);
@@ -921,33 +935,27 @@ void com_deal_configure_mac(com_rec_data_t *buff)
 	
 }
 
-/************************************************************
-*
-* Function name	: com_deal_configure_device_id
-* Description	: 配置设备ID
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void com_deal_configure_device_id(com_rec_data_t *buff)
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_ip
+*	功能说明: 配置IP.  
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_ip(com_rec_data_t *buff)
 {
-	struct device_param  *param  = app_get_device_param_function();
-		
-	/* 获取ID */
-	param->id.i   = (buff->buff[0]<<16)|(buff->buff[1]<<8)|(buff->buff[2]<<0);
+	uint8_t ip[4];
 	
-	/* 设置回传 */
+	ip[0] = buff->buff[0];
+	ip[1] = buff->buff[1];
+	ip[2] = buff->buff[2];
+	ip[3] = buff->buff[3];
+	
+	app_set_single_device_ping_ip(ip);
+ 
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
-	vTaskDelay(100);
-	
-	/* 保存 */
-	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_ID_ADDR,(uint8_t*)param->id.c,4);
-	app_set_save_infor_function(SAVE_DEVICE_PARAM);
-	
-	vTaskDelay(100);
-	eth_set_tcp_connect_reset();				/* 重启TCP连接 */
-	gsm_set_module_reset_function();				/* 重启无线连接 */
 }
 
 
@@ -966,59 +974,6 @@ void com_deal_configure_onvif_carema(com_rec_data_t *buff)
 	app_set_reply_parameters_function(buff->cmd,0x74);
 }
 
-/************************************************************
-*
-* Function name	: com_deal_camera_config
-* Description	: 处理配置摄像头信息
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void com_deal_camera_config(com_rec_data_t *buff)
-{
-	uint8_t num   = buff->buff[0]-1;
-	uint8_t ip[4] = {0};
-	int8_t  ret   = 0;
-	
-	ip[0] = buff->buff[1];
-	ip[1] = buff->buff[2];
-	ip[2] = buff->buff[3];
-	ip[3] = buff->buff[4];
-	
-	if( ip[0] == 0 &&ip[1] == 0 &&ip[2] == 0 &&ip[3] == 0)
-	{
-		/* 清除指定IP */
-		app_set_camera_num_function(ip,num);
-		app_set_reply_parameters_function(buff->cmd,0x01);
-	}
-	else
-	{
-		ret = app_match_local_camera_ip(ip);
-		if(ret != 0)
-		{
-			/* 设置回传 */
-			app_set_reply_parameters_function(buff->cmd,0x74); // IP已存在
-		}
-		else
-		{
-			app_set_camera_num_function(ip,num);
-			app_set_reply_parameters_function(buff->cmd,0x01);
-		}
-	}
-}
-
-/************************************************************
-*
-* Function name	: com_deal_camera_config
-* Description	: 配置摄像头用户名、密码
-* Parameter		: 
-* Return		: 
-*								20220329
-************************************************************/
-void com_deal_camera_login(com_rec_data_t *buff)
-{
-
-}
 /************************************************************
 *
 * Function name	: com_del_device_name
@@ -1075,52 +1030,6 @@ void com_set_threshold_params_function(com_rec_data_t *buff)
 	
 	app_set_vol_current_param(data);	/* 存储 */
 	app_set_reply_parameters_function(buff->cmd,0x01);
-}
-
-/************************************************************
-*
-* Function name	: com_set_onvif_time_function
-* Description	: 设置配置搜索协议时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void com_set_onvif_time_function(com_rec_data_t *buff)
-{	
-	uint8_t  time  = buff->buff[0];
-
-	if(time < 5)
-	{
-		app_set_reply_parameters_function(buff->cmd,0x74);		/* 设置回传 */
-	}
-	else
-	{
-		app_set_onvif_reload_time(time,0);
-		app_set_reply_parameters_function(buff->cmd,0x01);		/* 设置回传 */
-	}
-}
-
-/************************************************************
-*
-* Function name	: com_set_device_reload_time_function
-* Description	: 设置重启时间
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void com_set_device_reload_time_function(com_rec_data_t *buff)
-{	
-	uint8_t  time  = buff->buff[0];
-
-	if((time < 24) &&( time > 168))
-	{
-		app_set_reply_parameters_function(buff->cmd,0x74);		/* 设置回传 */
-	}
-	else
-	{
-		app_set_onvif_reload_time(time,1);
-		app_set_reply_parameters_function(buff->cmd,0x01);		/* 设置回传 */
-	}
 }
 
 /************************************************************
@@ -1470,8 +1379,8 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_THRESHOLD_PARAMS:	// 配置阈值  20230721
 				com_set_threshold_params_function(&recdata_t);
 				break;
-			case CONFIGURE_DEVICE_ID: 			// 设置设备ID  20231026
-				com_deal_configure_device_id(&recdata_t);
+			case CONFIGURE_SINGLE_IP: 			// CONFIGURE_SINGLE_IP
+				com_deal_configure_single_ip(&recdata_t);
 				break;
 	
 			/* 查询指令 */
@@ -1485,15 +1394,13 @@ int8_t com_deal_main_function(void)
 			/* 操作指令 */
 			case CR_SINGLE_CAMERA_CONTROL:
 			case CR_POWER_RESETART:
-			case CR_GPRS_NETWORK_RESET:
-			case CR_LWIP_NETWORK_RESET:
 			case CR_GPRS_NETWORK_V_RESET:
 				app_set_sys_opeare_function(recdata_t.cmd,recdata_t.buff[0]);
 				break;
 			
 			/* 开关控制 */
-			case CONTROL_FAN:
-				app_set_peripheral_switch(recdata_t.cmd,recdata_t.buff[0]);
+			case CTRL_RELAY_POWER:
+        app_set_relay_switch(recdata_t.cmd,recdata_t.buff[0],recdata_t.buff[1]);
 				break;
 			
 			default:

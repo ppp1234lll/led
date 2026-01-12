@@ -69,7 +69,8 @@ void det_get_key_status_function(void)
 uint8_t det_main_network_and_camera_network(void)
 {
 	static uint8_t main_ip[2] = {0};
- 
+  static uint8_t single_net = 0;
+	
 	/* 检测主网络 */
 	if(sg_datacollec_t.main_ip == 0 && sg_datacollec_t.main_sub_ip == 0) 
 	{
@@ -91,7 +92,25 @@ uint8_t det_main_network_and_camera_network(void)
 	}
 	main_ip[0] = sg_datacollec_t.main_ip;
 	main_ip[1] = sg_datacollec_t.main_sub_ip;
+
 	
+	if( sg_datacollec_t.single_ip == 0 ) 
+	{
+		if( single_net == 1 ) 
+		{
+			single_net = sg_datacollec_t.single_ip;
+			return 1;
+		}
+	}
+	else if( sg_datacollec_t.single_ip == 1 ) 
+	{
+		if(single_net == 0 ) 
+		{
+			single_net = sg_datacollec_t.single_ip;
+			return 1;
+		}	
+	}
+	single_net = sg_datacollec_t.single_ip;
 	return 0;
 }
 
@@ -331,7 +350,30 @@ uint8_t det_get_main_network_sub_status(void)
 {
 	return sg_datacollec_t.main_sub_ip;
 }
-
+/*
+*********************************************************************************************************
+*	函 数 名: det_set_single_net_status
+*	功能说明: 信号机 状态设置
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void det_set_single_net_status(uint8_t status)
+{
+	sg_datacollec_t.single_ip = status;
+}
+/*
+*********************************************************************************************************
+*	函 数 名: det_get_single_net_status
+*	功能说明: 信号机 状态获取
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+uint8_t det_get_single_net_status(void)
+{
+	return sg_datacollec_t.single_ip;
+}
 /*
 *********************************************************************************************************
 *	函 数 名: det_set_total_energy_bl0906
@@ -449,7 +491,6 @@ uint8_t det_get_water_status(uint8_t id)
 void det_get_gps_value(void)
 {
   atgm336h_decode_nmea_xxgga();
-	
 }
 
 /*

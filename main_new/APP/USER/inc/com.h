@@ -6,56 +6,37 @@
 /* 配置指令 */
 #define CONFIGURE_SERVER_DOMAIN_NAME        (0xF1) // 配置服务器域名与端口
 #define CONFIGURE_PING_INTERVAL             (0xF2) // 配置PING的配置间隔时间
-#define CONFIGURE_SERVER_IP                 (0xF3) // 配置服务器IP与端口 	- 可被擦除 - 还原默认值
+#define CONFIGURE_SERVER_MODE               (0xF3) // 设置传输模式
 #define CONFIGURE_LOCAL_NETWORK             (0xF4) // 配置本地网络       		- 可被擦除  
 #define CONFIGURE_HEART_TIME                (0xF5) // 配置设备定时上报间隔时间 - 可被擦除 - 还原默认值
 #define CONFIGURE_FAN_PARAMETER             (0xF6) // 配置风扇参数       		- 可被擦除 - 还原默认值
-#define CONFIGURE_CAMERA_CONFIG             (0xF7) // 配置摄像机ip		  		- 可被擦除
+
 #define CONFIGURE_MAIN_NETWORK_IP           (0xF8) // 配置主机检测IP		
-#define CONFIGURE_FILL_LIGHT_TIME           (0xFB) // 配置补光灯时间段
 #define CONFIGURE_FAN_HUMI                  (0xF9) // 配置风扇湿度启动参数
-#define CONFIGURE_HEATING_PARAM             (0xFA) // 配置加热启动变量
-#define CONFIGURE_SET_TEL                   (0xFC) // 配置电话号码
-#define CONFIGURE_SERVER_MODE               (0xF3) // 设置传输模式
-#define CONFIGURE_SET_MAC                   (0xFD) // 配置MAC地址
+
 #define CONFIGURE_NETWORK_DELAY             (0xFE) // 配置网络延时时间		  20220308
 #define COM_HEART_UPDATA                    (0xFF) // 心跳上传
 
-#define CONFIGURE_DOOR_TIME                 (0xAC) // 配置箱门时间段
-#define CONFIGURE_RELOAD_TIME               (0xAB) // 设备重启时间
-#define CONFIGURE_HTTP_FILE_URL             (0xAA) // 设备升级地址
-#define CONFIGURE_ONVIF_CAREMA              (0xA9) // 搜索协议配置摄像机IP    20240201
-#define CONFIGURE_DEVICE_ID                 (0xA8) // 配置设备ID    20231026
-#define CONFIGURE_DEVICE_PASSWORD           (0xA7) // 密码更新      20230921
-#define CONFIGURE_ONVIF_TIME                (0xA6) // 配置搜索协议时间    20230921
-#define CONFIGURE_SEARCH_MODE               (0xA5) // 配置搜索方式        20230921
+#define CONFIGURE_DEVICE_NAME               (0xA3)
 #define CONFIGURE_THRESHOLD_PARAMS          (0xA4) // 配置阈值      	     20230721
-#define CONFIGURE_DEVICE_NAME               (0xA3) // 配置摄像机时间		   20220416
-#define CONFIGURE_IPC_LOGIN_INFO            (0xA2) // 配置摄像机的用户名、密码		20220329
-#define CONFIGURE_IPC_TIME_SYNC             (0xA1) // 配置摄像机时间		  20220329
+#define CONFIGURE_SINGLE_IP                 (0xAA) // 信号机IP地址
 
 /* 服务器查询指令 */
 #define CR_QUERY_CONFIG                     (0xE1) // 查询设备当前参数设置 - 对应上传查询配置
 #define CR_QUERY_INFO                       (0xE2) // 立即上报设备状态	    - 正常上报
 #define CR_QUERY_SOFTWARE_VERSION           (0xE3) // 查询设备软件版本号	 
-#define CR_QUERY_IPC_IP                     (0xE4) // 查询IPC的IP地址				20220329
-#define CR_QUERY_IPC_INFO                   (0xE5) // 查询IPC的信息：设备、网络、时间、OSD  20220329
-#define CR_QUERY_LBS_INFO                   (0xE6) // 查询IPC的信息：设备、网络、时间、OSD  20220329
 
 /* 重启指令 */
-#define CR_GPRS_NETWORK_RESET               (0xDD) // 复位GPRS网络
-#define CR_LWIP_NETWORK_RESET               (0xDC) // 复位以太网卡
-#define CR_IPC_REBOOT                       (0xDB) // 摄像机重启  20220329
 #define CR_SINGLE_CAMERA_CONTROL            (0xDA) // 单路摄像头供电重启
 #define CR_POWER_RESETART                   (0xD9) // 电源重启
-#define CONFIGURE_ERASE_PARAMETER           (0xD1) // 擦除指定参数
+
 #define CR_GPRS_NETWORK_V_RESET             (0xDE) // 断电重启4G模组
-#define CR_SINGLE_DC12_CONTROL              (0xD2) // 12V供电重启
 
 /* 控制命令 */
 #define CONTROL_FAN                         (0xC1) // 风扇启停控制
 #define CONTROL_FILL_LIGHT                  (0xC2) // 补光灯启停控制
 #define CONTROL_HEATING                     (0xC3) // 加热器启停控制
+#define CTRL_RELAY_POWER                    (0xC4) // 单路输出供电控制（关闭。、打开）
 
 /* 更新命令 */
 #define CONFIGURE_UPDATE_SYSTEM             (0xB3) // 更新系统
@@ -148,13 +129,9 @@ uint16_t com_size_queue(com_queue_t queue);
 void com_queue_time_function(void);
 uint16_t com_queue_find_msg(uint8_t *msg,uint16_t size);
 
-void com_ipc_ip_information(uint8_t *pdata, uint16_t *size);  // IPC IP信息打包  20220329
-void com_deal_camera_login(com_rec_data_t *buff);   // 配置摄像头用户名、密码  20220329
-int  com_ipc_device_information(uint8_t *pdata, uint16_t *size);   // 上传摄像机设备信息
-void com_set_ipc_time_function(com_rec_data_t *buff); // 设置摄像机时间  20220329
 void com_set_device_name_function(com_rec_data_t *buff);  //设置设备名称  20220416
 
-void com_deal_configure_device_id(com_rec_data_t *buff);  // 20231026
+void com_deal_configure_single_ip(com_rec_data_t *buff);  // 20231026
 void com_deal_fan_temp_parmaeter(com_rec_data_t *buff);
 void com_deal_fan_humi_param(com_rec_data_t *buff);
 

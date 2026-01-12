@@ -4,7 +4,6 @@
 #define SAVE_REMOTE_NETWORK_NAME    ("remote_name")       /* 远端网络信息 */
 #define SAVE_REMOTE_BACKUPS_NAME    ("backups")           /* 远端网络——备份 20231023*/ 
 #define SAVE_DEVICE_PARAMETER_NAME  ("device_name")       /* 设备详细:id、名称、密码等 */
-#define SAVE_CAREMA_PARAMETER       ("carema_param")      /* 摄像头相关信息 */
 #define SAVE_COM_PARAMETER_NAME     ("comparameter")      /* 通信相关参数 */
 #define SAVE_HTTP_UPDATE_ADDR_NAME  ("HTTP_OTA")          /* 更新地址 */
 #define SAVE_THRESHOLD_PARAMETER    ("threshold_params")  /* 相关阈值：电压 电流 角度 */ // 20230720
@@ -40,7 +39,6 @@ void save_clear_file_function(uint8_t mode)
 		lfs_remove(&g_lfs_t,SAVE_REMOTE_NETWORK_NAME);
 		lfs_remove(&g_lfs_t,SAVE_DEVICE_PARAMETER_NAME);
 		lfs_remove(&g_lfs_t,SAVE_COM_PARAMETER_NAME);
-		lfs_remove(&g_lfs_t,SAVE_CAREMA_PARAMETER);  		//	20230712
 		lfs_remove(&g_lfs_t,SAVE_THRESHOLD_PARAMETER);  //	20230720
 		lfs_remove(&g_lfs_t,SAVE_HTTP_UPDATE_ADDR_NAME);  //	20230720	
 	}
@@ -199,6 +197,8 @@ void save_read_default_local_network(struct local_ip_t *local)
 	memset(local->ping_sub_ip,0,sizeof(local->ping_sub_ip));
 	
 	local->search_mode = 1; // PING模式
+	
+	memset(local->single_ip,0,sizeof(local->single_ip));
 }
 
 /************************************************************
@@ -455,83 +455,6 @@ int8_t save_read_com_param_function(com_param_t *param)
 	{
 		save_read_default_com_param_function(param);
 		save_stroage_com_param_function(param);
-		ret = -1;
-	}
-	return ret;
-}
-
-/************************************************************
-*
-* Function name	: save_stroage_carema_parameter
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-int8_t save_stroage_carema_parameter(carema_t *param)
-{
-	int8_t		ret      = 0;
- 	int 		err 	 = 0;
-	lfs_file_t  lfs_fp   = {0};
-	
-	/* 数据保存 */
-	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_CAREMA_PARAMETER, LFS_O_RDWR | LFS_O_CREAT);
-	if(err == 0)
-	{
-		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
-		err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)param, sizeof(carema_t));
-		if(err != sizeof(carema_t)) 
-		{
-			err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)param, sizeof(carema_t));
-		}
-	}
-	else
-	{
-		ret = -1;
-	}
-	err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	return ret;
-	
-}
-
-/************************************************************
-*
-* Function name	: save_read_default_carema_parameter
-* Description	: 读取默认参数
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-void save_read_default_carema_parameter(carema_t *param)
-{
-	memset(param,0,sizeof(carema_t));
-}
-
-/************************************************************
-*
-* Function name	: save_read_carema_parameter
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
-************************************************************/
-int8_t save_read_carema_parameter(carema_t *param)
-{
-	int8_t		ret      = 0;
-	int 		err 	 = 0;
-	lfs_file_t  lfs_fp   = {0};
-	
-	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_CAREMA_PARAMETER, LFS_O_RDWR);
-	if(err == 0)
-	{
-		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
-		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(carema_t));
-    err = lfs_file_close(&g_lfs_t, &lfs_fp);
-	}
-	else
-	{
-		save_read_default_carema_parameter(param);
-		save_stroage_carema_parameter(param);
 		ret = -1;
 	}
 	return ret;

@@ -1230,7 +1230,7 @@ static int http_update_parse_crc_bin_data(void)
 	write_addr = UPDATA_SPIFLASH_ADDR + (sg_http_update_param.section_current * sg_http_update_param.section_len);
 	taskENTER_CRITICAL();// 关中断
 	{
-//		W25QXX_Write(body_pt, write_addr, sg_http_update_param.section_len);
+		sf_WriteBuffer(body_pt, write_addr, sg_http_update_param.section_len);
 	}
 	taskEXIT_CRITICAL();// 开中断
 
@@ -1252,7 +1252,7 @@ void http_update_success_reboot(void)
 
 	taskENTER_CRITICAL();// 关中断
 	{
-//		W25QXX_Write((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+		sf_WriteBuffer((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 	}
 	taskEXIT_CRITICAL();// 开中断
 

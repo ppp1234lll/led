@@ -63,15 +63,15 @@ void det_set_total_energy_bl0942(uint8_t num,float data);
 void det_set_total_energy_bl0972(uint8_t num,float data);
 void det_set_total_energy_bl0939(uint8_t num,float data);
 void det_set_total_energy_bl0906(uint8_t num,float data);
+void det_set_single_net_status(uint8_t status);
 
 void det_set_ping_status(uint8_t status);
-void det_set_spd_status(uint8_t mode);   //  设置防雷开关状态
-void det_set_water_status(uint8_t mode);
 
 uint16_t det_get_cabinet_posture(void);						// 获取箱体姿态
 uint8_t det_get_camera_status(uint8_t num);					// 获取摄像机状态
 uint8_t det_get_main_network_status(void);					// 获取主网络状态
 uint8_t det_get_main_network_sub_status(void);				// 获取主网络状态 - 2
+uint8_t det_get_single_net_status(void);
 
 void *det_get_collect_data(void);
 void det_set_key_value(uint8_t key_id,uint8_t key_value);
