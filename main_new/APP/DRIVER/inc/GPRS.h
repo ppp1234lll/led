@@ -82,6 +82,7 @@ uint8_t *gprs_get_model_soft_function(void);
 uint8_t *gprs_get_imei_function(void);
 int8_t gprs_tcplink_status_function(void);
 char* my_strstr(const char* str1, const char* str2);
+int8_t gprs_snmp_time_function(void);
 
 void gprs_v_reset_function(void);
 ////

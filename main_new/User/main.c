@@ -9,11 +9,11 @@
  ****************************************************************************************************
  */
 #include "appconfig.h"
-
+#include "SysInfoTest.h"
 #include "freertos_demo.h"
 
 static void system_setup(void);
- 
+extern void TaskTcbPrintf(void);
 
 /*
 *********************************************************************************************************
@@ -27,6 +27,8 @@ int main(void)
 {
 	system_setup();
 	printf("run 2...\n");
+//	TaskTcbPrintf();
+//	vSetupSysInfoTest();
 	start_task_create();
 }
 

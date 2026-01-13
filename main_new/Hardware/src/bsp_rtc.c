@@ -7,15 +7,16 @@
 #include "bsp_rtc.h"
 #include "bsp.h"
 #include <time.h>
+#include "./DRIVER/inc/GPRS.h"
 
 // 闹钟相关宏定义
-#define ALARMA_HOURS               8          // 0~23
-#define ALARMA_MINUTES             44          // 0~59
+#define ALARMA_HOURS               1          // 0~23
+#define ALARMA_MINUTES             0          // 0~59
 #define ALARMA_SECONDS             00          // 0~59
 
-#define ALARMB_HOURS               8          // 0~23
-#define ALARMB_MINUTES             44          // 0~59
-#define ALARMB_SECONDS             30          // 0~59
+#define ALARMB_HOURS               1          // 0~23
+#define ALARMB_MINUTES             30          // 0~59
+#define ALARMB_SECONDS             0          // 0~59
 
 #define RTC_BKP_DATA_LSI         0x32F2 
 #define RTC_BKP_DATA_LSE         0x32F3 
@@ -513,6 +514,7 @@ void RTC_Alarm_IRQHandler(void)
  */
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
+	gprs_snmp_time_function();
     printf("ALARM A!\r\n");
 }
 

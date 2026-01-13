@@ -833,6 +833,41 @@ int8_t gprs_network_status_monitoring_function(void)
 	gprs_send_cmd_over_function();
 	return -1;
 }
+/************************************************************
+*
+* Function name	: gprs_snmp_time_function
+* Description	: Ð£Ê±º¯Êý
+* Parameter		: 
+* Return		: 
+*	
+************************************************************/
+int8_t gprs_snmp_time_function(void)
+{
+	uint8_t  index = 0;
+	uint8_t  *p1 = 0;
+	uint32_t time[6] = {0};
+	
+	for(index=0; index<3; index++) 
+	{
+		memset(gprs_rx_buff,0,sizeof(gprs_rx_buff));
+		if(gprs_send_cmd_function((uint8_t*)"AT+CCLK?\r\n",(uint8_t*)"+CCLK: ",50) == 0) 
+		{
+			p1 = (uint8_t*)strstr((char*)gprs_rx_buff,"+CCLK: ");
+			if(p1 != NULL) 
+			{
+				p1 += 8;
+				memset(time,0,sizeof(time));
+				sscanf((char*)p1,"%d/%d/%d,%d:%d:%d",&time[0],&time[1],&time[2],&time[3],&time[4],&time[5]);
+				time[0] += 2000;
+				app_set_current_time((int*)time,1);
+				return 0;
+			}	
+		}
+		GPRS_DELAY_MS(200);
+	}
+	gprs_send_cmd_over_function();
+	return -1;
+}
 
 /************************************************************
 *

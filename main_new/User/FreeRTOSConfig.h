@@ -51,13 +51,13 @@ extern uint32_t SystemCoreClock;
 #define configUSE_DAEMON_TASK_STARTUP_HOOK              0                       /* 1: 使能定时器服务任务首次执行前的钩子函数, 默认: 0 */
 
 /* 运行时间和任务状态统计相关定义 */
-#define configGENERATE_RUN_TIME_STATS                   0                       /* 1: 使能任务运行状态参数统计, 默认: 0 */
-#if configGENERATE_RUN_TIME_STATS
-#include "./BSP/TIMER/btim.h"
-#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()        ConfigureTimeForRunTimeStats()
-extern uint32_t FreeRTOSRunTimeTicks;
-#define portGET_RUN_TIME_COUNTER_VALUE()                FreeRTOSRunTimeTicks
-#endif
+//#define configGENERATE_RUN_TIME_STATS                   0                       /* 1: 使能任务运行状态参数统计, 默认: 0 */
+//#if configGENERATE_RUN_TIME_STATS
+//#include "./BSP/TIMER/btim.h"
+//#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()        ConfigureTimeForRunTimeStats()
+//extern uint32_t FreeRTOSRunTimeTicks;
+//#define portGET_RUN_TIME_COUNTER_VALUE()                FreeRTOSRunTimeTicks
+//#endif
 #define configUSE_TRACE_FACILITY                        1                       /* 1: 使能可视化跟踪调试, 默认: 0 */
 #define configUSE_STATS_FORMATTING_FUNCTIONS            1                       /* 1: configUSE_TRACE_FACILITY为1时，会编译vTaskList()和vTaskGetRunTimeStats()函数, 默认: 0 */
 
@@ -121,5 +121,12 @@ extern uint32_t FreeRTOSRunTimeTicks;
 
 /* ARMv8-M 安全侧端口相关定义。 */
 //#define secureconfigMAX_SECURE_CONTEXTS         5
+
+extern volatile uint32_t ulHighFrequencyTimerTicks;
+#define configGENERATE_RUN_TIME_STATS               1
+#define configUSE_STATS_FORMATTING_FUNCTIONS        1
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()   (ulHighFrequencyTimerTicks = 0ul)
+#define portGET_RUN_TIME_COUNTER_VALUE()           ulHighFrequencyTimerTicks
+
 
 #endif /* FREERTOS_CONFIG_H */
