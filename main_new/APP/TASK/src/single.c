@@ -30,6 +30,9 @@ uint8_t single_send_buf[16];
 uint8_t single_send_len;
 uint8_t single_recv_buf[BOARD_MAX][200] ;
 uint16_t single_recv_sta[BOARD_MAX]  ;  
+
+
+void Uart_Send_Data(borad_id_t num, uint8_t *data, uint16_t len);
 /*
 *********************************************************************************************************
 *	º¯ Êý Ãû: single_task_function
@@ -47,10 +50,12 @@ void single_task_function(void)
 	single_cmd_board_data(single_send_buf,&single_send_len);  
 	while(1)
 	{
-		for(index = 0;index<BOARD_MAX;index++)
-		{
-			Uart_Send_Data((borad_id_t)index,single_send_buf,single_send_len);
-		}
+//		for(index = 0;index<BOARD_MAX;index++)
+//		{
+//			Uart_Send_Data((borad_id_t)index,single_send_buf,single_send_len);
+//		}
+		
+		Lpuart1_Send_Data(single_send_buf,single_send_len);
 		if(single_deal_board_data(BOARD_4) == 0)
 		{
 			send_status = 0;

@@ -9,6 +9,11 @@ typedef struct
 	uint8_t mcb;	  	
 }alarm_code_t;
 
+uint8_t direction[4];  // 4¸ö·½Ïò
+uint8_t direction[4];
+uint8_t color[3];
+
+
 __attribute__((section (".RAM_D1")))  alarm_code_t sg_alarm_code_t	= {0}; 
 struct threshold_params  *sg_alarm_param_t; 
 

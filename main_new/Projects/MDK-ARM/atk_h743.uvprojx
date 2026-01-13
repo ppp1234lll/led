@@ -493,6 +493,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\APP\TASK\src\alarm.c</FilePath>
             </File>
+            <File>
+              <FileName>traffic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\traffic.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

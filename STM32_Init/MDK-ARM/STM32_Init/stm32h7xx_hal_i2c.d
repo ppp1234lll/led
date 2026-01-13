@@ -35,6 +35,8 @@ stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_ha
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_i2c_ex.h
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr.h
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_pwr_ex.h
+stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc.h
+stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_rtc_ex.h
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_spi.h
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_spi_ex.h
 stm32_init\stm32h7xx_hal_i2c.o: ../Drivers/STM32H7xx_HAL_Driver/Inc/stm32h7xx_hal_tim.h

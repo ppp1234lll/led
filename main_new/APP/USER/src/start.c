@@ -207,7 +207,7 @@ void start_task(void *pvParameters)
 							(TaskHandle_t * )&PRINT_Task_Handler);
 
 	xTaskCreate((TaskFunction_t )single_task,
-							(const char *   )"list_task",
+							(const char *   )"single_task",
 							(uint16_t       )SINGLE_TASK_STK_SIZE,
 							(void *         )NULL,
 							(UBaseType_t    )SINGLE_TASK_PRIO,

@@ -9,9 +9,13 @@
 #include <time.h>
 
 // 闹钟相关宏定义
-#define ALARM_HOURS               12          // 0~23
-#define ALARM_MINUTES             10          // 0~59
-#define ALARM_SECONDS             00          // 0~59
+#define ALARMA_HOURS               8          // 0~23
+#define ALARMA_MINUTES             44          // 0~59
+#define ALARMA_SECONDS             00          // 0~59
+
+#define ALARMB_HOURS               8          // 0~23
+#define ALARMB_MINUTES             44          // 0~59
+#define ALARMB_SECONDS             30          // 0~59
 
 #define RTC_BKP_DATA_LSI         0x32F2 
 #define RTC_BKP_DATA_LSE         0x32F3 
@@ -34,7 +38,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
     __HAL_RCC_RTC_ENABLE();                                                 /* RTC使能 */
     HAL_PWR_EnableBkUpAccess();                                             /* 取消备份区域写保护 */
     __HAL_RCC_RTC_ENABLE();                                                 /* RTC使能 */
-
+		__HAL_RCC_LSEDRIVE_CONFIG(RCC_LSEDRIVE_LOW);
     /* 使用寄存器的方式去检测LSE是否可以正常工作 */
     RCC->BDCR |= 1 << 0;                                                    /* 尝试开启LSE */
 
@@ -44,7 +48,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
         delay_ms(5);
     }
     
-//    if (retry == 0)                                                         /* LSE起振失败 使用LSI */
+    if (retry == 0)                                                         /* LSE起振失败 使用LSI */
     {
         rcc_osc_init_handle.OscillatorType = RCC_OSCILLATORTYPE_LSI;        /* 选择要配置的振荡器 */
         rcc_osc_init_handle.LSIState = RCC_LSI_ON;                          /* LSI状态：开启 */
@@ -56,18 +60,18 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
         HAL_RCCEx_PeriphCLKConfig(&rcc_periphclk_init_handle);              /* 配置设置的rcc_periphclkinitstruct */
         rtc_write_bkr(0, RTC_BKP_DATA_LSI);
     }
-//    else
-//    {
-//        rcc_osc_init_handle.OscillatorType = RCC_OSCILLATORTYPE_LSE;        /* 选择要配置的振荡器 */
+    else
+    {
+        rcc_osc_init_handle.OscillatorType = RCC_OSCILLATORTYPE_LSE;        /* 选择要配置的振荡器 */
 //        rcc_osc_init_handle.PLL.PLLState = RCC_PLL_NONE;                    /* PLL不配置 */
-//        rcc_osc_init_handle.LSEState = RCC_LSE_ON;                          /* LSE状态:开启 */
-//        HAL_RCC_OscConfig(&rcc_osc_init_handle);                            /* 配置设置的rcc_oscinitstruct */
+        rcc_osc_init_handle.LSEState = RCC_LSE_ON;                          /* LSE状态:开启 */
+        HAL_RCC_OscConfig(&rcc_osc_init_handle);                            /* 配置设置的rcc_oscinitstruct */
 
-//        rcc_periphclk_init_handle.PeriphClockSelection = RCC_PERIPHCLK_RTC; /* 选择要配置外设RTC */
-//        rcc_periphclk_init_handle.RTCClockSelection = RCC_RTCCLKSOURCE_LSE; /* RTC时钟源选择LSE */
-//        HAL_RCCEx_PeriphCLKConfig(&rcc_periphclk_init_handle);              /* 配置设置的rcc_periphclkinitstruct */
-//        rtc_write_bkr(0, RTC_BKP_DATA_LSE);
-//    }
+        rcc_periphclk_init_handle.PeriphClockSelection = RCC_PERIPHCLK_RTC; /* 选择要配置外设RTC */
+        rcc_periphclk_init_handle.RTCClockSelection = RCC_RTCCLKSOURCE_LSE; /* RTC时钟源选择LSE */
+        HAL_RCCEx_PeriphCLKConfig(&rcc_periphclk_init_handle);              /* 配置设置的rcc_periphclkinitstruct */
+        rtc_write_bkr(0, RTC_BKP_DATA_LSE);
+    }
 }
 
 
@@ -470,9 +474,9 @@ void RTC_AlarmSet(void)
 {
 	RTC_AlarmTypeDef rtc_alarm_handle;
 	
-	rtc_alarm_handle.AlarmTime.Hours = ALARM_HOURS;         	     /* 小时 */
-	rtc_alarm_handle.AlarmTime.Minutes = ALARM_MINUTES;     	        /* 分钟 */
-	rtc_alarm_handle.AlarmTime.Seconds = ALARM_SECONDS;     	        /* 秒 */
+	rtc_alarm_handle.AlarmTime.Hours = ALARMA_HOURS;         	     /* 小时 */
+	rtc_alarm_handle.AlarmTime.Minutes = ALARMA_MINUTES;     	        /* 分钟 */
+	rtc_alarm_handle.AlarmTime.Seconds = ALARMA_SECONDS;     	        /* 秒 */
 	rtc_alarm_handle.AlarmTime.SubSeconds = 0;	
 	rtc_alarm_handle.AlarmTime.TimeFormat = RTC_HOURFORMAT12_AM;
 	
@@ -482,8 +486,14 @@ void RTC_AlarmSet(void)
 	rtc_alarm_handle.AlarmDateWeekDay = 1;                               /* 星期 */
 	rtc_alarm_handle.Alarm = RTC_ALARM_A;                                   /* 闹钟A */
 	HAL_RTC_SetAlarm_IT(&g_rtc_handle, &rtc_alarm_handle, RTC_FORMAT_BIN);
+
+	rtc_alarm_handle.AlarmTime.Hours = ALARMB_HOURS;         	     /* 小时 */
+	rtc_alarm_handle.AlarmTime.Minutes = ALARMB_MINUTES;     	        /* 分钟 */
+	rtc_alarm_handle.AlarmTime.Seconds = ALARMB_SECONDS;     	        /* 秒 */
+	rtc_alarm_handle.Alarm = RTC_ALARM_B;                                   /* 闹钟A */
+	HAL_RTC_SetAlarm_IT(&g_rtc_handle, &rtc_alarm_handle, RTC_FORMAT_BIN);
 	
-	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 15, 0);                             /* 抢占优先级1,子优先级2 */
+	HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 14, 0); /* 抢占优先级1,子优先级2 */
 	HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
 }
 /**
@@ -504,6 +514,11 @@ void RTC_Alarm_IRQHandler(void)
 void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc)
 {
     printf("ALARM A!\r\n");
+}
+
+void HAL_RTCEx_AlarmBEventCallback(RTC_HandleTypeDef * hrtc)
+{
+    printf("ALARM B!\r\n");
 }
 
 /*
