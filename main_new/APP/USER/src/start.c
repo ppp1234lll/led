@@ -26,7 +26,7 @@ void alarm_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define APP_TASK_PRIO     				5       
-#define APP_STK_SIZE      				256      
+#define APP_STK_SIZE      				512      
 TaskHandle_t APP_Task_Handler;     
 void app_task(void *pvParameters); 
 
@@ -34,7 +34,7 @@ void app_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define ETH_TASK_PRIO           	8      
-#define ETH_STK_SIZE            	128     
+#define ETH_STK_SIZE            	256     
 TaskHandle_t ETH_Task_Handler;          
 void eth_task(void *pvParameters);      
 
@@ -50,7 +50,7 @@ void det_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define GSM_TASK_PRIO           	8      
-#define GSM_STK_SIZE            	128     
+#define GSM_STK_SIZE            	256     
 TaskHandle_t GSM_Task_Handler;          
 void gsm_task(void *pvParameters);      
 
@@ -58,13 +58,13 @@ void gsm_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define PRINT_TASK_PRIO           2      
-#define PRINT_STK_SIZE            128    
+#define PRINT_STK_SIZE            256    
 TaskHandle_t PRINT_Task_Handler;         
 void print_task(void *pvParameters);     
 
 /* 检测板 */
 #define SINGLE_TASK_PRIO		      9
-#define SINGLE_TASK_STK_SIZE 		  128
+#define SINGLE_TASK_STK_SIZE 		  256
 TaskHandle_t Single_Task_Handler;
 void single_task(void *p_arg);
 /******************************************************************************************************/

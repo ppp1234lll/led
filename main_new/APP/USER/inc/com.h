@@ -88,8 +88,6 @@ typedef struct
 
 int8_t com_deal_main_function(void);   // 通信接收处理函数
 
-uint8_t com_report_get_adapter_status(uint8_t adapter);  // 获取适配器状态
-uint8_t com_report_get_camera_status(uint8_t camera);    // 获取摄像机工作状态
 uint8_t com_report_get_main_network_status(uint8_t main);   // 获取主网络状态
 void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd);  // 正常上报
 void com_query_configuration_function(uint8_t *pdata, uint16_t *len);  // 查询配置

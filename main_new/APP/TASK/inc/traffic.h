@@ -5,20 +5,22 @@
 
 // 方向枚举（东西南北）
 typedef enum {
-    TRAFFIC_DIR_EAST = 0,    // 东
-    TRAFFIC_DIR_WEST,        // 西
-    TRAFFIC_DIR_SOUTH,       // 南
-    TRAFFIC_DIR_NORTH,       // 北
-    TRAFFIC_DIR_MAX          // 方向总数（边界检查用）
+    DIR_EAST = 0,    // 东
+    DIR_WEST,        // 西
+    DIR_SOUTH,       // 南
+    DIR_NORTH,       // 北
+    DIR_MAX          // 方向总数（边界检查用）
 } TrafficDirection;
 
 // 红绿灯类型枚举（左转、直行、右转、人行）
 typedef enum {
-    TRAFFIC_LIGHT_LEFT = 0,  // 左转灯
-    TRAFFIC_LIGHT_STRAIGHT,  // 直行灯
-    TRAFFIC_LIGHT_RIGHT,     // 右转灯
-    TRAFFIC_LIGHT_PEDESTRIAN,// 人行灯
-    TRAFFIC_LIGHT_MAX        // 灯类型总数
+    LIGHT_LEFT = 0,  // 左转灯
+    LIGHT_STRAIGHT,  // 直行灯
+    LIGHT_RIGHT,     // 右转灯
+    LIGHT_PEDESTRIAN1,// 人行灯
+	  LIGHT_PEDESTRIAN2,// 人行灯
+	  LIGHT_PEDESTRIAN2,// 人行灯 
+    LIGHT_MAX        // 灯类型总数
 } TrafficLightType;
 
 

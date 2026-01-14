@@ -342,7 +342,6 @@ static int8_t Setting_device_parameter_function(char *pcParam[], char *pcValue[]
 	
 		mode = atoi(pcValue[i]);
 		app_set_transfer_mode_function(mode);
-		
 		app_set_device_param_function(param);
 	}
 	return ret;
@@ -478,6 +477,18 @@ static int8_t Setting_local_network_parameter_function(char *pcParam[], char *pc
 			param.ping_sub_ip[3] = temp[3];
 		}
 	}
+	
+	else if (strcmp(pcParam[i] , "ac")==0) { // 信号机地址
+		ret = sscanf(pcValue[i],"%d.%d.%d.%d",&temp[0],&temp[1],&temp[2],&temp[3]);
+		if(ret == 4) {
+			ret = 0;
+			param.single_ip[0] = temp[0];
+			param.single_ip[1] = temp[1];
+			param.single_ip[2] = temp[2];
+			param.single_ip[3] = temp[3];
+		}
+	}
+	
   // 网络延时时间  20220308
 	else if(strcmp(pcParam[i] , "N") == 0) {
 		time[0] = atoi(pcValue[i]);

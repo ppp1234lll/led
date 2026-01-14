@@ -23,6 +23,7 @@
  */
  
 #include "appconfig.h"
+#include "lwip_comm.h"
 
 __lwip_dev g_lwipdev;                                       /* lwip控制结构体 */
 struct netif g_lwip_netif;                                  /* 定义一个全局的网络接口 */
@@ -39,36 +40,100 @@ void lwip_link_thread( void * argument );                   /* 链路线程 */
  */
 void lwip_comm_default_ip_set(__lwip_dev *lwipx)
 {
-	/* 默认远端IP为:192.168.1.134 */
-	lwipx->remoteip[0] = 192;
-	lwipx->remoteip[1] = 168;
-	lwipx->remoteip[2] = 1;
-	lwipx->remoteip[3] = 134;
+	static uint8_t last_domename[128] = {0};
+	struct local_ip_t *param;
+	struct remote_ip *remote;
+	int    ip[4] = {0};
+	int    ret   = 0;
 	
-	/* MAC地址设置 */
-	lwipx->mac[0] = 0xB8;
-	lwipx->mac[1] = 0xAE;
-	lwipx->mac[2] = 0x1D;
-	lwipx->mac[3] = 0x00;
-	lwipx->mac[4] = 0x04;
-	lwipx->mac[5] = 0x00;
+	remote = app_get_remote_network_function();
+	param = app_get_local_network_function();	
+
+	/* 获取本地IP */
+	lwipx->ip[0] = param->ip[0];	
+	lwipx->ip[1] = param->ip[1];
+	lwipx->ip[2] = param->ip[2];
+	lwipx->ip[3] = param->ip[3];
 	
-	/* 默认本地IP为:192.168.1.30 */
-	lwipx->ip[0] = 192;
-	lwipx->ip[1] = 168;
-	lwipx->ip[2] = 2;
-	lwipx->ip[3] = 30;
-	/* 默认子网掩码:255.255.255.0 */
-	lwipx->netmask[0] = 255;
-	lwipx->netmask[1] = 255;
-	lwipx->netmask[2] = 255;
-	lwipx->netmask[3] = 0;
+	/* 获取本地子网掩码 */
+	lwipx->netmask[0] = param->netmask[0];	
+	lwipx->netmask[1] = param->netmask[1];
+	lwipx->netmask[2] = param->netmask[2];
+	lwipx->netmask[3] = param->netmask[3];
 	
-	/* 默认网关:192.168.1.1 */
-	lwipx->gateway[0] = 192;
-	lwipx->gateway[1] = 168;
-	lwipx->gateway[2] = 2;
-	lwipx->gateway[3] = 1;
+	/* 获取默认网关 */
+	lwipx->gateway[0] = param->gateway[0];	
+	lwipx->gateway[1] = param->gateway[1];
+	lwipx->gateway[2] = param->gateway[2];
+	lwipx->gateway[3] = param->gateway[3];	
+	
+	/* 获取MAC */
+	lwipx->mac[0] = param->mac[0]; 	// 高三字节(IEEE称之为组织唯一ID,OUI)地址固定为:2.0.0
+	lwipx->mac[1] = param->mac[1];
+	lwipx->mac[2] = param->mac[2];
+	lwipx->mac[3] = param->mac[3]; 	// 低三字节用STM32的唯一ID
+	lwipx->mac[4] = param->mac[4];
+	lwipx->mac[5] = param->mac[5]; 
+	
+	lwipx->dns[0] = param->dns[0];
+	lwipx->dns[1] = param->dns[1];
+	lwipx->dns[2] = param->dns[2];
+	lwipx->dns[3] = param->dns[3];
+	
+	/* 获取远端IP */
+	ret = sscanf((char*)remote->inside_iporname,"%d.%d.%d.%d",&ip[0],&ip[1],&ip[2],&ip[3]);
+	if(ret != 4)
+	{
+		if (memcmp(last_domename,remote->inside_iporname,128) != 0) {
+			memcpy(last_domename,remote->inside_iporname,128);
+			lwipx->domename = 0; 		// 通过域名获取ip
+		}
+		/* 内外连接地址是域名 */
+		lwipx->iporname = 1;
+	}
+	else
+	{
+		lwipx->iporname = 0;
+		/* 内外连接地址是IP */
+		lwipx->remoteip[0]=ip[0];	
+		lwipx->remoteip[1]=ip[1];
+		lwipx->remoteip[2]=ip[2];
+		lwipx->remoteip[3]=ip[3];
+	}
+	
+	/* 获取远端端口 */
+	lwipx->remoteport = remote->inside_port;
+	
+//	/* 默认远端IP为:192.168.1.134 */
+//	lwipx->remoteip[0] = 192;
+//	lwipx->remoteip[1] = 168;
+//	lwipx->remoteip[2] = 1;
+//	lwipx->remoteip[3] = 134;
+//	
+//	/* MAC地址设置 */
+//	lwipx->mac[0] = 0xB8;
+//	lwipx->mac[1] = 0xAE;
+//	lwipx->mac[2] = 0x1D;
+//	lwipx->mac[3] = 0x00;
+//	lwipx->mac[4] = 0x04;
+//	lwipx->mac[5] = 0x00;
+//	
+//	/* 默认本地IP为:192.168.1.30 */
+//	lwipx->ip[0] = 192;
+//	lwipx->ip[1] = 168;
+//	lwipx->ip[2] = 2;
+//	lwipx->ip[3] = 30;
+//	/* 默认子网掩码:255.255.255.0 */
+//	lwipx->netmask[0] = 255;
+//	lwipx->netmask[1] = 255;
+//	lwipx->netmask[2] = 255;
+//	lwipx->netmask[3] = 0;
+//	
+//	/* 默认网关:192.168.1.1 */
+//	lwipx->gateway[0] = 192;
+//	lwipx->gateway[1] = 168;
+//	lwipx->gateway[2] = 2;
+//	lwipx->gateway[3] = 1;
 }
 
 /**
@@ -195,7 +260,7 @@ void lwip_updata_remote_network_infor(__lwip_dev *lwipx)
 	int 			 ret 	 = 0;
 	int				 ip[4]   = {0};
 	
-//	remote = app_get_remote_network_function();
+	remote = app_get_remote_network_function();
 	
 	/* 获取远端IP */
 	ret = sscanf((char*)remote->inside_iporname,"%d.%d.%d.%d",&ip[0],&ip[1],&ip[2],&ip[3]);

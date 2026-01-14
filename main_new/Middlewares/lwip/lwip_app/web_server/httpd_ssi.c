@@ -464,6 +464,9 @@ static void local_network_Handler(char *pcInsert, uint8_t mode)
 		case 12:
 			sprintf(pcInsert,"%d",local->search_mode - 1);
 			break;
+		case 13:
+			sprintf(pcInsert,"%d.%d.%d.%d",local->single_ip[0],local->single_ip[1],local->single_ip[2],local->single_ip[3]);
+			break;
 	}
 }
 
@@ -538,7 +541,7 @@ void httpd_ssi_network_setting_function(char* pcInsert)
 	local_network_Handler(buff[6],9);	// MAC
 	local_network_Handler(buff[4],7);   // 主网地址
 	local_network_Handler(buff[5],8);   // 主网地址
-	sprintf(buff[9],"%s","0:0:0:0");		// 信号机地址
+	local_network_Handler(buff[9],13);		// 信号机地址
 	sprintf(time,"%d",app_get_network_delay_time());		// 网络延时时间  20220308
 	local_network_Handler(buff[7],10);	// IP
 	local_network_Handler(buff[8],11);	// 组播

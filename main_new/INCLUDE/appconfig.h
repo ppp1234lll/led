@@ -22,8 +22,8 @@
 *                                        版本号
 *********************************************************************************************************
 */
-#define SOFT_NO_STR ("1.0.0.20251213")     // 软件版本号
-#define HARD_NO_STR	("FN-JTTY-PY")       // 硬件版本号
+#define SOFT_NO_STR "1.0.0.20251213"     // 软件版本号
+#define HARD_NO_STR "FN-JTTY-PY"       // 硬件版本号
 
 /*
 *********************************************************************************************************
@@ -109,6 +109,7 @@
 
 #include "./ping/lwip_ping.h"
 #include "./tcp_client/tcp_client.h"
+#include "./udp_multicast/udp_multicast.h"
 
 #include "./web_server/httpd.h"
 #include "./web_server/httpd_cgi_ssi.h"
@@ -153,6 +154,8 @@
 #include "./TASK/inc/gsm.h"
 #include "./TASK/inc/single.h"
 #include "./TASK/inc/alarm.h"
+#include "./TASK/inc/print.h"
+
 
 #include "./TOOL/inc/crc.h"
 #include "./TOOL/inc/tool.h"

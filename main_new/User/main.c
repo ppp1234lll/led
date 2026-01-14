@@ -29,6 +29,10 @@ int main(void)
 	printf("run 2...\n");
 //	TaskTcbPrintf();
 //	vSetupSysInfoTest();
+	
+//	bsp_InitSPIBus();	/* 配置SPI总线 */		
+//	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+//DemoSpiFlash	();
 	start_task_create();
 }
 

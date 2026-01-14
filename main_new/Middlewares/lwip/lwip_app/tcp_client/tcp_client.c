@@ -9,14 +9,14 @@ struct netbuf *sg_recvbuf = NULL;
 /* START_TASK 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define TCPCLIENT_TASK_PRIO         	2        
+#define TCPCLIENT_TASK_PRIO         	8        
 #define TCPCLIENT_STK_SIZE          	512      
 TaskHandle_t TcpClient_Task_Handler;          
 void tcp_client_task(void *pvParameters);    
 
 
 //tcp客户端任务函数
-static void tcp_client_task(void *arg)
+static void tcp_client_task(void *pvParameters)
 {
 	struct pbuf *q;
 	err_t err,recv_err;
@@ -24,8 +24,6 @@ static void tcp_client_task(void *arg)
 	static ip_addr_t server_ipaddr,loca_ipaddr;
 	static u16_t 		 server_port,loca_port;
 	uint8_t tcp_connect_cnt = 0;
-	
-	LWIP_UNUSED_ARG(arg);
 
 	while (1) 
 	{
@@ -58,9 +56,7 @@ static void tcp_client_task(void *arg)
 						/* 开启GPRS */
 						gsm_set_tcp_cmd(1);
 					#endif
-
 					app_system_softreset(1000); // 重启系统也很快,还能消除未知的隐患
-
 					break;
 				}
 			}

@@ -81,9 +81,9 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>0</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
-            <UserProg1Name></UserProg1Name>
-            <UserProg2Name></UserProg2Name>
+            <RunUserProg2>1</RunUserProg2>
+            <UserProg1Name>...\HexBin.bat $K !L @L $L</UserProg1Name>
+            <UserProg2Name>F:\调试\single_led\main_new\HexBin.bat</UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
             <UserProg2Dos16Mode>0</UserProg2Dos16Mode>
             <nStopA1X>0</nStopA1X>
@@ -423,6 +423,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\SysInfoTest.c</FilePath>
             </File>
+            <File>
+              <FileName>demo_spi_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\demo_spi_flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -502,6 +507,11 @@
               <FileName>traffic.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\TASK\src\traffic.c</FilePath>
+            </File>
+            <File>
+              <FileName>print.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\APP\TASK\src\print.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1292,6 +1302,16 @@
               <FileName>tcp_client.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Middlewares\lwip\lwip_app\tcp_client\tcp_client.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/lwip/app/udp</GroupName>
+          <Files>
+            <File>
+              <FileName>udp_multicast.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Middlewares\lwip\lwip_app\udp_multicast\udp_multicast.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -665,6 +665,7 @@ void app_set_relay_switch(uint8_t cmd, uint8_t id,uint8_t status)
 ************************************************************/
 void app_get_storage_param_function(void)
 {
+	printf("run save read\n");
 	save_read_local_network(&sg_sysparam_t.local);
 	save_read_remote_ip_function(&sg_sysparam_t.remote);
 	save_read_device_paramter_function(&sg_sysparam_t.device);
@@ -672,6 +673,8 @@ void app_get_storage_param_function(void)
 	save_read_threshold_parameter(&sg_sysparam_t.threshold); // 20230720
 	save_read_http_ota_function(&sg_sysparam_t.ota);
 	save_read_backups_function(&sg_backups_t); // 20231022
+	
+	printf("run save read end\n");
 }
 
 /************************************************************
@@ -791,14 +794,14 @@ void app_set_local_network_function_two(struct local_ip_t param)
 	memcpy(sg_sysparam_t.local.gateway,param.gateway,4);
 	memcpy(sg_sysparam_t.local.netmask,param.netmask,4);
 	memcpy(sg_sysparam_t.local.dns,param.dns,4);
-	memcpy(sg_sysparam_t.local.mac,param.mac,6);
+//	memcpy(sg_sysparam_t.local.mac,param.mac,6);
 	memcpy(sg_sysparam_t.local.ping_ip,param.ping_ip,4);
 	memcpy(sg_sysparam_t.local.ping_sub_ip,param.ping_sub_ip,4);
-	
+	memcpy(sg_sysparam_t.local.single_ip,param.single_ip,4);
 	memcpy(sg_sysparam_t.local.multicast_ip,param.multicast_ip,4);
 	sg_sysparam_t.local.multicast_port = param.multicast_port;
 
-	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint8_t *)&sg_sysparam_t.local.mac,6);
+//	cpuflash_write_save(DEVICE_FLASH_STORE,DEVICE_MAC_ADDR,(uint8_t *)&sg_sysparam_t.local.mac,6);
 
 	app_set_save_infor_function(SAVE_LOCAL_NETWORK);
 }

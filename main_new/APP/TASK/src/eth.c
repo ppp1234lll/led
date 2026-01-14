@@ -418,7 +418,7 @@ void eth_tcp_connect_control_function(void)
 		if(g_lwipdev.iporname == 0)				  // 直接使用IP
 		{
 			lwip_updata_remote_network_infor(&g_lwipdev);
-//			tcp_client_start_function();
+			tcp_client_start_function();
 			g_lwipdev.tcp_status = LWIP_TCP_INIT_CONNECT;
 		}
 		else									  // 需要通过域名获取IP
@@ -427,7 +427,7 @@ void eth_tcp_connect_control_function(void)
 			{
 				/* 更新远端地址 */
 				lwip_updata_remote_network_infor(&g_lwipdev);
-//				tcp_client_start_function();
+				tcp_client_start_function();
 				g_lwipdev.tcp_status = LWIP_TCP_INIT_CONNECT;
 			}
 		}
