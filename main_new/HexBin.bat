@@ -47,6 +47,9 @@ copy %hex_path%\%project_name%.hex %output_path% >nul
 ::将axf文件复制到HexBin文件夹
 copy %axf_location% %output_path% >nul
 
+::将map文件复制到HexBin文件夹
+copy %CURRENT_DIR%Output\%project_name%.map %output_path% >nul
+
 @REM 软件版本文件路径
 set VERSION_FILE_PATH=%CURRENT_DIR%\INCLUDE\appconfig.h
 

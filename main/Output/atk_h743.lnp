@@ -96,6 +96,8 @@
 "..\..\output\port.o"
 "..\..\output\cjson.o"
 "..\..\output\mycjson.o"
+"..\..\output\eventrecorder.o"
+"..\..\output\retarget_io.o"
 --strict --scatter "..\..\Output\atk_h743.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

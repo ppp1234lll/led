@@ -175,3 +175,4 @@
 ..\..\output\main.o: ..\..\Hardware\inc\bsp_rtc.h
 ..\..\output\main.o: ..\..\APP\./USER/inc/start.h
 ..\..\output\main.o: ..\..\User\freertos_demo.h
+..\..\output\main.o: D:\Keil_v5\Local\Arm\Packs\Keil\ARM_Compiler\1.7.2\Include\EventRecorder.h

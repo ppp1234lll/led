@@ -20,8 +20,7 @@
 
 #include "main.h"
 
-
-#define PWR_TST_READ  HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_1) 
+#define PWR_TST_READ  HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_0) 
 
 /* 本.c文件调用的函数 */
 static void DeviceRstReason(void);
@@ -40,20 +39,20 @@ int main(void)
 	mpu_memory_protection();	/* 保护相关存储区域 */
 	bsp_InitLed();         		/* LED初始化 */ 
 	pwr_test_init();
-	bsp_InitUsart2(115200);
 	bsp_InitUsart1(115200);				/* 串口初始化 */
+	bsp_InitUsart2(115200);
 	DeviceRstReason();
 	iwdg_init(IWDG_PRESCALER_64, 1000); /* 预分频数为 64,重载值为 1000,溢出时间为 2s */
 
 	bsp_InitSPIBus();	/* 配置SPI总线 */		
 	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
-	
+
   update_check_function();
 	
 //	DemoSpiFlash();
 	while(1)
 	{
-		printf("usart1\n");
+		printf("run error\n");
 		delay_ms(1000);
 	}
 }
@@ -76,13 +75,13 @@ static void update_check_function(void)
 	uint8_t count = 30;
 	////
 
-//	while(count--)
-//	{
-//    iwdg_feed();
-//		delay_ms(100);
-//		if(PWR_TST_READ == 0) 
-//			break; 
-//	}
+	while(count--)
+	{
+    iwdg_feed();
+		delay_ms(100);
+		if(PWR_TST_READ == 0) 
+			break; 
+	}
   count = 200;
   while(count--)
 	{
@@ -121,7 +120,7 @@ static void update_check_function(void)
 
 		// 读一块
 		read_addr = UPDATA_SPIFLASH_ADDR + (ii * boot_update_param.section_size);
-//		W25QXX_Read(app_buff, read_addr, boot_update_param.section_size);
+		sf_ReadBuffer(app_buff, read_addr, boot_update_param.section_size);
 
 		// 写入一块
 		write_addr = MAIN_APP_ADDR + (ii * boot_update_param.section_size);
@@ -208,7 +207,7 @@ static void DeviceRstReason(void)
 */
 static void read_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 {
-//	W25QXX_Read((uint8_t*)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+//	read_boot_update_param((uint8_t*)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 }
 
 /*
@@ -221,7 +220,7 @@ static void read_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 */
 static void write_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 {
-//	W25QXX_Write((uint8_t *)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+//	sf_WriteBuffer((uint8_t *)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 }
 
 
@@ -239,10 +238,10 @@ static void pwr_test_init(void)
 
 	__HAL_RCC_GPIOF_CLK_ENABLE();
 
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  GPIO_InitStruct.Pin = GPIO_PIN_0;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 }
 /*
 *********************************************************************************************************

@@ -34,6 +34,6 @@
 void bsp_InitUsart4(uint32_t baudrate);
 void Usart4_Send_Data(uint8_t *buf, uint16_t len);
 
-void usart4_test(void);
+void uart4_test(void);
 
 #endif

@@ -81,7 +81,7 @@ void mpu_memory_protection(void)
                         MPU_REGION_SIZE_128KB,      /* 长度 */
                         MPU_REGION_NUMBER1, 0,      /* NUMER1,允许指令访问 */
                         MPU_REGION_FULL_ACCESS,     /* 全访问 */
-                        MPU_ACCESS_NOT_SHAREABLE,   /* 禁止共用 */
+                        MPU_ACCESS_SHAREABLE,       /* 禁止共用 */
                         MPU_ACCESS_CACHEABLE,       /* 允许cache */
                         MPU_ACCESS_BUFFERABLE);     /* 允许缓冲 */
 

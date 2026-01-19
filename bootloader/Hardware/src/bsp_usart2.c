@@ -13,7 +13,7 @@
 #include "main.h"
 
 UART_HandleTypeDef huart2;
-
+uint8_t g_U2RxBuffer[1];
 /*
 *********************************************************************************************************
 *	函 数 名: bsp_InitUsart2
@@ -25,47 +25,52 @@ UART_HandleTypeDef huart2;
 void bsp_InitUsart2(uint32_t bound)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};	
-	
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2;
 	PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
 	{
-     Error_Handler(__FILE__, __LINE__);
-	}	
-	
+		Error_Handler(__FILE__, __LINE__);
+	}
+
 	/* USART2 clock enable */
 	__HAL_RCC_USART2_CLK_ENABLE();
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+ 
 	/**USART2 GPIO Configuration
-	PA2     ------> USART2_TX
-	PA3     ------> USART2_RX
+	PD5     ------> USART2_TX
+	PD6     ------> USART2_RX
 	*/
-	GPIO_InitStruct.Pin = GPIO_PIN_2 | GPIO_PIN_3; 
-	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;                    /* 复用推挽 */
-	GPIO_InitStruct.Pull = GPIO_PULLUP;                        /* 上拉 */
-	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;                   /* 高速 */
-	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;               /* 复用为USART2 */
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);       /* 初始化PA2,3 */
+	GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	/* USART 初始化设置 */
-	/* USART 初始化设置 */
-	huart2.Instance = USART2;                         /* USART2 */
-	huart2.Init.BaudRate = bound;                       /* 波特率 */
-	huart2.Init.WordLength = UART_WORDLENGTH_8B;        /* 字长为8位数据格式 */
-	huart2.Init.StopBits = UART_STOPBITS_1;             /* 一个停止位 */
-	huart2.Init.Parity = UART_PARITY_NONE;              /* 无奇偶校验位 */
-	huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;        /* 无硬件流控 */
-	huart2.Init.Mode = UART_MODE_TX_RX;                 /* 收发模式 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = bound;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_RXOVERRUNDISABLE_INIT;
+  huart2.AdvancedInit.OverrunDisable = UART_ADVFEATURE_OVERRUN_DISABLE;
 	HAL_UART_Init(&huart2);                             /* HAL_UART_Init()会使能USART2 */
 
-	__HAL_UART_DISABLE_IT(&huart2, UART_IT_TC);
-
-	__HAL_UART_ENABLE_IT(&huart2, UART_IT_RXNE);        /* 开启接收中断 */
+ 
 	HAL_NVIC_EnableIRQ(USART2_IRQn);                          /* 使能USART1中断 */
 	HAL_NVIC_SetPriority(USART2_IRQn, 3, 3);                  /* 抢占优先级3，子优先级3 */
-
 	
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)g_U2RxBuffer, 1);
 }
 
 /**
@@ -112,4 +117,22 @@ void usart2_test(void)
 }
 
 
+//重定向c库函数printf到串口USARTx，重定向后可使用printf函数
+int fputc(int ch, FILE *f)
+{
+    /* 发送一个字节数据到串口USARTx */
+	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+	return (ch);
+}
+
+///重定向c库函数scanf到串口USARTx，重写向后可使用scanf、getchar等函数
+int fgetc(FILE *f)
+{	
+	int ch;
+	/* 等待串口输入数据 */
+	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) == RESET);
+	__HAL_UART_CLEAR_OREFLAG(&huart2);
+	HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+	return (ch);
+}
 

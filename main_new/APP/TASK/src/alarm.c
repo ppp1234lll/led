@@ -52,7 +52,7 @@ void alarm_elec_collection_param(void)
 	static uint32_t elec_normal	= 0;  // 正常上报状态：
  
 	/* 适配器、断电上报 */
-	if(det_get_pwr_status() == 0) // 12V断电
+	if(det_get_pwr_status() == 1) // 12V断电
 	{
 		if(det_get_vin220v_handler(0) < 50)  // 市电电压 < 50V，说明断电
 		{
@@ -109,7 +109,21 @@ void alarm_elec_collection_param(void)
 
 	// 高压报警
 	if( sg_alarm_param_t->volt_max == 0 )  // 阈值为0，不作处理
-	{	}
+	{
+		if((elec_normal & 0x04) == 0)  // 正常上报标志位是0
+		{
+			elec_normal |= 0x04;  // 标志位置1，表示已上报
+			elec_error &=~ 0x04; // 故障上报标志位清0
+			if(sg_alarm_code_t.volt == 1)
+			{
+					sg_alarm_code_t.volt = 0;
+					Error_Clear(ERR_TYPE_ELEC,ELEC_AC_OVER_V);
+					app_report_information_immediately();
+					vTaskDelay(2000);
+					app_power_open_protection_function();  // 打开继电器
+			}
+		}
+	}
 	else
 	{
 		if(det_get_vin220v_handler(0) >= sg_alarm_param_t->volt_max) 
@@ -124,27 +138,43 @@ void alarm_elec_collection_param(void)
 				app_report_information_immediately();	
 			}
 		}
-		else if(det_get_vin220v_handler(0) >= 50) // 市电有电情况下
+		else 
 		{
-			if((elec_normal & 0x04) == 0)  // 正常上报标志位是0
+			if(det_get_vin220v_handler(0) >= 50) // 市电有电情况下
 			{
-				elec_normal |= 0x04;  // 标志位置1，表示已上报
-				elec_error &=~ 0x04; // 故障上报标志位清0
-				if(sg_alarm_code_t.volt == 1)
+				if((elec_normal & 0x04) == 0)  // 正常上报标志位是0
 				{
-						sg_alarm_code_t.volt = 0;
-						Error_Clear(ERR_TYPE_ELEC,ELEC_AC_OVER_V);
-						app_report_information_immediately();
-						vTaskDelay(2000);
-						app_power_open_protection_function();  // 打开继电器
+					elec_normal |= 0x04;  // 标志位置1，表示已上报
+					elec_error &=~ 0x04; // 故障上报标志位清0
+					if(sg_alarm_code_t.volt == 1)
+					{
+							sg_alarm_code_t.volt = 0;
+							Error_Clear(ERR_TYPE_ELEC,ELEC_AC_OVER_V);
+							app_report_information_immediately();
+							vTaskDelay(2000);
+							app_power_open_protection_function();  // 打开继电器
+					}
 				}
-			}
-		}	
+			}	
+		}
 	}
 
 	// 低压报警
 	if( sg_alarm_param_t->volt_min == 0 )  // 阈值为0，不作处理
-	{	}
+	{	
+		if((elec_normal & 0x08) == 0)  // 正常上报标志位是0
+		{
+			elec_normal |= 0x08;  // 标志位置1，表示已上报
+			elec_error &=~ 0x08; // 故障上报标志位清0
+			if(sg_alarm_code_t.volt == 2)
+			{
+					Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LOW_V);
+					sg_alarm_code_t.volt = 0;
+					app_report_information_immediately();
+					app_power_open_protection_function();  // 打开继电器
+			}
+		}	
+	}
 	else
 	{
 		if((det_get_vin220v_handler(0) <= sg_alarm_param_t->volt_min) && \
@@ -209,7 +239,8 @@ void alarm_elec_collection_param(void)
 		}
 	}
 	/* 漏电预警 */
-  if(det_get_miu_value(0) > sg_alarm_param_t->miu)
+  if((det_get_miu_value(0) > sg_alarm_param_t->miu) ||\
+		 (det_get_miu_value(1) > sg_alarm_param_t->miu))
 	{
 		if((elec_error & 0x20) == 0) 
 		{
@@ -377,8 +408,8 @@ void alarm_sensor_collection_param(void)
 	}
 	
 	/* 浸水检测模块 */
-	if((det_get_water_status(0) == 2) ||\
-		 (det_get_water_status(1) == 2))
+	if((det_get_water_status(0) == 1) ||\
+		 (det_get_water_status(1) == 1))
 	{
 		if((sensor_error & 0x04) == 0) 
 		{

@@ -87,9 +87,9 @@ static void water_status_Handler(char *pcInsert,uint8_t id)
 	uint8_t data = det_get_water_status(id);
 	switch(data)
 	{
-		case 0: sprintf(pcInsert,"%s",water_ssi_none);  break;
-		case 1: sprintf(pcInsert,"%s",water_ssi_ok); 	  break;
-		case 2: sprintf(pcInsert,"%s",water_ssi_error); break;
+		case 0: sprintf(pcInsert,"%s",water_ssi_ok);  break;
+		case 1: sprintf(pcInsert,"%s",water_ssi_error); break;
+		case 2: sprintf(pcInsert,"%s",water_ssi_none); break;
 		default:break;
 	}
 }
@@ -200,7 +200,7 @@ void httpd_ssi_other_data_collection_function(char *pcInsert)
 										 \"%s\",\"%s\",\"%s\",\"%s\",\
 										 \"%s\",\"%s\",\"%s\",\"%s\"]",
 			buff[0],unit,buff[1],buff[2],unit,buff[3],new_buff[0],\
-			new_buff[0],new_buff[1],new_buff[0],new_buff[1],\
+			new_buff[1],new_buff[2],new_buff[3],new_buff[4],\
 			new_buff1[0],new_buff1[1],new_buff1[2],new_buff1[3]);
 }
 
@@ -255,8 +255,8 @@ void httpd_ssi_bd_data_collection_function(char *pcInsert)
 	sprintf(buff[0],"%d",param->num_satellites);
 	sprintf(buff[1],"%d",param->num_satellites);
 	sprintf(buff[2],"%.2f",param->altitude);
-	sprintf(buff[3],"%f",param->latitude);
-	sprintf(buff[4],"%f",param->longitude);
+	sprintf(buff[4],"%f",param->latitude);
+	sprintf(buff[3],"%f",param->longitude);
 	sprintf(buff[5],"%d",param->fix_status);
 	
 	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",

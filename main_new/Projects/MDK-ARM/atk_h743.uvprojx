@@ -326,7 +326,7 @@
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <uC99>1</uC99>
-            <uGnu>0</uGnu>
+            <uGnu>1</uGnu>
             <useXO>0</useXO>
             <v6Lang>3</v6Lang>
             <v6LangP>3</v6LangP>
@@ -428,20 +428,25 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\demo_spi_flash.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\bsp_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Include</GroupName>
           <Files>
             <File>
-              <FileName>appconfig.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\..\INCLUDE\appconfig.h</FilePath>
-            </File>
-            <File>
               <FileName>bsp.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\..\INCLUDE\bsp.h</FilePath>
+            </File>
+            <File>
+              <FileName>appconfig.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\INCLUDE\appconfig.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -504,11 +509,6 @@
               <FilePath>..\..\APP\TASK\src\alarm.c</FilePath>
             </File>
             <File>
-              <FileName>traffic.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\TASK\src\traffic.c</FilePath>
-            </File>
-            <File>
               <FileName>print.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\TASK\src\print.c</FilePath>
@@ -527,11 +527,6 @@
               <FileName>aht20.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\APP\DRIVER\src\aht20.c</FilePath>
-            </File>
-            <File>
-              <FileName>BL0910_spi.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\APP\DRIVER\src\BL0910_spi.c</FilePath>
             </File>
             <File>
               <FileName>BL0939_SPI.c</FileName>
@@ -694,26 +689,6 @@
               <FilePath>..\..\Hardware\src\bsp_core_dwt.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_hspi_BL0910.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_hspi_BL0910.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_sspi_BL0910.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_sspi_BL0910.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_hspi2_bl0939.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_hspi2_bl0939.c</FilePath>
-            </File>
-            <File>
-              <FileName>bsp_sspi_bl0939.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\Hardware\src\bsp_sspi_bl0939.c</FilePath>
-            </File>
-            <File>
               <FileName>bsp_siic_rh0.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_siic_rh0.c</FilePath>
@@ -722,6 +697,26 @@
               <FileName>bsp_siic_rh1.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\Hardware\src\bsp_siic_rh1.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_sspi0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_sspi0.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_hspi4.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_hspi4.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_sspi1.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_sspi1.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_hspi2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Hardware\src\bsp_hspi2.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1406,7 +1401,7 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Middlewares/cmbacktrace</GroupName>
+          <GroupName>Middlewares/cm_backtrace</GroupName>
           <Files>
             <File>
               <FileName>cm_backtrace.c</FileName>

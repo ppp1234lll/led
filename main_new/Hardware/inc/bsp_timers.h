@@ -20,6 +20,7 @@ void bsp_RCC_TIM_Enable(TIM_TypeDef* TIMx);
 
 void bsp_InitTimers(TIM_TypeDef* TIMx, uint32_t _ulFreq, uint8_t _PreemptionPriority, uint8_t _SubPriority);
 
+uint32_t bsp_GetRunTime(void);
 #endif
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

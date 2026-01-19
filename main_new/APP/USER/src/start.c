@@ -1,7 +1,68 @@
 
 #include "appconfig.h"
+#include "./USER/inc/start.h"
 
 ChipID_t g_chipid_t;
+
+/*
+*********************************************************************************************************
+*	函 数 名:  start_bsp_init
+*	功能说明:  初始化所有的硬件设备
+*	形    参:  无
+*	返 回 值:  无
+*********************************************************************************************************
+*/
+void start_bsp_init(void)
+{
+	cJSON_Hooks hook;                // 初始化JSON 
+
+	iwdg_init(IWDG_PRESCALER_64, 1000);// 初始化看门狗(硬件、软件2s)
+	start_get_device_id_function();    // 获取本机ID
+	my_mem_init(SRAMIN);              // 内存初始化
+	
+	hook.malloc_fn = mymalloc_sramin;// 内存分配
+	hook.free_fn   = myfree_sramin;  // 内存释放
+	cJSON_InitHooks(&hook);          // 初始化自定义的内存分配和释放函数
+	
+	bsp_Init_DWT();
+	bsp_InitLed();                   // LED初始化（已测试）
+	bsp_InitRelay();				         // 继电器初始化（未测试）
+	bsp_InitKey();				           // 按键初始化	
+	ebtn_APP_Keys_Init();
+	bsp_InitRTC();								   // RTC初始化 (已测试)	
+	bsp_InitUsart1(115200);
+//	bsp_InitUsart2(115200);
+  bsp_InitRs485(115200);
+	bsp_InitUsart4(115200);
+	bsp_InitUart5(115200);
+	bsp_InitUsart6(9600);
+	bsp_InitUart7(115200);
+//	bsp_InitUart8(115200);	
+	bsp_InitLpuart1(115200);	
+
+	iwdg_feed();
+	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
+	printf("main run...\n");
+	
+	bsp_InitTimers(TIM2,1000,2,0);
+	bsp_InitTimers(TIM3,1000,2,0);
+	bsp_InitTimers(TIM4,1000,2,0);
+	bsp_InitTimers(TIM5,1000,2,0);
+	bsp_InitTimers(TIM6,1000,2,0);
+	
+	hal_lis3dh_init(true);
+	aht20_init_function();
+	aht201_init_function();
+	
+	bl0906_init_function();
+	bl0939_init_function();
+
+	bsp_InitSPIBus();	/* 配置SPI总线 */		
+	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
+
+	iwdg_feed();
+}
+
 
 /******************************************************************************************************/
 /*FreeRTOS配置*/
@@ -102,58 +163,13 @@ void start_task_create(void)
 void start_task(void *pvParameters)
 {
 	pvParameters = pvParameters;
-    
-	cJSON_Hooks hook;                // 初始化JSON 
-
-	iwdg_init(IWDG_PRESCALER_64, 1000);// 初始化看门狗(硬件、软件2s)
-	start_get_device_id_function();    // 获取本机ID
-	my_mem_init(SRAMIN);              // 内存初始化
-	
-	hook.malloc_fn = mymalloc_sramin;// 内存分配
-	hook.free_fn   = myfree_sramin;  // 内存释放
-	cJSON_InitHooks(&hook);          // 初始化自定义的内存分配和释放函数
-	
-	bsp_Init_DWT();
-	bsp_InitLed();                   // LED初始化（已测试）
-	bsp_InitRelay();				         // 继电器初始化（未测试）	
-	bsp_InitKey();				           // 按键初始化	
-	bsp_InitRTC();								   // RTC初始化 (已测试)
-//	bsp_InitUsart1(115200);
-	bsp_InitUsart2(115200);
-  bsp_InitUsart3(115200);
-	bsp_InitUsart4(115200);
-	bsp_InitUart5(115200);
-	bsp_InitUsart6(9600);
-	bsp_InitUart7(115200);
-//	bsp_InitUart8(115200);	
-	bsp_InitLpuart1(115200);	
-	iwdg_feed();
-	printf("\r\nCPU : STM32H743XIH6, BGA240, 主频: %dMHz\r\n", SystemCoreClock / 1000000);
-	printf("main run...\n");
-	
-//	lpuart1_test();
-	
-	bsp_InitTimers(TIM2,1000,2,0);
-	bsp_InitTimers(TIM3,1000,2,0);
-	bsp_InitTimers(TIM4,1000,2,0);
-	bsp_InitTimers(TIM5,1000,2,0);
-	bsp_InitTimers(TIM6,1000,2,0);
-	
-	
-	hal_lis3dh_init(true);
-	aht20_init_function();
-	bl0910_init_function();
-	bl0939_init_function();
-	iwdg_feed();
-	bsp_InitSPIBus();	/* 配置SPI总线 */		
-	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
-
+ 
 	save_init_function();
 	com_recevie_function_init();			// 初始化接收缓冲区
 	app_get_storage_param_function();	// 获取本地存储的数据
 	update_status_init();							// 更新检测
   printf("run here!!\n");
-//  while(1);
+ 
 	if (lwip_comm_init() != 0)
 	{
 		printf("lwIP Init failed!!\n");
@@ -212,7 +228,9 @@ void start_task(void *pvParameters)
 							(void *         )NULL,
 							(UBaseType_t    )SINGLE_TASK_PRIO,
 							(TaskHandle_t * )&Single_Task_Handler);
-//	freertos_demo();								
+//	freertos_demo();		
+
+
 	printf("Free heap: %d bytes\n", xPortGetFreeHeapSize());			/*打印剩余堆栈大小*/
 	vTaskDelete(StartTask_Handler); /* 删除开始任务 */
 	taskEXIT_CRITICAL();            /* 退出临界区 */					 
@@ -316,11 +334,11 @@ void eth_task(void *pvParameters)
 */
 void det_task(void *pvParameters)
 {
-	while(1){
+//	while(1){
 
-		vTaskDelay(500);
-	}
-//	det_task_function();
+//		vTaskDelay(500);
+//	}
+	det_task_function();
 }
 
 /*
@@ -337,7 +355,6 @@ void gsm_task(void *pvParameters)
 
 //		vTaskDelay(500);
 //	}
-	printf("gsm_task run \n");
 	gsm_task_function();
 }
 
@@ -372,7 +389,7 @@ void single_task(void *pvParameters)
 
 //		vTaskDelay(500);
 //	}	
-	printf("run single_task \n");
+ 
 	single_task_function();
 }
 

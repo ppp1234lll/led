@@ -31,17 +31,3 @@ traffic light detection\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_h
 traffic light detection\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 traffic light detection\usart.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 traffic light detection\usart.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-traffic light detection\usart.o: ../Core/Inc/BL0910.h
-traffic light detection\usart.o: ../Core/Inc/BL0910_2.h
-traffic light detection\usart.o: ../Core/Inc/BL0906.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
-traffic light detection\usart.o: ../Core/Inc/FreeRTOSConfig.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3/portmacro.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h
-traffic light detection\usart.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h

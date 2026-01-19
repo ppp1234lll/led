@@ -122,4 +122,7 @@ void voltage_sensor(void)
 	sg_datacollec_t.voltage[11] = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_4);
 }
 
+
+
+
 /* USER CODE END 2 */

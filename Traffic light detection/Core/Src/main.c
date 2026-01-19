@@ -19,7 +19,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "dma.h"
 #include "spi.h"
 #include "tim.h"
@@ -28,6 +27,11 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
+#include <stdio.h>
+#include "BL0910.h"
+#include "BL0910_2.h"
+#include "BL0906.h"
 #include "pack.h"
 
 /* USER CODE END Includes */
@@ -54,7 +58,6 @@
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -67,8 +70,11 @@ uint8_t SPI1_tx[2] = {0x82,0x69};
 uint8_t SPI1_rx[4] = {0};
 
 uint8_t seng_state = 0;
+uint8_t seng_state1 = 0;
 
-
+uint8_t  send_buffer[256] = {0};
+uint8_t  cmd = 0xA1;
+uint32_t buffer_len = 0;
 
 data_collection_t sg_datacollec_t;
 
@@ -92,6 +98,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+	
+
 
   /* USER CODE END 1 */
 
@@ -120,13 +128,18 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 	
 //	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);
 //	__HAL_UART_CLEAR_IDLEFLAG(&huart1);
 //	HAL_UART_Receive_DMA(&huart1,Usart1Rx,10);
-
+  HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start_IT(&htim1);
+
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart1, Usart1Rx, 20);
 	
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
@@ -138,23 +151,7 @@ int main(void)
 	bl0906_init_function();
 //	bl0906_test();
 
-
-  for(uint8_t i=0;i<24;i++)
-		sg_datacollec_t.current[i] = 100.25f + i*30;
-
-  for(uint8_t i=0;i<12;i++)
-		sg_datacollec_t.voltage[i] = i%2;
-		
-	printf("test\n");
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -164,21 +161,35 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		
-//		HAL_Delay(10);
+		HAL_Delay(10);
 		
-//		bl0910_work_process_function();
-//		bl0910_2_work_process_function();
-//		bl0906_work_process_function();
-//		
+//		HAL_SPI_Transmit(&hspi1, SPI1_tx, 2, HAL_MAX_DELAY);
+//		HAL_SPI_Receive(&hspi1, SPI1_rx, 4, HAL_MAX_DELAY);
+		
+		bl0910_work_process_function();
+		bl0910_2_work_process_function();
+		bl0906_work_process_function();
+		
 //		voltage_sensor();
 		
-//		if(seng_state == 1)
-//		{
-//			buffer_len = pack_data(cmd,&sg_datacollec_t,send_buffer);
-//			
-//			HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
-//			seng_state = 0;
-//		}
+		if(seng_state == 1)
+		{
+			buffer_len = pack_data(cmd,&sg_datacollec_t,send_buffer);
+			
+			HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
+			seng_state = 0;
+		}	
+		if(seng_state1 == 1)
+		{
+			buffer_len = pack_data(cmd,&sg_datacollec_t,send_buffer);
+			
+			HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
+			seng_state1 = 0;
+			for (int i = 0; i < 12; i++) 
+			{
+        sg_datacollec_t.pulse[i] = 0;
+      }
+		}
 		
   }
   /* USER CODE END 3 */
@@ -224,6 +235,28 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+uint16_t single_time[12] ;
+uint16_t single_time2[12] ;
+void single_time_run(void)
+{
+	uint8_t ch;
+	for(ch=0;ch<12;ch++)
+	{
+		if(sg_datacollec_t.voltage[ch] == 0)
+		{
+			single_time[ch]++;
+			single_time2[ch] = 	single_time[ch];
+		}
+		else
+		{
+			single_time[ch] = 0;
+		}			
+	}
+}
+
+
+
+
 
 /************************************************************
 *
@@ -267,33 +300,6 @@ void det_set_total_energy(uint8_t num,float data)
 
 
 /* USER CODE END 4 */
-
-/**
-  * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM3 interrupt took place, inside
-  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
-  * a global variable "uwTick" used as application time base.
-  * @param  htim : TIM handle
-  * @retval None
-  */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  /* USER CODE BEGIN Callback 0 */
-
-  /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM3)
-  {
-    HAL_IncTick();
-  }
-  /* USER CODE BEGIN Callback 1 */
-	if(htim->Instance == TIM2)
-	{
-		bl0910_run_timer_function();
-		bl0910_2_run_timer_function();
-		bl0906_run_timer_function();
-	}
-  /* USER CODE END Callback 1 */
-}
 
 /**
   * @brief  This function is executed in case of error occurrence.

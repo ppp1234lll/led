@@ -237,9 +237,8 @@ void UART5_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U5RxBuffer, U5_RX_SIZE);		
-		Uart5_SendString("\r\n uart5 dma_recv:\r\n");
-		HAL_UART_Transmit(&huart5, (uint8_t *)g_U5RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
+//		Uart5_SendString("\r\n uart5 dma_recv:\r\n");
+//		HAL_UART_Transmit(&huart5, (uint8_t *)g_U5RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 //		Uart5_Send_Data("123456789000\n",12);
 		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, g_U5RxBuffer, U5_RX_SIZE);

@@ -12,7 +12,7 @@
 
 #include "./DRIVER/inc/BL0939.h"
 #include "bsp.h"
-//#include "det.h"
+#include "./TASK/inc/det.h"
 
 /*
 实际电压值(V) = [电压有效值寄存器值*Vref*(R11+R10+R13+R14+R16+R9)]/[79931*R17*1000]
@@ -72,8 +72,7 @@ float ld_current;
 #define bl0939_INIT() 							bsp_InitSPI2()
 #define bl0939_SEND_STR(buff,len) 	HSPI2_Send_Data(buff,len)
 #define bl0939_ReadByte(tx,rx,len)  HSPI2_Read_Data(tx,rx,len)
-
-//#define bl0939_ReadByte()           SSPI_ReadByte()
+//#define bl0939_ReadByte()           SSPI1_ReadByte()
 
 /* 宏定义数据 */
 #define bl0939_DET_NUM   			4  		  // 采集次数 
@@ -170,13 +169,8 @@ int8_t bl0939_deal_read_data_function(void)
 
 	switch(sg_bl0939data_t.reg) 
 	{
-//		case BL0939_V_RMS: 	 det_set_total_energy_bl0939(0,data); break;
-//		case BL0939_IA_RMS:  det_set_total_energy_bl0939(1,data); break;
-//		case BL0939_IB_RMS:  det_set_total_energy_bl0939(2,data); break;
-//		case BL0939_A_WATT:  det_set_total_energy_bl0939(3,complement_to_original(data));	break;
-//		case BL0939_B_WATT:  det_set_total_energy_bl0939(4,complement_to_original(data));	break;
-//		case BL0939_CFA_CNT: det_set_total_energy_bl0939(5,data); break;
-//		case BL0939_CFB_CNT: det_set_total_energy_bl0939(6,data); break;
+		case BL0939_V_RMS: 	 det_set_total_energy_bl0939(0,data); break;
+		case BL0939_IA_RMS:  det_set_total_energy_bl0939(1,data); break;
 		default:			break;
 	}
 	return ret;
@@ -214,7 +208,6 @@ void bl0939_analysis_data_function(void)
 	/* 等待回传数据 */
 	if(bl0939_REC_STA&0x8000) 
 	{
-		
 		if(sg_bl0939data_t.mode == 0) 		/* 数据处理 */
 		{
 			ret = bl0939_deal_read_data_function();		/* 读取数据 */
@@ -291,8 +284,7 @@ void bl0939_read_reg_function(uint8_t reg, uint8_t mode)
 		bl0939_sending_data_function(reg,0);
 	
 //	bl0939_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
-//	
-//	for(index=0; index < 4; index++) {
+//	for(uint8_t index=0; index < 4; index++) {
 //		bl0939_REC_BUFF[index] = bl0939_ReadByte();
 //	}
 	
@@ -320,18 +312,11 @@ void bl0939_send_data_function(void)
 	{		
 		if(sg_bl0939data_t.flag > 0)
 		{
-//			printf("read\n");
 			switch(sg_bl0939data_t.flag)
 			{	
-				case 1: 	
-					bl0939_read_reg_function(BL0939_IA_RMS,0); 
-				break; // 电流 A
-				case 2: 	bl0939_read_reg_function(BL0939_IB_RMS,0); break; // 电流 B
-				case 3: 	bl0939_read_reg_function(BL0939_V_RMS,0); break;  // 电压
-				case 4: 	bl0939_read_reg_function(BL0939_A_WATT,0); break; // 功率 A
-//				case 5: 	bl0939_read_reg_function(BL0939_B_WATT,0); break; // 功率 B			
-//				case 6: 	bl0939_read_reg_function(BL0939_CFA_CNT,0); break; // 总有功脉冲	A	
-//				case 7: 	bl0939_read_reg_function(BL0939_CFB_CNT,0); break; // 总有功脉冲	B	
+				case 1: bl0939_read_reg_function(BL0939_IA_RMS,0);  break; // 电流 A
+				case 2: bl0939_read_reg_function(BL0939_V_RMS,0);   break;  // 电压
+
 				default: break;			
 			}
 			sg_bl0939data_t.flag--;

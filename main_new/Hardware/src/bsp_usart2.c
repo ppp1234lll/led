@@ -18,7 +18,7 @@
 *********************************************************************************************************
 */
 #define UART2_RX_NE     0    // 使用串口中断
-#define UART2_RX_DMA    1    // 使用串口DMA
+#define UART2_RX_DMA    0    // 使用串口DMA
 
 /*
 *********************************************************************************************************
@@ -50,7 +50,7 @@ __attribute__((section (".RAM_SRAMD2"))) uint8_t g_U2RxBuffer[U2_RX_SIZE];
 __attribute__((section (".RAM_SRAMD2"))) uint8_t g_U2TxBuffer[U2_TX_SIZE];
 #else
 uint8_t g_U2RxBuffer[U2_RX_SIZE];
-uint8_t g_U2TxBuffer[U2_TX_SIZE];#endif
+uint8_t g_U2TxBuffer[U2_TX_SIZE];
 #endif
 
 
@@ -86,7 +86,7 @@ void bsp_InitUsart2(uint32_t baudrate)
 	__HAL_RCC_USART2_CLK_ENABLE();
 	__HAL_RCC_GPIOD_CLK_ENABLE();
 #if UART2_RX_DMA
-	__HAL_RCC_DMA2_CLK_ENABLE();
+	__HAL_RCC_DMA1_CLK_ENABLE();
 #endif
 	/**USART2 GPIO Configuration
 	PD5     ------> USART2_TX
@@ -118,6 +118,7 @@ void bsp_InitUsart2(uint32_t baudrate)
 	}
 	/* 记录DMA句柄hdma_tx到huart的成员hdmatx里 */
 	__HAL_LINKDMA(&huart2,hdmarx,hdma_usart2_rx);
+	
 #endif
 
   huart2.Instance = USART2;
@@ -137,44 +138,27 @@ void bsp_InitUsart2(uint32_t baudrate)
     Error_Handler(__FILE__, __LINE__);
   }
 
+#if UART2_RX_NE
+	/* 该函数会开启接收中断：标志位UART_IT_RXNE，并且设置接收缓冲以及接收缓冲接收最大数据量 */
+	HAL_UART_Receive_IT(&huart2, (uint8_t *)g_U2RxBuffer, U2_RX_SIZE);
+#endif
+	
+		
+#if UART2_RX_DMA
+  // 启动 DMA 接收
+	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
+	__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);  // 禁用半满中断
+	__HAL_UART_CLEAR_IDLEFLAG(&huart2); 
+	
+#endif
+
 	// 3. 关键：初始化后先清除所有串口标志位，避免残留标志触发中断
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_IDLE);  // 清除空闲标志
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_RXNE);  // 清除接收非空标志
 	__HAL_UART_CLEAR_FLAG(&huart2, UART_FLAG_TC);     // 清除发送完成标志
 
-	
-#if UART2_RX_NE
-	/* USART2 interrupt Init */
-	HAL_NVIC_SetPriority(USART2_IRQn, 4, 0);
-	HAL_NVIC_EnableIRQ(USART2_IRQn);	
-	
-	/* 该函数会开启接收中断：标志位UART_IT_RXNE，并且设置接收缓冲以及接收缓冲接收最大数据量 */
-	HAL_UART_Receive_IT(&huart2, (uint8_t *)g_U2RxBuffer, U2_RX_SIZE);
-#endif
-	
-#if UART2_RX_DMA
-
-	__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);  // 禁用半满中断
-	__HAL_UART_CLEAR_IDLEFLAG(&huart2); //串口初始化完成后空闲中断标志位是1 需要清除  //很有必要 可以自己仿真看一下初始化后标志位是置一的
-
-	// TX DMA（Stream1）：启用完成中断和错误中断
-	__HAL_DMA_DISABLE_IT(&hdma_usart2_tx, DMA_IT_HT);  // 禁用半满中断
-	__HAL_DMA_ENABLE_IT(&hdma_usart2_tx, DMA_IT_TC | DMA_IT_TE);
-	
-	/*##-4- 配置中断 #########################################*/
-  /* DMA2_Stream0_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 4, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
-  /* DMA2_Stream1_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 4, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-	/* USART2 interrupt Init */
 	HAL_NVIC_SetPriority(USART2_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
-	
-  // 启动 DMA 接收
-	HAL_UARTEx_ReceiveToIdle_DMA(&huart2, g_U2RxBuffer, U2_RX_SIZE);
-#endif
 
 }
 
@@ -301,13 +285,13 @@ void DMA1_Stream1_IRQHandler(void)
 
 /*
 *********************************************************************************************************
-*	函 数 名: usart2_test
+*	函 数 名: uart2_test
 *	功能说明: 串口测试
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void usart2_test(void)
+void uart2_test(void)
 {
     uint8_t len;
     uint16_t times = 0;
@@ -339,6 +323,7 @@ void usart2_test(void)
             if (times % 200 == 0)
             {
                 Usart2_SendString("请输入数据,以回车键结束\r\n");
+							  printf("times\r\n");
             }
 
             if (times % 30  == 0) 
@@ -350,4 +335,25 @@ void usart2_test(void)
         }
     }	
 }
+
+#ifdef Enable_USART
+//重定向c库函数printf到串口USARTx，重定向后可使用printf函数
+int fputc(int ch, FILE *f)
+{
+  /* 发送一个字节数据到串口USARTx */
+	HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+	return (ch);
+}
+
+///重定向c库函数scanf到串口USARTx，重写向后可使用scanf、getchar等函数
+int fgetc(FILE *f)
+{	
+	int ch;
+	/* 等待串口输入数据 */
+	while(__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) == RESET);
+	__HAL_UART_CLEAR_OREFLAG(&huart2);
+	HAL_UART_Receive(&huart2, (uint8_t *)&ch, 1, 0xFFFF);
+	return (ch);
+}
+#endif
 

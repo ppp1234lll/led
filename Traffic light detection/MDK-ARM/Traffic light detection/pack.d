@@ -31,6 +31,3 @@ traffic light detection\pack.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ha
 traffic light detection\pack.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 traffic light detection\pack.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 traffic light detection\pack.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-traffic light detection\pack.o: ../Core/Inc/BL0910.h
-traffic light detection\pack.o: ../Core/Inc/BL0910_2.h
-traffic light detection\pack.o: ../Core/Inc/BL0906.h

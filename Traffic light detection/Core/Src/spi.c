@@ -328,9 +328,16 @@ void hardSPI_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 }
 
-
+/*
+* �������� uint8_t SPI_ReadByte(void)
+* ���������
+* �����������
+* ����ֵ������������
+* �������ã�ģ�� SPI ��һ���ֽ�
+*/  // SPI��1 Byte��ѭ��8�Σ�ÿ�ν���1 Bit��  
 uint8_t hardSPI_ReadByte(void)
 {
+	uint8_t i = 0;
 	uint8_t RecevieData=0;
 	
 	if (HAL_SPI_Receive(&hspi1, &RecevieData, 1, HAL_MAX_DELAY) != HAL_OK)
@@ -391,8 +398,16 @@ void hardSPI_2_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 }
 
+/*
+* �������� uint8_t SPI_ReadByte(void)
+* ���������
+* �����������
+* ����ֵ������������
+* �������ã�ģ�� SPI ��һ���ֽ�
+*/  // SPI��1 Byte��ѭ��8�Σ�ÿ�ν���1 Bit��  
 uint8_t hardSPI_2_ReadByte(void)
 {
+	uint8_t i = 0;
 	uint8_t RecevieData=0;
 	
 	if (HAL_SPI_Receive(&hspi2, &RecevieData, 1, HAL_MAX_DELAY) != HAL_OK)
@@ -426,7 +441,13 @@ uint8_t hardSPI_3_ReadWriteByte(uint8_t TxData)
 	return RecevieData;
 }
 
-  
+ /*
+* �������� void SPI_WriteByte(uint8_t data)
+* ��������� data -> Ҫд������
+* �����������  
+* ����ֵ����
+* �������ã�ģ�� SPI дһ���ֽ�
+*/ // SPIд1 Byte��ѭ��8�Σ�ÿ�η���1 Bit��
 void hardSPI_3_WriteByte(uint8_t TxData)  
 {
   HAL_SPI_Receive(&hspi3, &TxData, 1, HAL_MAX_DELAY);
@@ -448,8 +469,16 @@ void hardSPI_3_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 }
 
+/*
+* �������� uint8_t SPI_ReadByte(void)
+* ���������
+* �����������
+* ����ֵ������������
+* �������ã�ģ�� SPI ��һ���ֽ�
+*/  // SPI��1 Byte��ѭ��8�Σ�ÿ�ν���1 Bit��  
 uint8_t hardSPI_3_ReadByte(void)
 {
+	uint8_t i = 0;
 	uint8_t RecevieData=0;
 	
 	if (HAL_SPI_Receive(&hspi3, &RecevieData, 1, HAL_MAX_DELAY) != HAL_OK)

@@ -9,6 +9,7 @@ typedef enum
 	KEY_NONE  = 0,     // 无事件
 	KEY_EVNT,          // 事件触发
   KEY_ERASE,         // 擦除
+  KEY_LWIP,         //  
 }KEY_VALUE_E;
 
 typedef struct {
@@ -31,9 +32,8 @@ typedef struct
 	float vin_voltage;		// 总闸电压
 	float vin_current;		// 总闸电流
 	float current[4]; 		// 电流检测
-
+	float residual_c[2];   // 剩余电流
 	uint8_t key_s[10];    // 按键数量定义
-	uint8_t residual_c[2];   // 剩余电流
 	uint8_t main_ip;	   // 主网络状态：0：离线 1：在线，2：延时严重
 	uint8_t main_sub_ip; // 主网络状态sub: 0：离线 1：在线，2：延时严重
 	uint8_t single_ip;	

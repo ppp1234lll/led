@@ -22,6 +22,6 @@
 void bsp_InitUsart6(uint32_t bound);
 void usart6_send_data(uint8_t *buf, uint8_t len);
  
-void usart6_test(void);
+void uart6_test(void);
 
 #endif

@@ -19,7 +19,7 @@ void det_task_function(void)
 		det_get_key_status_function();	 // 按键检测函数
 		det_get_temphumi_function(); 		 // 获取温湿度
 		det_get_attitude_state_value();  // 获取姿态数据
-		bl0910_work_process_function();	 // 数据获取函数
+		bl0906_work_process_function();	 // 数据获取函数
 		bl0939_work_process_function();
 		det_get_gps_value();             // 获取GPS数据
 		iwdg_feed();			 		           // 喂狗			
@@ -48,7 +48,14 @@ void det_get_key_status_function(void)
 	{
 		det_set_key_value(RESET_K1,KEY_NONE);
 		led_control_function(LD_GPRS,LD_ON); 
-		app_set_reset_function();/* 将系统设置参数恢复为默认值，需要重启生效 */
+		sf_EraseChip(); 
+		app_system_softreset(1000);
+	}
+	else if(sg_datacollec_t.key_s[RESET_K1] == KEY_LWIP)	 // 擦除FLASH
+	{
+		det_set_key_value(RESET_K1,KEY_NONE);
+		led_control_function(LD_GPRS,LD_ON); 
+		eth_reset_function(); 
 	}
 	
 	for(i=0; i< KEY_MAX;i++ )
@@ -124,17 +131,21 @@ uint8_t det_main_network_and_camera_network(void)
 */
 void det_get_temphumi_function(void)
 {
-	double det_temp = 0;
-	double det_humi = 0;
+	double det_temp[2] = {0};
+	double det_humi[2] = {0};
 	static uint8_t th_count_time = 0;
 	
 	th_count_time++;
 	if(th_count_time >= 100)  // 2s 2000/20 = 100
 	{
 		th_count_time = 0;
-	  if(aht20_measure(&det_humi,&det_temp) == 0) {
-			sg_datacollec_t.humi_inside[0] = det_humi;
-			sg_datacollec_t.temp_inside[0] = det_temp;
+	  if(aht20_measure(&det_humi[0],&det_temp[0]) == 0) {
+			sg_datacollec_t.humi_inside[0] = det_humi[0];
+			sg_datacollec_t.temp_inside[0] = det_temp[0];
+		}
+	  if(aht201_measure(&det_humi[1],&det_temp[1]) == 0) {
+			sg_datacollec_t.humi_inside[1] = det_humi[1];
+			sg_datacollec_t.temp_inside[1] = det_temp[1];
 		}
 	}
 }
@@ -388,12 +399,12 @@ void det_set_total_energy_bl0906(uint8_t num,float data)
 {
 	switch(num)
 	{
-		case 0: sg_datacollec_t.current[0] = data / BL0906_CURR_KP; 		break;
-		case 1: sg_datacollec_t.current[1] = data / BL0906_CURR_KP; 		break;
-		case 2: sg_datacollec_t.current[2] = data / BL0906_CURR_KP; 		break;
-		case 3: sg_datacollec_t.current[3] = data / BL0906_CURR_KP; 		break;
-		case 4: sg_datacollec_t.residual_c[0] = data / BL0906_CURR_KP; 		break;
-		case 5: sg_datacollec_t.residual_c[1] = data / BL0906_CURR_KP; 		break;
+		case 0: sg_datacollec_t.current[0] = data / BL0906_CURR_KP - 0.5f; 		break;
+		case 1: sg_datacollec_t.current[1] = data / BL0906_CURR_KP; 		      break;
+		case 2: sg_datacollec_t.current[2] = data / BL0906_CURR_KP- 0.5f; 		break;
+		case 3: sg_datacollec_t.current[3] = data / BL0906_CURR_KP- 0.5f; 		break;
+		case 4: sg_datacollec_t.residual_c[0] = data / BL0906_CURR_KP; 		    break;
+		case 5: sg_datacollec_t.residual_c[1] = data / BL0906_CURR_KP; 		    break;
   }
 }
 

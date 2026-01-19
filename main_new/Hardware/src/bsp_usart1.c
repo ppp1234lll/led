@@ -13,7 +13,7 @@
 #include "bsp_usart1.h"
 
 #define UART1_RX_NE     0    // 使用串口中断
-#define UART1_RX_DMA    0    // 使用串口DMA
+#define UART1_RX_DMA    1    // 使用串口DMA
 
 #define U1_RX_SIZE  (2048)
 /*  接收状态
@@ -261,11 +261,12 @@ void USART1_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U1RxBuffer, U1_RX_SIZE);		
-		Usart1_SendString("\r\ndma_recv:\r\n");
-		HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
+//		Usart1_SendString("\r\ndma_recv:\r\n");
+//		HAL_UART_Transmit(&huart1, (uint8_t *)g_U1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 //		Usart1_Send_Data("123456789000\n",12);
 		
+	
+	
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart1, g_U1RxBuffer, U1_RX_SIZE);
 	}
 #endif
@@ -332,20 +333,13 @@ void DMA1_Stream0_IRQHandler(void)
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void usart1_test(void)
+void uart1_test(void)
 {
 	int GetKey;
 	uint8_t len;
 	uint16_t times = 0;
 	while(1)
 	{
-		/* 做一个简单的回环功能 */
-		if (SEGGER_RTT_HasKey()) 
-		{
-			GetKey = SEGGER_RTT_GetKey();
-			SEGGER_RTT_SetTerminal(0);
-			SEGGER_RTT_printf(0, "SEGGER_RTT_GetKey = %c\r\n", GetKey);
-		}
 		
 		if (g_usart1_rx_sta & 0x8000)                                                    /* 接收到了数据? */
 		{
@@ -382,24 +376,23 @@ void usart1_test(void)
 	}	
 }
 
-#ifdef Enable_USART
-//重定向c库函数printf到串口USARTx，重定向后可使用printf函数
-int fputc(int ch, FILE *f)
-{
-    /* 发送一个字节数据到串口USARTx */
-	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-	return (ch);
-}
+//#ifdef Enable_USART
+////重定向c库函数printf到串口USARTx，重定向后可使用printf函数
+//int fputc(int ch, FILE *f)
+//{
+//  /* 发送一个字节数据到串口USARTx */
+//	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+//	return (ch);
+//}
 
-///重定向c库函数scanf到串口USARTx，重写向后可使用scanf、getchar等函数
-int fgetc(FILE *f)
-{	
-	int ch;
-	/* 等待串口输入数据 */
-	while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) == RESET);
-	__HAL_UART_CLEAR_OREFLAG(&huart1);
-	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
-	return (ch);
-}
-#endif
-
+/////重定向c库函数scanf到串口USARTx，重写向后可使用scanf、getchar等函数
+//int fgetc(FILE *f)
+//{	
+//	int ch;
+//	/* 等待串口输入数据 */
+//	while(__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) == RESET);
+//	__HAL_UART_CLEAR_OREFLAG(&huart1);
+//	HAL_UART_Receive(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+//	return (ch);
+//}
+//#endif

@@ -20,16 +20,15 @@
 #include  <stdio.h>
 #include  <string.h>
 
-#include "EventRecorder.h"
-#include "SEGGER_RTT.h"
-
 //#define Enable_EventRecorder // 选择使用EVR
 //#define Enable_RTTViewer   // 选择使用RTT
 #define Enable_USART   // 选择使用UART
 
 #ifdef Enable_EventRecorder
+#include "EventRecorder.h"
 
 #elif defined Enable_RTTViewer
+#include "SEGGER_RTT.h"
 #define printf(...) do { SEGGER_RTT_SetTerminal(0);   \
 		                     SEGGER_RTT_printf(0, __VA_ARGS__); \
                          }while(0)
@@ -65,10 +64,10 @@
 #include "bsp_siic_rh0.h"
 #include "bsp_siic_rh1.h"
 
-#include "bsp_hspi_BL0910.h"
-#include "bsp_sspi_BL0910.h"
-#include "bsp_hspi2_BL0939.h"
-#include "bsp_sspi_BL0939.h"
+#include "bsp_hspi4.h"
+#include "bsp_sspi0.h"
+#include "bsp_hspi2.h"
+#include "bsp_sspi1.h"
 
 #include "demo_spi_flash.h"
 #endif

@@ -46,10 +46,10 @@ static const ErrorGroup_t error_groups[] = {
 
 // ===================== 第五步：全局错误状态（双层管理） =====================
 // 1. 组级错误状态（uint64_t，标记哪个组有错误，bit位操作）
-static uint32_t g_err_group_status = 0;
+uint32_t g_err_group_status = 0;
 // 2. 组内错误状态（数组，存储每个组内的错误索引集合，用位图/列表均可）
 // 方案：用uint32_t数组存储组内错误位图（每个组最多32个错误，超了可改用uint64_t/数组）
-static uint32_t g_err_item_status[ERR_MAX] = {0};
+uint32_t g_err_item_status[ERR_MAX] = {0};
 
 /*
 *********************************************************************************************************

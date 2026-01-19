@@ -18,10 +18,10 @@
 /******************************************************************************************/
 
 /******************************************************************************************/
-
+void bsp_InitRs485(uint32_t baudrate);
 void bsp_InitUsart3(uint32_t bound);
 void usart3_send_data(uint8_t *buf, uint8_t len);
  
-void usart3_test(void);
+void uart3_test(void);
 
 #endif

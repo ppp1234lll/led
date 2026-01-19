@@ -10,9 +10,9 @@
  */
 
 #include "appconfig.h"
-
+#include  <stdio.h>
 #include "freertos_demo.h"
-
+#include "EventRecorder.h"
 
 int main(void)
 {
@@ -24,10 +24,11 @@ int main(void)
 	sys_stm32_clock_init(192, 5, 2, 4);      /* 设置时钟, 480Mhz */
 	delay_init(480);                         /* 延时初始化 */
 	usart_init(115200);                      /* 串口初始化 */
-
-	start_system_init_function();
+	EventRecorderInitialize(EventRecordAll, 1U);
+	EventRecorderStart();
+//	start_system_init_function();
 	
-	 freertos_demo();
+//	 freertos_demo();
 	
 	while(1)
 	{

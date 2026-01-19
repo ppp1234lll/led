@@ -230,9 +230,8 @@ void UART4_IRQHandler(void)
 		
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U4RxBuffer, U4_RX_SIZE);		
-		Usart4_SendString("\r\n uart4 dma_recv:\r\n");
-		HAL_UART_Transmit(&huart4, (uint8_t *)g_U4RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
-
+//		Usart4_SendString("\r\n uart4 dma_recv:\r\n");
+//		HAL_UART_Transmit(&huart4, (uint8_t *)g_U4RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 //		Usart4_Send_Data("123456789000\n",12);
 		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, g_U4RxBuffer, U4_RX_SIZE);
@@ -270,13 +269,13 @@ void DMA1_Stream3_IRQHandler(void)
 #endif
 /*
 *********************************************************************************************************
-*	函 数 名: usart4_test
+*	函 数 名: uart4_test
 *	功能说明: 串口测试
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void usart4_test(void)
+void uart4_test(void)
 {
 	uint8_t len;
 	uint16_t times = 0;

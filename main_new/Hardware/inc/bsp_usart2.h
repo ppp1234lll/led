@@ -38,6 +38,6 @@ extern UART_RxCpltCallbackFunc huart2_rxcplt_cb;
 void bsp_InitUsart2(uint32_t bound);
 void usart2_send_data(uint8_t *buf, uint8_t len);
  
-void usart2_test(void);
+void uart2_test(void);
 
 #endif

@@ -29,8 +29,4 @@ traffic light detection\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm3
 traffic light detection\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 traffic light detection\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 traffic light detection\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-traffic light detection\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-traffic light detection\stm32f1xx_it.o: ../Core/Inc/BL0910.h
-traffic light detection\stm32f1xx_it.o: ../Core/Inc/BL0910_2.h
-traffic light detection\stm32f1xx_it.o: ../Core/Inc/BL0906.h
 traffic light detection\stm32f1xx_it.o: ../Core/Inc/stm32f1xx_it.h

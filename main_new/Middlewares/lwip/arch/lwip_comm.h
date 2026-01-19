@@ -85,5 +85,7 @@ uint8_t lwip_comm_init(void);                           /* LWIP初始化(LWIP启动的
 void lwip_updata_remote_network_infor(__lwip_dev *lwipx);
 void lwip_start_function(void);
 void lwip_stop_function(void);
+extern void eth_reset_function(void);
+
 #endif
 

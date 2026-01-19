@@ -223,6 +223,7 @@ void lwip_link_thread( void * argument )
 			}
 			else                                        /* 关闭虚拟网卡及以太网中断 */
 			{
+				led_control_function(LD_LAN,LD_OFF);
 				g_lwipdev.netif_state = 0;
 				HAL_ETH_Stop_IT(&g_eth_handler);
 				netif_set_down(netif);
@@ -234,6 +235,7 @@ void lwip_link_thread( void * argument )
 			link_again_num = 0;
 			if (g_lwipdev.link_status == LWIP_LINK_OFF)/* 开启以太网及虚拟网卡 */
 			{
+				led_control_function(LD_LAN,LD_ON);
 				g_lwipdev.netif_state = 1;
 				g_lwipdev.link_status = LWIP_LINK_ON;
 				HAL_ETH_Start_IT(&g_eth_handler);
@@ -314,8 +316,7 @@ void lwip_start_function(void)
 		HAL_ETH_Start_IT(&g_eth_handler);
 		netif_set_up(&g_lwip_netif);
 		netif_set_link_up(&g_lwip_netif); // 打开netif网口
-		
-		led_control_function(LD_LAN,LD_ON);
+	
 		g_lwipdev.netif_state = 1;
 	}
 }

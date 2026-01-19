@@ -184,39 +184,39 @@ static int8_t Setting_threshold_parameter_function(char *pcParam[], char *pcValu
 	int8_t      ret		= 0;
 	
 	/* 系统设置 */
-	if (strcmp(pcParam[i] , "aa")==0) // 电压
+	if (strcmp(pcParam[i] , "A")==0) // 电压
 	{
 		param.volt_max = atoi(pcValue[i]); return ret;
 	}
-	if (strcmp(pcParam[i] , "ab")==0) // 电压
+	if (strcmp(pcParam[i] , "B")==0) // 电压
 	{
 		param.volt_min = atoi(pcValue[i]); return ret;
 	}	
-	if (strcmp(pcParam[i] , "ac")==0) // 电流
+	if (strcmp(pcParam[i] , "Q")==0) // 电流
 	{
 		param.current = atoi(pcValue[i]); return ret;		
 	}
-	if (strcmp(pcParam[i] , "ad")==0) // 角度
+	if (strcmp(pcParam[i] , "R")==0) // 角度
 	{
 		param.angle = atoi(pcValue[i]); return ret;
 	}
-	if (strcmp(pcParam[i] , "ae")==0) // 风扇启动温度
+	if (strcmp(pcParam[i] , "S")==0) // 风扇启动温度
 	{
 		param.temp_high = atoi(pcValue[i]); return ret;
 	}	
-	if (strcmp(pcParam[i] , "af")==0) // 风扇停止温度
+	if (strcmp(pcParam[i] , "T")==0) // 风扇停止温度
 	{
 		param.temp_low = atoi(pcValue[i]); return ret;
 	}		
-	if (strcmp(pcParam[i] , "ag")==0) // 风扇启动湿度
+	if (strcmp(pcParam[i] , "U")==0) // 风扇启动湿度
 	{
 		param.humi_high = atoi(pcValue[i]); return ret; 
 	}		
-	if (strcmp(pcParam[i] , "ah")==0) // 风扇停止湿度
+	if (strcmp(pcParam[i] , "V")==0) // 风扇停止湿度
 	{
 		param.humi_low = atoi(pcValue[i]);  return ret; 
 	}
-	if (strcmp(pcParam[i] , "am")==0) // 漏电
+	if (strcmp(pcParam[i] , "W")==0) // 漏电
 	{
 		param.miu = atoi(pcValue[i]);
 		app_set_threshold_param_function(param);

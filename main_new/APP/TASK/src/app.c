@@ -59,10 +59,10 @@ typedef struct
 
 
 /* 参数定义 */
-__attribute__((section (".RAM_D1")))  sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
-__attribute__((section (".RAM_D1")))  sys_operate_t sg_sysoperate_t; // 系统操作参数：包括通信、存储、计时
-__attribute__((section (".RAM_D1")))  sys_param_t   sg_sysparam_t   = {0}; // 系统参数：本地、远端、设备、上报相关参数
-__attribute__((section (".RAM_D1")))  com_param_t   sg_comparam_t	 	  = {
+__attribute__((section (".RAM_D1"))) sys_backups_t sg_backups_t   	= {0}; // 备份信息 20231022
+__attribute__((section (".RAM_D1"))) sys_operate_t sg_sysoperate_t; // 系统操作参数：包括通信、存储、计时
+__attribute__((section (".RAM_D1"))) sys_param_t   sg_sysparam_t   = {0}; // 系统参数：本地、远端、设备、上报相关参数
+__attribute__((section (".RAM_D1"))) com_param_t   sg_comparam_t	 	  = {
 	90000,
 	60000,
 	60000,
@@ -70,9 +70,9 @@ __attribute__((section (".RAM_D1")))  com_param_t   sg_comparam_t	 	  = {
 	200,    // 网络延时时间  20220308
 	120,    // ONVIF搜索时间  20230811
 }; 				// 通信参数：心跳、上报、ping间隔时间
-__attribute__((section (".RAM_D1")))  uint8_t     sg_send_buff[2048] = {0}; // 发送缓存区
-__attribute__((section (".RAM_D1")))  uint16_t    sg_send_size =  0;	 // 发送数据长度
-__attribute__((section (".RAM_D1")))  rtc_time_t  sg_rtctime_t = {0}; // rtc采集间隔时间
+__attribute__((section (".RAM_D1"))) uint8_t     sg_send_buff[2048] = {0}; // 发送缓存区
+__attribute__((section (".RAM_D1"))) uint16_t    sg_send_size =  0;	 // 发送数据长度
+__attribute__((section (".RAM_D1"))) rtc_time_t  sg_rtctime_t = {0}; // rtc采集间隔时间
 
 /*
 *********************************************************************************************************

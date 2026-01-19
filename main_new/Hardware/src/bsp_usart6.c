@@ -231,6 +231,8 @@ void USART6_IRQHandler(void)
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U6RxBuffer, U6_RX_SIZE);		
     gps_get_data(g_U6RxBuffer,total_len);
 		
+//		printf("%s",g_U6RxBuffer);
+		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart6, g_U6RxBuffer, U6_RX_SIZE);
 	}
 #endif
@@ -267,13 +269,13 @@ void DMA1_Stream5_IRQHandler(void)
 
 /*
 *********************************************************************************************************
-*	函 数 名: usart6_test
+*	函 数 名: uart6_test
 *	功能说明: 串口测试
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void usart6_test(void)
+void uart6_test(void)
 {
     uint8_t len;
     uint16_t times = 0;

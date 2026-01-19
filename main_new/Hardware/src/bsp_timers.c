@@ -55,6 +55,13 @@ bsp.c 文件中 void SystemClock_Config(void) 函数对时钟的配置如下:
 */
 
 /*
+	全局运行时间，单位1ms
+	最长可以表示 24.85天，如果你的产品连续运行时间超过这个数，则必须考虑溢出问题
+*/
+__IO uint32_t g_iRunTime = 0;
+
+
+/*
 *********************************************************************************************************
 *	函 数 名: bsp_SetTIMforInt
 *	功能说明: 配置TIM和NVIC，用于简单的定时中断，开启定时中断。另外注意中断服务程序需要由用户应用程序实现。
@@ -233,7 +240,9 @@ void TIM2_IRQHandler(void)
 	if((TIM2->SR & TIM_FLAG_UPDATE) != RESET)
 	{
 		TIM2->SR = ~ TIM_FLAG_UPDATE;
-		
+		/* 全局运行时间每1ms增1 */
+		g_iRunTime++;		
+ 
 #ifdef TIMER_DEBUG
 		g_timer_test[0]++;
 		if(g_timer_test[0] >= 1000)
@@ -266,7 +275,7 @@ void TIM3_IRQHandler(void)
 		eth_ping_timer_function();
 		led_flicker_control_timer_function();
 		app_reboot_timer_run();
-		bl0910_run_timer_function();
+		bl0906_run_timer_function();
 		com_queue_time_function();
 		bl0939_run_timer_function();
 		
@@ -357,6 +366,11 @@ void TIM6_DAC_IRQHandler(void)
 		}
 #endif		
 	}
+}
+
+uint32_t bsp_GetRunTime(void)
+{
+  return g_iRunTime;
 }
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

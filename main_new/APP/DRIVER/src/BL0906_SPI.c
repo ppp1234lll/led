@@ -1,3 +1,10 @@
+/********************************************************************************
+* @File name  : 电能计量驱动
+* @Description: SPI通信
+* @Author     : ZHLE
+*  Version Date        Modification Description
+********************************************************************************/
+
 #include "./DRIVER/inc/BL0906.h"
 #include "bsp.h"
 #include "./TASK/inc/det.h"
@@ -51,10 +58,10 @@ struct bl0906_data_t sg_bl0906data_t = {0};
 
 /* 接口与参数 */
 #define BL0906_BAUDRATE (4800)
-#define BL0906_INIT() 							bsp_InitHSPI()
-#define BL0906_SEND_STR(buff,len) 	HSPI_Send_Data(buff,len)
-#define BL0906_READ_STR(tx,rx,len)  HSPI_Read_Data(tx,rx,len)
-//#define BL0910_READ_STR							HSPI_ReadByte
+#define BL0906_INIT() 							bsp_InitHSPI4()
+#define BL0906_SEND_STR(buff,len) 	HSPI4_Send_Data(buff,len)
+#define BL0906_READ_STR(tx,rx,len)  HSPI4_Read_Data(tx,rx,len)
+//#define BL0910_READ_STR							SSPI0_ReadByte
 
 /* 宏定义数据 */
 #define BL0906_DET_NUM   			20  		// 采集次数 
@@ -156,11 +163,11 @@ int8_t bl0906_deal_read_data_function(void)
 	switch(sg_bl0906data_t.reg) 
 	{
 		case BL0906_I1_RMS:    		det_set_total_energy_bl0906(0,data); break;
-		case BL0906_I2_RMS:    		det_set_total_energy_bl0906(2,data); break;
-		case BL0906_I3_RMS:    		det_set_total_energy_bl0906(3,data); break;
-		case BL0906_I4_RMS:    		det_set_total_energy_bl0906(4,data); break;
-		case BL0906_I5_RMS:    		det_set_total_energy_bl0906(5,data); break;	
-		case BL0906_I6_RMS:    		det_set_total_energy_bl0906(6,data); break;
+		case BL0906_I2_RMS:    		det_set_total_energy_bl0906(1,data); break;
+		case BL0906_I3_RMS:    		det_set_total_energy_bl0906(2,data); break;
+		case BL0906_I4_RMS:    		det_set_total_energy_bl0906(3,data); break;
+		case BL0906_I5_RMS:    		det_set_total_energy_bl0906(4,data); break;	
+		case BL0906_I6_RMS:    		det_set_total_energy_bl0906(5,data); break;
 		default:			break;
 	}
 	return ret;
@@ -275,12 +282,12 @@ void bl0906_read_reg_function(uint8_t reg, uint8_t mode)
 	if( mode == 0) 	/* 更新标志 */
 		bl0906_sending_data_function(reg,0);
 	
-//	BL0910_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
-//	for(index=0; index < 4; index++) {
-//		BL0910_REC_BUFF[index] = HSPI_ReadByte();
+//	BL0906_SEND_STR(buff,sizeof(buff));	/* 数据发送 */
+//	for(uint8_t index=0; index < 4; index++) {
+//		BL0906_REC_BUFF[index] = BL0906_READ_STR();
 //	}
 
-	HSPI_Read_Data(buff,BL0906_REC_BUFF,6);
+	BL0906_READ_STR(buff,BL0906_REC_BUFF,6);
 	BL0906_REC_BUFF[0] = BL0906_REC_BUFF[2];
 	BL0906_REC_BUFF[1] = BL0906_REC_BUFF[3];
 	BL0906_REC_BUFF[2] = BL0906_REC_BUFF[4];
@@ -546,10 +553,10 @@ void bl0906_test(void)
 
 	while(1)
 	{
-	  bl0906_read_reg_function(BL0906_VAR_CREEP,0);  // 默认值是0x1010
+//	  bl0906_read_reg_function(BL0906_VAR_CREEP,0);  // 默认值是0x1010
 
-//		bl0906_work_process_function();	// 数据获取函数
-//		delay_ms(20);		
+		bl0906_work_process_function();	// 数据获取函数
+		delay_ms(20);		
 	}
 }
 

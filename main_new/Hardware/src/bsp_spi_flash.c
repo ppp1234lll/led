@@ -786,23 +786,26 @@ static void sf_WaitForWriteEnd(void)
 	sf_SetCS(0);									/* 使能片选 */
 	g_spiTxBuf[0] = (CMD_RDSR);						/* 发送命令， 读状态寄存器 */
 	g_spiLen = 2;
-	bsp_spiTransfer();	
+	bsp_spiTransfer();
 	sf_SetCS(1);									/* 禁能片选 */
 	
 	while(1)
 	{
+		// 喂看门狗，避免长时间等待导致看门狗复位
+		iwdg_feed();
+		
 		sf_SetCS(0);									/* 使能片选 */
 		g_spiTxBuf[0] = (CMD_RDSR);						/* 发送命令， 读状态寄存器 */
 		g_spiTxBuf[1] = 0;								/* 无关数据 */
 		g_spiLen = 2;
-		bsp_spiTransfer();	
+		bsp_spiTransfer();
 		sf_SetCS(1);									/* 禁能片选 */
 		
 		if ((g_spiRxBuf[1] & WIP_FLAG) != SET)			/* 判断状态寄存器的忙标志位 */
 		{
 			break;
-		}		
-	}	
+		}
+	}
 }
 
 /***************************** 安富莱电子 www.armfly.com (END OF FILE) *********************************/

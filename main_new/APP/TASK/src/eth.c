@@ -106,7 +106,6 @@ int8_t eth_network_line_status_check(void)
 		vTaskDelay(100);
 		
 		eth_status_flag = 1; // 只进入一次
-		led_control_function(LD_LAN,LD_OFF);
 			
 #ifdef WIRED_PRIORITY_CONNECTION
 		gsm_set_tcp_cmd(1);	 // 检测到网口无网线	
@@ -120,7 +119,7 @@ int8_t eth_network_line_status_check(void)
 	/* 网络连接状态检测 */
 	if(g_lwipdev.link_status == LWIP_LINK_OFF)
 	{
-		if((++count) >= 50) // 50*20ms
+		if((++count) >= 100) // 50*20ms
 		{ 
 			count = 0;
 			g_lwipdev.reset = 1; // 定时重启网络

@@ -4,23 +4,23 @@
 	4°¢ ‰»ÎºÏ≤‚
 
 		12VµÁ‘¥ ‰»Îº‡≤‚:       PD0
-		œ‰√≈ºÏ≤‚1:             PD15
-		œ‰√≈ºÏ≤‚2:             PC8
-		œ‰√≈ºÏ≤‚3:             PA11
-		œ‰√≈ºÏ≤‚4:             PA12
-		ÀÆΩ˛1 :                PD11
-    ÀÆΩ˛2 :                PD14		
+		œ‰√≈ºÏ≤‚1:             PA12
+		œ‰√≈ºÏ≤‚2:             PA11
+		œ‰√≈ºÏ≤‚3:             PC8
+		œ‰√≈ºÏ≤‚4:             PD15
+		ÀÆΩ˛1 :                PD14
+    ÀÆΩ˛2 :                PD11		
 
     ø’ø™«∞220 ‰»ÎºÏ≤‚ :    PE15
 */
 #define RESET_KEY_READ 			HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_4)	 
 #define PWR_TST_READ  		  HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_0)  
-#define DOOR1_READ    	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_15)   
-#define DOOR2_READ   	 			HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8)  
-#define DOOR3_READ   	 		  HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_11)  
-#define DOOR4_READ   	 		  HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_12)  
-#define WATER1_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_11)   
-#define WATER2_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_14)
+#define DOOR1_READ    	 		HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_12)   
+#define DOOR2_READ   	 			HAL_GPIO_ReadPin(GPIOA,GPIO_PIN_11)  
+#define DOOR3_READ   	 		  HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_8)  
+#define DOOR4_READ   	 		  HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_15)  
+#define WATER1_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_14)   
+#define WATER2_READ   	 		HAL_GPIO_ReadPin(GPIOD,GPIO_PIN_11)
 #define MCB_220_READ   	 		HAL_GPIO_ReadPin(GPIOE,GPIO_PIN_15)
 
 /*
@@ -81,14 +81,14 @@ uint8_t KeyScan10ms(uint8_t id)
 {
 	switch(id)
 	{
-		case 1: return  PWR_TST_READ;
-		case 2: return  DOOR1_READ;
-	  case 3: return  DOOR2_READ;
-		case 4: return  DOOR3_READ;
-		case 5: return  DOOR4_READ;
-	  case 6: return  WATER1_READ;
-		case 7: return  WATER2_READ;
-	  case 8: return  MCB_220_READ;
+		case 0: return  PWR_TST_READ;
+		case 1: return  DOOR1_READ;
+	  case 2: return  DOOR2_READ;
+		case 3: return  DOOR3_READ;
+		case 4: return  DOOR4_READ;
+	  case 5: return  WATER1_READ;
+		case 6: return  WATER2_READ;
+	  case 7: return  MCB_220_READ;
 		default: return 0;
 	}
 }

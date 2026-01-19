@@ -72,7 +72,7 @@ key_config_t keys_config_list[] = {
  * @brief 组合键配置表，定义每个组合键包含哪些单独按键
  * @note 支持自适应长度的按键数组，无固定长度限制
  */
-const combo_config_t combo_keys_config_list[] = { 0
+const combo_config_t combo_keys_config_list[] = {
     // 示例：四个组合键
     //         组合键ID,    按键1, 按键2, ..., 按键N
 //    COMBO_KEYS(COMBO_KEY_1, KEY_1, KEY_2),
@@ -88,7 +88,7 @@ const combo_config_t combo_keys_config_list[] = { 0
  * @note 只为需要单独参数的按键配置，未配置的按键将自动使用默认的 buttons_parameters
  * @note 如果所有按键都使用默认参数，此表可以为空
  */
-const special_key_list_t special_keys_list[] = { 0
+const special_key_list_t special_keys_list[] = {
     /* --------------------------------- 此处配置需要单独参数的按键 -------------------------------- */
     // 示例：只配置需要单独参数的按键
 
@@ -108,7 +108,7 @@ const special_key_list_t special_keys_list[] = { 0
  * @note 只为需要单独参数的组合键配置，未配置的组合键将自动使用默认的 buttons_parameters
  * @note 如果所有组合键都使用默认参数，此表可以为空
  */
-const special_combo_key_list_t special_combo_keys_list[] = { 0
+const special_combo_key_list_t special_combo_keys_list[] = {
     /* --------------------------------- 此处配置需要单独参数的组合键 -------------------------------- */
     // 示例：只配置需要单独参数的组合键
 

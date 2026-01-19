@@ -68,7 +68,7 @@
 #define ETH_TXD1_GPIO_CLK_ENABLE()      do{ __HAL_RCC_GPIOB_CLK_ENABLE();}while(0)                  /* 所在IO口时钟使能 */
 
 #define ETH_RESET_GPIO_PORT              GPIOA
-#define ETH_RESET_GPIO_PIN               GPIO_PIN_8
+#define ETH_RESET_GPIO_PIN               GPIO_PIN_6
 #define ETH_RESET_GPIO_CLK_ENABLE()      do{ __HAL_RCC_GPIOA_CLK_ENABLE();}while(0)                  /* 所在IO口时钟使能 */
 
 #define ETH_ADDR_GPIO_PORT              GPIOB

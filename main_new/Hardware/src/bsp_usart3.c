@@ -12,6 +12,18 @@
 #include "bsp.h"
 #include "bsp_usart3.h"
 
+/******************************************************************************************/
+/* 引脚 定义 */
+#define RS485_GPIO_PORT						GPIOD
+#define RS485_GPIO_PIN						GPIO_PIN_10
+#define RS485_GPIO_CLK_ENABLE()  	__HAL_RCC_GPIOD_CLK_ENABLE();
+
+/******************************************************************************************/
+#define RS485_TX_ENABLE(x)  x ? \
+														HAL_GPIO_WritePin(RS485_GPIO_PORT, RS485_GPIO_PIN, GPIO_PIN_SET) : \
+														HAL_GPIO_WritePin(RS485_GPIO_PORT, RS485_GPIO_PIN, GPIO_PIN_RESET);  
+/******************************************************************************************/
+												
 #define UART3_RX_NE     0    // 使用串口中断
 #define UART3_RX_DMA    1    // 使用串口DMA
 
@@ -66,7 +78,7 @@ void bsp_InitUsart3(uint32_t baudrate)
 	GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
 	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
 	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
@@ -134,9 +146,32 @@ void bsp_InitUsart3(uint32_t baudrate)
 	/* USART3 interrupt Init */
 	HAL_NVIC_SetPriority(USART3_IRQn, 4, 0);
 	HAL_NVIC_EnableIRQ(USART3_IRQn);
-
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: bsp_InitRs485
+*	功能说明: 调试串口初始化
+*	形    参: baudrate : 波特率
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void bsp_InitRs485(uint32_t baudrate)
+{
+	GPIO_InitTypeDef GPIO_InitStruct = {0};
+	
+	RS485_GPIO_CLK_ENABLE();
+	
+	HAL_GPIO_WritePin(RS485_GPIO_PORT,RS485_GPIO_PIN, GPIO_PIN_RESET);
+	
+  GPIO_InitStruct.Pin = RS485_GPIO_PIN;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(RS485_GPIO_PORT, &GPIO_InitStruct);	
+	
+	bsp_InitUsart3(baudrate);
+}
 /*
 *********************************************************************************************************
 *	函 数 名: Usart3_SendString
@@ -147,12 +182,14 @@ void bsp_InitUsart3(uint32_t baudrate)
 */
 void Usart3_SendString(uint8_t *str)
 {
+	RS485_TX_ENABLE(1);
 	unsigned int k=0;
   do 
   {
       HAL_UART_Transmit( &huart3,(uint8_t *)(str + k) ,1,1000);
       k++;
   } while(*(str + k)!='\0');
+	RS485_TX_ENABLE(0);
 }
 
 /*
@@ -165,13 +202,10 @@ void Usart3_SendString(uint8_t *str)
 */
 void Usart3_Send_Data(uint8_t *buf, uint16_t len)
 {
-//#if UART3_RX_DMA
-//		/* DMA发送时 cache的内容需要更新到SRAM中 */
-//		SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
-//		HAL_UART_Transmit_DMA(&huart3, buf, len);	
-//#else
+  RS485_TX_ENABLE(1);
+//	SCB_CleanDCache_by_Addr((uint32_t *)buf, len);
 	HAL_UART_Transmit(&huart3,(uint8_t *)buf ,len,1000);
-//#endif  
+  RS485_TX_ENABLE(0);
 }
 
 /*
@@ -229,10 +263,8 @@ void USART3_IRQHandler(void)
 		/* 开启了cache 由于DMA更新了内存 cache不能同步，因此需要无效化从新加载 */
 		SCB_InvalidateDCache_by_Addr((uint32_t *)g_U3RxBuffer, U3_RX_SIZE);		
 		Usart3_SendString("\r\n usart3 dma_recv:\r\n");
-		HAL_UART_Transmit(&huart3, (uint8_t *)g_U3RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
+		Usart3_Send_Data(g_U3RxBuffer,total_len);
 
-//		Usart1_Send_Data("123456789000\n",12);
-		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart3, g_U3RxBuffer, U3_RX_SIZE);
 	}
 #endif
@@ -269,13 +301,13 @@ void DMA1_Stream2_IRQHandler(void)
 
 /*
 *********************************************************************************************************
-*	函 数 名: usart3_test
+*	函 数 名: uart3_test
 *	功能说明: 串口测试
 *	形    参: 无
 *	返 回 值: 无
 *********************************************************************************************************
 */
-void usart3_test(void)
+void uart3_test(void)
 {
     uint8_t len;
     uint16_t times = 0;
@@ -303,6 +335,7 @@ void usart3_test(void)
 
             if (times % 200 == 0)
             {
+							Usart3_Send_Data("123456",6);
                 Usart3_SendString("请输入数据,以回车键结束\r\n");
             }
 

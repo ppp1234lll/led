@@ -400,11 +400,14 @@ void bl0910_read_reg_function(uint8_t reg, uint8_t mode)
 ************************************************************/
 void bl0910_send_data_function(void)
 {
+	
+	static uint8_t a =0;
 	/* 允许进行发送操作 */
 	if(sg_bl0910data_t.send == 0)
 	{
 		if(sg_bl0910data_t.flag > 0)
 		{
+			a =1;
 			switch(sg_bl0910data_t.flag)
 			{
 

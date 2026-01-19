@@ -33,32 +33,30 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include <stdio.h>
-#include "BL0910.h"
-#include "BL0910_2.h"
-#include "BL0906.h"
+typedef struct
+{
+	float   current[24]; 		// �������
+	uint8_t voltage[12]; 	  // ��ѹ���
+	uint8_t pulse[12]; 	    // ������
+	
+} data_collection_t;
 
+#define VOLT_KP	     12238.14f   		// ��ѹϵ�� - v
+#define CURR_KP		   1197.128f     	// ����ϵ�� - ma
+#define POWER_KP		 3493.84f     	// ����ϵ�� - W
+#define ELEC_Ke		   0.00001093f    // ϵ�� - ��
 
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-typedef struct
-{
-	float current[24]; 	 
-	uint8_t voltage[12]; 
-	
-} data_collection_t;
+
+void det_set_total_energy(uint8_t num,float data);
 
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-
-#define VOLT_KP	     12238.14f   	 
-#define CURR_KP		   1197.128f     
-#define POWER_KP		 3493.84f      
-#define ELEC_Ke		   0.00001093f   
 
 /* USER CODE END EC */
 
@@ -71,7 +69,6 @@ typedef struct
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-void det_set_total_energy(uint8_t num,float data);
 
 /* USER CODE END EFP */
 

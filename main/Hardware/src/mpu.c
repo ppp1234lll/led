@@ -74,19 +74,12 @@ uint8_t mpu_set_protection(uint32_t baseaddr, uint32_t size, uint32_t rnum, uint
  */
 void mpu_memory_protection(void)
 {
-    /* 保护MCU LCD屏所在的FMC区域,共64M字节 */
-    mpu_set_protection( 0x60000000,                 /* 基地址 */
-                        MPU_REGION_SIZE_64MB,       /* 长度 */
-                        MPU_REGION_NUMBER0,         /* NUMER2 */
-                        MPU_REGION_FULL_ACCESS,     /* 全访问 */
-                        MPU_ACCESS_NOT_SHAREABLE,   /* 禁止共享 */
-                        MPU_ACCESS_NOT_CACHEABLE,   /* 允许cache */
-                        MPU_ACCESS_BUFFERABLE);     /* 允许缓冲 */
+ 
     
     /* 保护整个D1 SRAM 512KB */
     mpu_set_protection( 0x20000000,                 /* 基地址 */
                         MPU_REGION_SIZE_512KB,      /* 长度 */
-                        MPU_REGION_NUMBER1,         /* NUMER1 */
+                        MPU_REGION_NUMBER0,         /* NUMER1 */
                         MPU_REGION_FULL_ACCESS,     /* 全访问 */
                         MPU_ACCESS_NOT_SHAREABLE,   /* 允许共享 */
                         MPU_ACCESS_NOT_CACHEABLE,   /* 允许cache */
@@ -101,13 +94,6 @@ void mpu_memory_protection(void)
                         MPU_ACCESS_NOT_CACHEABLE,   /* 允许cache */
                         MPU_ACCESS_BUFFERABLE);     /* 允许缓冲 */
 
-    /* 保护NAND FLASH区域,共256M字节 */
-    mpu_set_protection( 0X80000000,                 /* 基地址 */
-                        MPU_REGION_SIZE_256MB,      /* 长度 */
-                        MPU_REGION_NUMBER3,         /* NUMER2 */
-                        MPU_REGION_FULL_ACCESS,     /* 全访问 */
-                        MPU_ACCESS_NOT_SHAREABLE,   /* 禁止共享 */
-                        MPU_ACCESS_NOT_CACHEABLE,   /* 允许cache */
-                        MPU_ACCESS_BUFFERABLE);     /* 允许缓冲 */
+ 
 }
 

@@ -36,6 +36,6 @@ void Usart1_Send_Data(uint8_t *buf, uint16_t len);
 
 HAL_StatusTypeDef HAL_UART_DMAStopRx(UART_HandleTypeDef *huart);
 
-void usart1_test(void);
+void uart1_test(void);
 
 #endif

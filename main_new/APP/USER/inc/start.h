@@ -16,6 +16,7 @@ typedef struct
 } ChipID_t;
 
 /* 提供给其他C文件调用的函数 */
+void start_bsp_init(void);
 void start_task_create(void);   // 创建任务
 
 void start_system_init_function(void);  // 系统初始化函数
