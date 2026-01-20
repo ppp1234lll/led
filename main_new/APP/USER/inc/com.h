@@ -19,7 +19,11 @@
 
 #define CONFIGURE_DEVICE_NAME               (0xA3)
 #define CONFIGURE_THRESHOLD_PARAMS          (0xA4) // 配置阈值      	     20230721
-#define CONFIGURE_SINGLE_IP                 (0xAA) // 信号机IP地址
+
+#define CONFIGURE_SINGLE_IP                 (0xA7) // 信号机IP地址
+#define CONFIGURE_SINGLE_VOLTAGE_CH         (0xA9) // 配置阈值      	     20230721
+#define CONFIGURE_SINGLE_CURRENT_CH         (0xA8) // 信号机IP地址
+
 
 /* 服务器查询指令 */
 #define CR_QUERY_CONFIG                     (0xE1) // 查询设备当前参数设置 - 对应上传查询配置
@@ -36,7 +40,7 @@
 #define CONTROL_FAN                         (0xC1) // 风扇启停控制
 #define CONTROL_FILL_LIGHT                  (0xC2) // 补光灯启停控制
 #define CONTROL_HEATING                     (0xC3) // 加热器启停控制
-#define CTRL_RELAY_POWER                    (0xC4) // 单路输出供电控制（关闭。、打开）
+#define CTRL_RELAY_POWER                    (0xC4) // 单路输出供电控制（关闭、打开）
 
 /* 更新命令 */
 #define CONFIGURE_UPDATE_SYSTEM             (0xB3) // 更新系统
@@ -134,5 +138,9 @@ void com_deal_fan_temp_parmaeter(com_rec_data_t *buff);
 void com_deal_fan_humi_param(com_rec_data_t *buff);
 
 void com_set_work_time(com_rec_data_t *buff,uint8_t mode);  // 补光灯时间
+
+void com_deal_configure_single_voltage_ch(com_rec_data_t *buff);
+void com_deal_configure_single_current_ch(com_rec_data_t *buff);
+
 
 #endif

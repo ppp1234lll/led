@@ -113,7 +113,7 @@ void single_recv_board_data(uint8_t id, uint8_t *data, uint8_t len);
 uint8_t single_deal_board_data(uint8_t id);
 
 void single_led_init_memory(void);
-void Single_Bind_InpuToTraffic(ParamType_e param_type, single_data_t *single_data, 
+void Single_Bind_InpuToTraffic(ParamType_e param_type, 
 															 uint8_t board_id,uint8_t ch,	
 															 Type_e p_type,Direction_e p_dir, 
 															 Phase_e p_phase,Color_e p_color);

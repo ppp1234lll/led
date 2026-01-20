@@ -19,10 +19,11 @@
 typedef void (*UartSendFuncPtr)(uint8_t *data, uint16_t len);	
 	
 static const UartSendFuncPtr uart_send_table[BOARD_MAX] = {
-    Lpuart1_Send_Data,  
-    Usart1_Send_Data,    
-    Usart4_Send_Data,    
-    Uart5_Send_Data     
+  Uart5_Send_Data,    
+	Usart4_Send_Data,
+	Lpuart1_Send_Data,  
+  Usart1_Send_Data,    
+       
 };		
 		
 single_data_t g_singleboard_t[BOARD_MAX]={0};
@@ -119,7 +120,7 @@ void single_task_function(void)
 	single_led_init_memory();
 	single_cmd_board_data(single_send_buf,&single_send_len);  
 	
-  Single_Bind_InpuToTraffic( PARAM_CURRENT,g_singleboard_t,BOARD_4,1,
+  Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_4,1,
 				                     FAR,DIR_EAST,PHASE_LEFT,COLOR_YELLOW);
 
 	
@@ -128,16 +129,14 @@ void single_task_function(void)
 	
 	while(1)
 	{
-//		for(index = 0;index<BOARD_MAX;index++)
-//		{
-//			Uart_Send_Data((borad_id_t)index,single_send_buf,single_send_len);
-//		}
-		
-		Lpuart1_Send_Data(single_send_buf,single_send_len);
-		if(single_deal_board_data(BOARD_4) == 0)
+		for(index = 0;index<BOARD_MAX;index++)
 		{
-			send_status = 0;
+			Single_Send_Data((borad_id_t)index,single_send_buf,single_send_len);
+			single_deal_board_data(index);
 		}
+		
+//		Usart4_Send_Data(single_send_buf,single_send_len);
+//		single_deal_board_data(BOARD_2);
 		
 		single_led_timer_run();
 		
@@ -311,19 +310,13 @@ void single_led_init_memory(void)
 * 返 回 值: 无
 *********************************************************************************************************
 */
-void Single_Bind_InpuToTraffic(ParamType_e param_type, single_data_t *single_data, 
-															 uint8_t board_id,uint8_t ch,	
-															 Type_e p_type,Direction_e p_dir, 
-															 Phase_e p_phase,Color_e p_color)
+void Single_Bind_InpuToTraffic(ParamType_e param_type, 
+								uint8_t board_id,uint8_t ch,	
+								Type_e p_type,Direction_e p_dir, 
+								Phase_e p_phase,Color_e p_color)
 {
 	// 检查board_id是否有效
 	if (board_id >= BOARD_MAX)
-	{
-		return;
-	}
-	
-	// 检查single_data是否为NULL
-	if (single_data == NULL)
 	{
 		return;
 	}
@@ -341,7 +334,7 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type, single_data_t *single_dat
 															->p_phase[p_phase]
 															->p_color[p_color]
 															->p_params->current
-		   = &single_data[board_id].data.current[ch];
+		   = &g_singleboard_t[board_id].data.current[ch];
 			break;
 			
 		case PARAM_VOLTAGE:
@@ -354,14 +347,14 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type, single_data_t *single_dat
 															->p_phase[p_phase]
 															->p_color[p_color]
 															->p_params->voltage
-		   = &single_data[board_id].data.voltage[ch];
+		   = &g_singleboard_t[board_id].data.voltage[ch];
 			
 			// 将pulse指针指向g_singleboard_t中的脉冲数据
 			single_light.p_light_type[p_type]->p_direction[p_dir]
 															->p_phase[p_phase]
 															->p_color[p_color]
 															->p_params->pulse
-		   = &single_data[board_id].data.pulse[ch];
+		   = &g_singleboard_t[board_id].data.pulse[ch];
 			break;
 		default:
 			break;

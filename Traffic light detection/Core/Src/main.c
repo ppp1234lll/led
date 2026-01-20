@@ -96,7 +96,6 @@ int fputc(int ch, FILE *p)
   */
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 	
 
@@ -129,13 +128,12 @@ int main(void)
   MX_USART3_UART_Init();
   MX_TIM2_Init();
   MX_TIM1_Init();
-  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 	
 //	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);
 //	__HAL_UART_CLEAR_IDLEFLAG(&huart1);
 //	HAL_UART_Receive_DMA(&huart1,Usart1Rx,10);
-  HAL_TIM_Base_Start_IT(&htim4);
+
   HAL_TIM_Base_Start_IT(&htim2);
 	HAL_TIM_Base_Start_IT(&htim1);
 
@@ -218,7 +216,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -235,33 +232,11 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-uint16_t single_time[12] ;
-uint16_t single_time2[12] ;
-void single_time_run(void)
-{
-	uint8_t ch;
-	for(ch=0;ch<12;ch++)
-	{
-		if(sg_datacollec_t.voltage[ch] == 0)
-		{
-			single_time[ch]++;
-			single_time2[ch] = 	single_time[ch];
-		}
-		else
-		{
-			single_time[ch] = 0;
-		}			
-	}
-}
-
-
-
-
 
 /************************************************************
 *
 * Function name	: det_set_total_energy
-* Description	: ï¿½ï¿½ï¿½Ü¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+* Description	: µçÄÜ¼ÆÁ¿²ÎÊý
 * Parameter		: 
 * Return		: 
 *	
@@ -315,7 +290,8 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-#ifdef USE_FULL_ASSERT
+
+#ifdef  USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
@@ -331,3 +307,5 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

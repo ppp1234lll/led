@@ -957,7 +957,52 @@ void com_deal_configure_single_ip(com_rec_data_t *buff)
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_voltage_ch
+*	功能说明: 配置电压对应通道
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_voltage_ch(com_rec_data_t *buff)
+{
+	uint8_t ch_num = 0;
+	
+	
+	ch_num = (buff->size - 2) / 4; // 获取对应通道数量
+	
+	for(uint8_t i=0;i<ch_num;i++)  // 配置关联通道
+	{
+		Single_Bind_InpuToTraffic( PARAM_VOLTAGE,buff->buff[0],buff->buff[1],
+		                           (Type_e)buff->buff[2+i*4], \
+		                           (Direction_e)buff->buff[3+i*4],\
+		                           (Phase_e)buff->buff[4+i*4], \
+		                           (Color_e)buff->buff[5+i*4]);
+	}
+	app_set_send_result_function(SR_OK);
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_current_ch
+*	功能说明: 配置电流对应通道
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_current_ch(com_rec_data_t *buff)
+{
+	// 配置关联通道
+    Single_Bind_InpuToTraffic( PARAM_CURRENT,buff->buff[0],buff->buff[1],
+				                       (Type_e)buff->buff[2],\
+	                             (Direction_e)buff->buff[3],\
+								               (Phase_e)buff->buff[4],\
+	                             (Color_e)buff->buff[5]);
 
+	app_set_send_result_function(SR_OK);
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
 
 /************************************************************
 *
@@ -1335,7 +1380,7 @@ int8_t com_deal_main_function(void)
 		recdata_t.size    = rec_buff[15];
 		/* 获取内容 */
 		recdata_t.buff    = &rec_buff[16];
-		
+		 
 		/* 根据命令解析数据 */
 		switch(recdata_t.cmd)
 		{
@@ -1379,10 +1424,17 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_THRESHOLD_PARAMS:	// 配置阈值  20230721
 				com_set_threshold_params_function(&recdata_t);
 				break;
-			case CONFIGURE_SINGLE_IP: 			// CONFIGURE_SINGLE_IP
+			case CONFIGURE_SINGLE_IP: 			 
 				com_deal_configure_single_ip(&recdata_t);
 				break;
-	
+			case CONFIGURE_SINGLE_VOLTAGE_CH: 		 
+				com_deal_configure_single_voltage_ch(&recdata_t);
+				break;
+			case CONFIGURE_SINGLE_CURRENT_CH: 		 
+				com_deal_configure_single_current_ch(&recdata_t);
+				break;			
+			
+			
 			/* 查询指令 */
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报

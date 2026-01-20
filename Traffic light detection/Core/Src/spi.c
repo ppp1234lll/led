@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    spi.c
@@ -7,16 +6,17 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
+
 /* Includes ------------------------------------------------------------------*/
 #include "spi.h"
 
@@ -32,13 +32,6 @@ SPI_HandleTypeDef hspi3;
 void MX_SPI1_Init(void)
 {
 
-  /* USER CODE BEGIN SPI1_Init 0 */
-
-  /* USER CODE END SPI1_Init 0 */
-
-  /* USER CODE BEGIN SPI1_Init 1 */
-
-  /* USER CODE END SPI1_Init 1 */
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
@@ -55,22 +48,12 @@ void MX_SPI1_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI1_Init 2 */
-
-  /* USER CODE END SPI1_Init 2 */
 
 }
 /* SPI2 init function */
 void MX_SPI2_Init(void)
 {
 
-  /* USER CODE BEGIN SPI2_Init 0 */
-
-  /* USER CODE END SPI2_Init 0 */
-
-  /* USER CODE BEGIN SPI2_Init 1 */
-
-  /* USER CODE END SPI2_Init 1 */
   hspi2.Instance = SPI2;
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
@@ -87,22 +70,12 @@ void MX_SPI2_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI2_Init 2 */
-
-  /* USER CODE END SPI2_Init 2 */
 
 }
 /* SPI3 init function */
 void MX_SPI3_Init(void)
 {
 
-  /* USER CODE BEGIN SPI3_Init 0 */
-
-  /* USER CODE END SPI3_Init 0 */
-
-  /* USER CODE BEGIN SPI3_Init 1 */
-
-  /* USER CODE END SPI3_Init 1 */
   hspi3.Instance = SPI3;
   hspi3.Init.Mode = SPI_MODE_MASTER;
   hspi3.Init.Direction = SPI_DIRECTION_2LINES;
@@ -119,9 +92,6 @@ void MX_SPI3_Init(void)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN SPI3_Init 2 */
-
-  /* USER CODE END SPI3_Init 2 */
 
 }
 
@@ -282,10 +252,10 @@ void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
 /************************************************************
 *
 * Function name	: SPI_ReadWriteByte
-* Description	: ï¿½ï¿½Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: ¶ÁÐ´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
-* Return		: ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
+* Return		: ¶ÁÈ¡µ½µÄ×Ö½Ú
 *	
 ************************************************************/
 uint8_t hardSPI_ReadWriteByte(uint8_t TxData)
@@ -301,12 +271,12 @@ uint8_t hardSPI_ReadWriteByte(uint8_t TxData)
 }
 
  /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ void SPI_WriteByte(uint8_t data)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ data -> ÒªÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI Ð´Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/ // SPIÐ´1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î·ï¿½ï¿½ï¿½1 Bitï¿½ï¿½
+* º¯ÊýÃû£º void SPI_WriteByte(uint8_t data)
+* ÊäÈë²ÎÊý£º data -> ÒªÐ´µÄÊý¾Ý
+* Êä³ö²ÎÊý£ºÎÞ  
+* ·µ»ØÖµ£ºÎÞ
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI Ð´Ò»¸ö×Ö½Ú
+*/ // SPIÐ´1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î·¢ËÍ1 Bit£»
 void hardSPI_WriteByte(uint8_t TxData)  
 {
   HAL_SPI_Receive(&hspi1, &TxData, 1, HAL_MAX_DELAY);
@@ -314,9 +284,9 @@ void hardSPI_WriteByte(uint8_t TxData)
 /************************************************************
 *
 * Function name	: softSPI_Write_Multi_Byte
-* Description	: Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: Ð´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
 *	
 ************************************************************/
 void hardSPI_Write_Multi_Byte(uint8_t *buff, uint16_t len)
@@ -329,12 +299,12 @@ void hardSPI_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 
 /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ uint8_t SPI_ReadByte(void)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/  // SPIï¿½ï¿½1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î½ï¿½ï¿½ï¿½1 Bitï¿½ï¿½  
+* º¯ÊýÃû£º uint8_t SPI_ReadByte(void)
+* ÊäÈë²ÎÊý£º
+* Êä³ö²ÎÊý£ºÎÞ
+* ·µ»ØÖµ£º¶Áµ½µÄÊý¾Ý
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI ¶ÁÒ»¸ö×Ö½Ú
+*/  // SPI¶Á1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î½ÓÊÕ1 Bit£»  
 uint8_t hardSPI_ReadByte(void)
 {
 	uint8_t i = 0;
@@ -352,10 +322,10 @@ uint8_t hardSPI_ReadByte(void)
 /************************************************************
 *
 * Function name	: SPI_ReadWriteByte
-* Description	: ï¿½ï¿½Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: ¶ÁÐ´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
-* Return		: ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
+* Return		: ¶ÁÈ¡µ½µÄ×Ö½Ú
 *	
 ************************************************************/
 uint8_t hardSPI_2_ReadWriteByte(uint8_t TxData)
@@ -371,12 +341,12 @@ uint8_t hardSPI_2_ReadWriteByte(uint8_t TxData)
 }
 
  /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ void SPI_WriteByte(uint8_t data)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ data -> ÒªÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI Ð´Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/ // SPIÐ´1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î·ï¿½ï¿½ï¿½1 Bitï¿½ï¿½
+* º¯ÊýÃû£º void SPI_WriteByte(uint8_t data)
+* ÊäÈë²ÎÊý£º data -> ÒªÐ´µÄÊý¾Ý
+* Êä³ö²ÎÊý£ºÎÞ  
+* ·µ»ØÖµ£ºÎÞ
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI Ð´Ò»¸ö×Ö½Ú
+*/ // SPIÐ´1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î·¢ËÍ1 Bit£»
 void hardSPI_2_WriteByte(uint8_t TxData)  
 {
   HAL_SPI_Receive(&hspi2, &TxData, 1, HAL_MAX_DELAY);
@@ -384,9 +354,9 @@ void hardSPI_2_WriteByte(uint8_t TxData)
 /************************************************************
 *
 * Function name	: softSPI_Write_Multi_Byte
-* Description	: Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: Ð´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
 *	
 ************************************************************/
 void hardSPI_2_Write_Multi_Byte(uint8_t *buff, uint16_t len)
@@ -399,12 +369,12 @@ void hardSPI_2_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 
 /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ uint8_t SPI_ReadByte(void)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/  // SPIï¿½ï¿½1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î½ï¿½ï¿½ï¿½1 Bitï¿½ï¿½  
+* º¯ÊýÃû£º uint8_t SPI_ReadByte(void)
+* ÊäÈë²ÎÊý£º
+* Êä³ö²ÎÊý£ºÎÞ
+* ·µ»ØÖµ£º¶Áµ½µÄÊý¾Ý
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI ¶ÁÒ»¸ö×Ö½Ú
+*/  // SPI¶Á1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î½ÓÊÕ1 Bit£»  
 uint8_t hardSPI_2_ReadByte(void)
 {
 	uint8_t i = 0;
@@ -423,10 +393,10 @@ uint8_t hardSPI_2_ReadByte(void)
 /************************************************************
 *
 * Function name	: SPI_ReadWriteByte
-* Description	: ï¿½ï¿½Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: ¶ÁÐ´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
-* Return		: ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
+* Return		: ¶ÁÈ¡µ½µÄ×Ö½Ú
 *	
 ************************************************************/
 uint8_t hardSPI_3_ReadWriteByte(uint8_t TxData)
@@ -442,12 +412,12 @@ uint8_t hardSPI_3_ReadWriteByte(uint8_t TxData)
 }
 
  /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ void SPI_WriteByte(uint8_t data)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ data -> ÒªÐ´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½  
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI Ð´Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/ // SPIÐ´1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î·ï¿½ï¿½ï¿½1 Bitï¿½ï¿½
+* º¯ÊýÃû£º void SPI_WriteByte(uint8_t data)
+* ÊäÈë²ÎÊý£º data -> ÒªÐ´µÄÊý¾Ý
+* Êä³ö²ÎÊý£ºÎÞ  
+* ·µ»ØÖµ£ºÎÞ
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI Ð´Ò»¸ö×Ö½Ú
+*/ // SPIÐ´1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î·¢ËÍ1 Bit£»
 void hardSPI_3_WriteByte(uint8_t TxData)  
 {
   HAL_SPI_Receive(&hspi3, &TxData, 1, HAL_MAX_DELAY);
@@ -455,9 +425,9 @@ void hardSPI_3_WriteByte(uint8_t TxData)
 /************************************************************
 *
 * Function name	: softSPI_Write_Multi_Byte
-* Description	: Ð´ï¿½Ö½Úºï¿½ï¿½ï¿½
+* Description	: Ð´×Ö½Úº¯Êý
 * Parameter		: 
-*	@TxData		: Ð´ï¿½ï¿½ï¿½Ö½ï¿½
+*	@TxData		: Ð´Èë×Ö½Ú
 *	
 ************************************************************/
 void hardSPI_3_Write_Multi_Byte(uint8_t *buff, uint16_t len)
@@ -470,12 +440,12 @@ void hardSPI_3_Write_Multi_Byte(uint8_t *buff, uint16_t len)
 }
 
 /*
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ uint8_t SPI_ReadByte(void)
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã£ï¿½Ä£ï¿½ï¿½ SPI ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö½ï¿½
-*/  // SPIï¿½ï¿½1 Byteï¿½ï¿½Ñ­ï¿½ï¿½8ï¿½Î£ï¿½Ã¿ï¿½Î½ï¿½ï¿½ï¿½1 Bitï¿½ï¿½  
+* º¯ÊýÃû£º uint8_t SPI_ReadByte(void)
+* ÊäÈë²ÎÊý£º
+* Êä³ö²ÎÊý£ºÎÞ
+* ·µ»ØÖµ£º¶Áµ½µÄÊý¾Ý
+* º¯Êý×÷ÓÃ£ºÄ£Äâ SPI ¶ÁÒ»¸ö×Ö½Ú
+*/  // SPI¶Á1 Byte£¬Ñ­»·8´Î£¬Ã¿´Î½ÓÊÕ1 Bit£»  
 uint8_t hardSPI_3_ReadByte(void)
 {
 	uint8_t i = 0;
@@ -492,3 +462,5 @@ uint8_t hardSPI_3_ReadByte(void)
 
 
 /* USER CODE END 1 */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

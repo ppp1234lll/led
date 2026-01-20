@@ -11,6 +11,7 @@
 
 #include "bsp.h"
 #include "bsp_usart4.h"
+#include "./TASK/inc/single.h"
 
 #define UART4_RX_NE     0    // 使用串口中断
 #define UART4_RX_DMA    1    // 使用串口DMA
@@ -234,6 +235,7 @@ void UART4_IRQHandler(void)
 //		HAL_UART_Transmit(&huart4, (uint8_t *)g_U4RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 //		Usart4_Send_Data("123456789000\n",12);
 		
+		single_recv_board_data(BOARD_2,g_U4RxBuffer,total_len);
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart4, g_U4RxBuffer, U4_RX_SIZE);
 	}
 #endif

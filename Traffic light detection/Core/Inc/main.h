@@ -35,16 +35,16 @@ extern "C" {
 
 typedef struct
 {
-	float   current[24]; 		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-	uint8_t voltage[12]; 	  // ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½
-	uint8_t pulse[12]; 	    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	float   current[24]; 		// µçÁ÷¼ì²â
+	uint8_t voltage[12]; 	  // µçÑ¹¼ì²â
+	uint8_t pulse[12]; 	    // Âö³å¼ì²â
 	
 } data_collection_t;
 
-#define VOLT_KP	     12238.14f   		// ï¿½ï¿½Ñ¹Ïµï¿½ï¿½ - v
-#define CURR_KP		   1197.128f     	// ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ - ma
-#define POWER_KP		 3493.84f     	// ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½ - W
-#define ELEC_Ke		   0.00001093f    // Ïµï¿½ï¿½ - ï¿½ï¿½
+#define VOLT_KP	     12238.14f   		// µçÑ¹ÏµÊý - v
+#define CURR_KP		   1197.128f     	// µçÁ÷ÏµÊý - ma
+#define POWER_KP		 3493.84f     	// ¹¦ÂÊÏµÊý - W
+#define ELEC_Ke		   0.00001093f    // ÏµÊý - ¶È
 
 /* USER CODE END Includes */
 
@@ -73,7 +73,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
@@ -83,3 +82,5 @@ void Error_Handler(void);
 #endif
 
 #endif /* __MAIN_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

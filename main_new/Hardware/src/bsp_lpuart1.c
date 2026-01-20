@@ -232,7 +232,7 @@ void LPUART1_IRQHandler(void)
 //		Lpuart1_SendString("\r\n hlpuart1 dma_recv:\r\n");
 //		HAL_UART_Transmit(&hlpuart1, (uint8_t *)g_LU1RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 
-    single_recv_board_data(BOARD_4,g_LU1RxBuffer,total_len);
+    single_recv_board_data(BOARD_3,g_LU1RxBuffer,total_len);
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, g_LU1RxBuffer, LU1_RX_SIZE);
 	}
 #endif
