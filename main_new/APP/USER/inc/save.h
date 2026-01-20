@@ -54,6 +54,8 @@
 #define DEFALUT_TIME_DOWN0 (12) 
 #define DEFALUT_TIME_DOWN1 (00)
 
+#define DEFALUT_LED_CURRENT (100)
+
 #define DEFALUT_PASSWORD   ("88888888")
 
 #define DEFALUT_HEART			    (90*1000)

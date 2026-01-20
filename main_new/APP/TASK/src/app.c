@@ -929,7 +929,23 @@ void app_set_vol_current_param(uint16_t *data)
 	sg_sysparam_t.threshold.current  = data[2];
 	sg_sysparam_t.threshold.angle    = data[3];
 	sg_sysparam_t.threshold.miu      = data[4];
+	
 	/* 保存 */
+	app_set_save_infor_function(SAVE_THRESHOLD);	/* 存储 */
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: app_set_single_current_param
+*	功能说明: 设置阈值
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_set_single_current_param(uint8_t data)
+{
+	sg_sysparam_t.threshold.led_current = data;
+
 	app_set_save_infor_function(SAVE_THRESHOLD);	/* 存储 */
 }
 /************************************************************
@@ -1497,11 +1513,12 @@ void app_set_threshold_param_function(struct threshold_params param)
 	sg_sysparam_t.threshold.volt_min = param.volt_min; 
 	sg_sysparam_t.threshold.current = param.current;
 	sg_sysparam_t.threshold.angle = param.angle;
-  sg_sysparam_t.threshold.miu = param.miu;	
+	sg_sysparam_t.threshold.miu = param.miu;	
 	sg_sysparam_t.threshold.humi_high = param.humi_high;
 	sg_sysparam_t.threshold.humi_low = param.humi_low; 
 	sg_sysparam_t.threshold.temp_high = param.temp_high;
 	sg_sysparam_t.threshold.temp_low = param.temp_low; 
+	sg_sysparam_t.threshold.led_current = param.led_current;
 	save_stroage_threshold_parameter(&sg_sysparam_t.threshold); 
 }
 /************************************************************

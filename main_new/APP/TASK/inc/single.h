@@ -100,7 +100,6 @@ typedef struct {
 	float *current;    // 电流值指针（指向g_singleboard_t中的电流数据）
 	uint8_t *voltage;    // 电压值指针（指向g_singleboard_t中的电压数据）
 	uint8_t *pulse;   // 脉冲值指针（指向g_singleboard_t中的脉冲数据）
-	uint8_t *time_s; // 持续时间（单位：ms，32位对应STM32定时器）
 } Params_t;
 
 /*********************************************************************************************************

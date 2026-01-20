@@ -23,6 +23,7 @@
 #define CONFIGURE_SINGLE_IP                 (0xA7) // 信号机IP地址
 #define CONFIGURE_SINGLE_VOLTAGE_CH         (0xA9) // 配置阈值      	     20230721
 #define CONFIGURE_SINGLE_CURRENT_CH         (0xA8) // 信号机IP地址
+#define CONFIGURE_SINGLE_CURRENT            (0xAA) // 信号机电流
 
 
 /* 服务器查询指令 */
@@ -141,6 +142,8 @@ void com_set_work_time(com_rec_data_t *buff,uint8_t mode);  // 补光灯时间
 
 void com_deal_configure_single_voltage_ch(com_rec_data_t *buff);
 void com_deal_configure_single_current_ch(com_rec_data_t *buff);
+void com_deal_configure_single_current(com_rec_data_t *buff);
+
 
 
 #endif

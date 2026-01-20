@@ -69,8 +69,8 @@ struct threshold_params {
 	int8_t   temp_low;	// 
 	int8_t   humi_high;		// 
 	int8_t   humi_low;  // 
- 
 	uint16_t miu;         //Â©µçãÐÖµ
+	uint8_t  led_current;  
 };
 
 
@@ -167,6 +167,8 @@ void app_set_com_time_param_function(uint32_t *time,uint8_t mode);
 void app_set_threshold_param_function(struct threshold_params param);
 void app_set_update_status_function(uint8_t flag);
 void app_set_http_ota_function(struct update_addr param);
+void app_set_single_current_param(uint8_t data);
+
 
 
 void *app_get_local_network_function(void);

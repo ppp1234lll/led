@@ -2,6 +2,7 @@
     "files.associations": {
         "traffic.h": "c",
         "bsp_timers.h": "c",
-        "bsp_spi_flash.h": "c"
+        "bsp_spi_flash.h": "c",
+        "httpd_cgi_ssi.h": "c"
     }
 }

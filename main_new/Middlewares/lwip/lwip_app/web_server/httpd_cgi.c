@@ -1,4 +1,4 @@
-#include "./web_server/httpd_cgi_ssi.h"
+#include "web_server/httpd_cgi_ssi.h"
 #include "appconfig.h"
 
 
@@ -219,6 +219,10 @@ static int8_t Setting_threshold_parameter_function(char *pcParam[], char *pcValu
 	if (strcmp(pcParam[i] , "W")==0) // 漏电
 	{
 		param.miu = atoi(pcValue[i]);
+	}
+	if (strcmp(pcParam[i] , "ad")==0) // 信号灯电流
+	{
+		param.led_current = atoi(pcValue[i]);
 		app_set_threshold_param_function(param);
 	}
 	

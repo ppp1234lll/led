@@ -1004,6 +1004,23 @@ void com_deal_configure_single_current_ch(com_rec_data_t *buff)
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_current_ch
+*	功能说明: 设置阈值
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_current(com_rec_data_t *buff)
+{	
+	uint8_t data = 0;
+	
+	data = (buff->buff[0]); // 
+	app_set_single_current_param(data);	/* 存储 */
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
+
 /************************************************************
 *
 * Function name	: com_deal_configure_onvif_carema
@@ -1433,7 +1450,9 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_SINGLE_CURRENT_CH: 		 
 				com_deal_configure_single_current_ch(&recdata_t);
 				break;			
-			
+			case CONFIGURE_SINGLE_CURRENT: 		 
+				com_deal_configure_single_current(&recdata_t);
+				break;				
 			
 			/* 查询指令 */
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置

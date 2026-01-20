@@ -28,8 +28,8 @@ int main(void)
 	system_setup();
 	printf("run 2...\n");
 	start_bsp_init();
-//	TaskTcbPrintf();
-//	vSetupSysInfoTest();
+	TaskTcbPrintf();
+	vSetupSysInfoTest();
 
 	start_task_create();
 }

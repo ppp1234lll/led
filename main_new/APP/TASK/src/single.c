@@ -27,6 +27,7 @@ static const UartSendFuncPtr uart_send_table[BOARD_MAX] = {
 };		
 		
 single_data_t g_singleboard_t[BOARD_MAX]={0};
+
 uint8_t g_single_time_t[BOARD_MAX][12]={0};
 
 uint8_t  single_send_buf[16];  
@@ -85,22 +86,22 @@ typedef struct {
 
 // 全局变量定义
 // Params_t变量
-static Params_t params[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
+Params_t params[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
 // SingleColorLight_t变量
-static SingleColorLight_t single_color_light[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
+SingleColorLight_t single_color_light[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
 // PhaseLight_t变量
-static PhaseLight_t phase_light[Type_MAX][DIR_MAX][PHASE_MAX] = {0};
+PhaseLight_t phase_light[Type_MAX][DIR_MAX][PHASE_MAX] = {0};
 
 // DirectionLight_t变量
-static DirectionLight_t direction_light[Type_MAX][DIR_MAX] = {0};
+DirectionLight_t direction_light[Type_MAX][DIR_MAX] = {0};
 
 // LightType_t变量
-static LightType_t light_type[Type_MAX] = {0};
+LightType_t light_type[Type_MAX] = {0};
 
 // 顶层红绿灯对象
-static SingleLight_t single_light = {0};
+SingleLight_t single_light = {0};
 
 
 /*
@@ -120,9 +121,9 @@ void single_task_function(void)
 	single_led_init_memory();
 	single_cmd_board_data(single_send_buf,&single_send_len);  
 	
-  Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_4,1,
-				                     FAR,DIR_EAST,PHASE_LEFT,COLOR_YELLOW);
-
+//	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,0,1,0,0,0,0);
+//  Single_Bind_InpuToTraffic( PARAM_CURRENT,0,1,0,0,0,0);
+	
 	
 	// 初始化计时信息
 	single_led_timer_init();
@@ -270,8 +271,8 @@ void single_led_init_memory(void)
 		// 将single_light中的指针指向全局变量
 		single_light.p_light_type[type] = &light_type[type];
 		
-		// 遍历所有方向（东/西/南/北）
-		for (dir = DIR_EAST; dir < DIR_MAX; dir++) 
+		// 遍历所有方向（北/东/南/西）
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
 			// 将light_type中的指针指向全局变量
 			single_light.p_light_type[type]->p_direction[dir] = &direction_light[type][dir];
