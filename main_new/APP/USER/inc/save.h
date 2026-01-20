@@ -54,7 +54,8 @@
 #define DEFALUT_TIME_DOWN0 (12) 
 #define DEFALUT_TIME_DOWN1 (00)
 
-#define DEFALUT_LED_CURRENT (100)
+#define DEFALUT_LED_NOT_BRIGHT (65)  // ≤ª¡¡
+#define DEFALUT_LED_PART_BRIGHT (30) // ≤ø∑÷¡¡
 
 #define DEFALUT_PASSWORD   ("88888888")
 

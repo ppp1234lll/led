@@ -513,7 +513,8 @@ void save_read_default_threshold_parameter(struct threshold_params *param)
 	param->temp_high 			= DEFALUT_TEMP_HIGH;
 	param->temp_low 			= DEFALUT_TEMP_LOW;
 	param->miu  	 		    = DEFAULT_MIU;
-	param->led_current 	 		= DEFALUT_LED_CURRENT;
+	param->led_not_bright 	 	= DEFALUT_LED_NOT_BRIGHT;
+	param->led_part_bright 	 	= DEFALUT_LED_PART_BRIGHT;
 }
 
 /************************************************************

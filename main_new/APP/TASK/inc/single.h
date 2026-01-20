@@ -103,6 +103,14 @@ typedef struct {
 } Params_t;
 
 /*********************************************************************************************************
+* 电流数据结构（用于保存到FLASH）
+*********************************************************************************************************/
+typedef struct __attribute__((aligned(4)))
+{
+	float current[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX];
+} CurrentData_t;
+
+/*********************************************************************************************************
 * 函数声明
 *********************************************************************************************************/
 void single_task_function(void);
@@ -119,6 +127,9 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 
 void single_led_timer_init(void);
 void single_led_timer_run(void);
+
+// 电流数据收集函数
+void single_collect_current_data(CurrentData_t *data);
  
 #endif
 

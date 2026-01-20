@@ -226,11 +226,11 @@ void httpd_ssi_threshold_seting_function(char *pcInsert)
 	sprintf(buff[6],"%d",param->humi_high);
 	sprintf(buff[7],"%d",param->humi_low);
 	sprintf(buff[8],"%d",param->miu);
-	sprintf(buff[9],"%d",param->led_current);
+	sprintf(buff[9],"%d",param->led_not_bright);
+	sprintf(buff[10],"%d",param->led_part_bright);
 
-
-	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
-										buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8],buff[9]);
+	sprintf(pcInsert,"[\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"]",
+            buff[0],buff[1],buff[2],buff[3],buff[4],buff[5],buff[6],buff[7],buff[8],buff[9],buff[10]);
 
 }
 /************************************************************

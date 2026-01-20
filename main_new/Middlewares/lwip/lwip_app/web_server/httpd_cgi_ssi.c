@@ -49,7 +49,9 @@ static const char *ppcTAGs[PPCTAGS_SIZE]=  //SSI的Tag
 	"aa", // 升级url 
 	"ab", // 升级端口 
 	"ac", // 信号机 
-	"ad", // 信号灯电流 
+	"ad", // 信号灯电流 不亮
+	"ae", // 信号灯电流 部分亮
+
 
   "Y",
 	"Z",

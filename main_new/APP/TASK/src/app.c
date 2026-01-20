@@ -942,9 +942,10 @@ void app_set_vol_current_param(uint16_t *data)
 *	·µ »Ø Öµ: ÎÞ
 *********************************************************************************************************
 */
-void app_set_single_current_param(uint8_t data)
+void app_set_single_current_param(uint8_t *data)
 {
-	sg_sysparam_t.threshold.led_current = data;
+	sg_sysparam_t.threshold.led_not_bright = data[0];
+	sg_sysparam_t.threshold.led_part_bright = data[1];
 
 	app_set_save_infor_function(SAVE_THRESHOLD);	/* ´æ´¢ */
 }
@@ -1518,7 +1519,8 @@ void app_set_threshold_param_function(struct threshold_params param)
 	sg_sysparam_t.threshold.humi_low = param.humi_low; 
 	sg_sysparam_t.threshold.temp_high = param.temp_high;
 	sg_sysparam_t.threshold.temp_low = param.temp_low; 
-	sg_sysparam_t.threshold.led_current = param.led_current;
+	sg_sysparam_t.threshold.led_not_bright = param.led_not_bright;
+	sg_sysparam_t.threshold.led_part_bright = param.led_part_bright;
 	save_stroage_threshold_parameter(&sg_sysparam_t.threshold); 
 }
 /************************************************************

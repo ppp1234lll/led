@@ -1014,9 +1014,10 @@ void com_deal_configure_single_current_ch(com_rec_data_t *buff)
 */
 void com_deal_configure_single_current(com_rec_data_t *buff)
 {	
-	uint8_t data = 0;
+	uint8_t data[2] = {0};
 	
-	data = (buff->buff[0]); // 
+	data[0] = (buff->buff[0]); // ²»ÁÁ
+	data[1] = (buff->buff[1]); // ²¿·ÖÁÁ
 	app_set_single_current_param(data);	/* ´æ´¢ */
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }

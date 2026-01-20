@@ -220,9 +220,13 @@ static int8_t Setting_threshold_parameter_function(char *pcParam[], char *pcValu
 	{
 		param.miu = atoi(pcValue[i]);
 	}
-	if (strcmp(pcParam[i] , "ad")==0) // 信号灯电流
+	if (strcmp(pcParam[i] , "ad")==0) // 信号灯不亮
 	{
-		param.led_current = atoi(pcValue[i]);
+		param.led_not_bright = atoi(pcValue[i]);
+	}
+	if (strcmp(pcParam[i] , "ae")==0) // 信号灯部分亮
+	{
+		param.led_part_bright = atoi(pcValue[i]);
 		app_set_threshold_param_function(param);
 	}
 	

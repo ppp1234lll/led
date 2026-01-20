@@ -35,6 +35,8 @@ uint8_t  single_send_len;
 uint8_t  single_recv_buf[BOARD_MAX][256];
 uint16_t single_recv_sta[BOARD_MAX];  
 
+// 声明一个CurrentData_t变量
+CurrentData_t current_data;
 
 void Single_Send_Data(borad_id_t num, uint8_t *data, uint16_t len);
 /*
@@ -422,7 +424,7 @@ void single_led_timer_run(void)
 		for (channel = 0; channel < 12; channel++) 
 		{
 			g_timer_info[board_id].timer[channel].new_v = g_singleboard_t[board_id].data.voltage[channel];
-      if (g_timer_info[board_id].timer[channel].new_v != g_timer_info[board_id].timer[channel].last_v) 
+			if (g_timer_info[board_id].timer[channel].new_v != g_timer_info[board_id].timer[channel].last_v) 
 			{
 				g_timer_info[board_id].timer[channel].last_v = g_timer_info[board_id].timer[channel].new_v;
 				if (g_timer_info[board_id].timer[channel].new_v == 0) 
@@ -444,3 +446,205 @@ void single_led_timer_run(void)
   }
 
 }
+
+/*********************************************************************************************************
+* 故障检测相关函数
+*********************************************************************************************************/
+
+/*
+*********************************************************************************************************
+* 函 数 名: single_led_check_all_off
+* 功能说明: 检测所有通道是否全不亮
+* 形    参: 无
+* 返 回 值: uint8_t - 全不亮的通道数量
+*********************************************************************************************************
+*/
+uint8_t single_led_check_all_off(void)
+{
+	Type_e type;                     // 灯类型（远灯/近灯）
+	Direction_e dir;                 // 方向（北/东/南/西）
+	Phase_e phase;                   // 相位
+	Color_e color;                   // 颜色（红/绿/黄）
+	float current_value;             // 电流值
+	uint32_t voltage_value;          // 电压值
+	uint8_t has_valid_channel = 0;   // 是否有有效的通道
+	uint8_t is_dir_all_off;          // 方向是否全不亮标志
+	uint8_t dir_channel_count;       // 方向通道计数
+	uint8_t dir_all_off_mask = 0;    // 方向全不亮掩码（每一位代表一个方向）
+	uint8_t is_all_system_off = 1;   // 整个系统是否全不亮标志
+	
+	// 遍历所有类型（远灯/近灯）
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 检查类型指针是否有效
+		if (single_light.p_light_type[type] == NULL)
+		{
+			continue;
+		}
+		
+		// 遍历所有方向（北/东/南/西）
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 检查方向指针是否有效
+			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+			{
+				continue;
+			}
+			
+			// 重置方向全不亮标志和通道计数
+			is_dir_all_off = 1;
+			dir_channel_count = 0;
+			
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 检查相位指针是否有效
+				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+				{
+					continue;
+				}
+				
+				// 遍历所有颜色（红/绿/黄）
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 检查颜色指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+					{
+						continue;
+					}
+					
+					// 检查参数指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
+					{
+						continue;
+					}
+					
+					// 检查电压和电流指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL &&
+						single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+					{
+						// 标记有有效的通道
+						has_valid_channel = 1;
+						dir_channel_count++;
+						
+						// 获取电压和电流值
+						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage;
+						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+						
+						// 检查该通道是否不亮
+						if (voltage_value != 0 || current_value >= 0.1) // 电流大于等于0.1A视为有电流
+						{
+							// 该通道不是全不亮，所以方向不是全不亮，整个系统也不是全不亮
+							is_dir_all_off = 0;
+							is_all_system_off = 0;
+						}
+					}
+				}
+			}
+			
+			// 检查方向是否全不亮
+			if (is_dir_all_off && dir_channel_count > 0)
+			{
+				// 设置对应方向的位掩码
+				dir_all_off_mask |= (1 << dir);
+			}
+		}
+	}
+	
+	// 返回值格式：
+	// 低4位：每一位代表一个方向，1表示该方向全不亮
+	// 高4位：0表示系统不全不亮，1表示系统全不亮，2表示无法判断
+	if (has_valid_channel)
+	{
+		if (is_all_system_off)
+		{
+			return 0x10 | dir_all_off_mask; // 系统全不亮
+		}
+		else
+		{
+			return dir_all_off_mask; // 系统不全不亮，只返回方向掩码
+		}
+	}
+	else
+	{
+		return 0x20; // 没有有效的通道，无法判断
+	}
+}
+
+/*********************************************************************************************************
+* 函 数 名: single_collect_current_data
+* 功能说明: 收集single_light对应的电流值，存储到CurrentData_t结构体中
+* 形    参: data - 电流数据结构体指针
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_collect_current_data(CurrentData_t *data)
+{
+	Type_e type;                     // 灯类型（远灯/近灯）
+	Direction_e dir;                 // 方向（北/东/南/西）
+	Phase_e phase;                   // 相位
+	Color_e color;                   // 颜色（红/绿/黄）
+	
+	// 遍历所有类型（远灯/近灯）
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 检查类型指针是否有效
+		if (single_light.p_light_type[type] == NULL)
+		{
+			continue;
+		}
+		
+		// 遍历所有方向（北/东/南/西）
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 检查方向指针是否有效
+			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+			{
+				continue;
+			}
+			
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 检查相位指针是否有效
+				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+				{
+					continue;
+				}
+				
+				// 遍历所有颜色（红/绿/黄）
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 检查颜色指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+					{
+						continue;
+					}
+					
+					// 检查参数指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
+					{
+						continue;
+					}
+					
+					// 检查电流指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+					{
+						// 收集电流值
+						data->current[type][dir][phase][color] = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+					}
+					else
+					{
+						// 电流指针无效，设置为0
+						data->current[type][dir][phase][color] = 0.0f;
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+
+
