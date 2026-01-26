@@ -171,16 +171,28 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 }
 
 /* USER CODE BEGIN 1 */
+uint8_t test_pluse[12] = {0};
 
+extern uint8_t seng_state;
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	uint8_t i = 0;
   static uint16_t time_high[12] = {0};
+	static uint16_t send_time = 0;
+	
 	if(htim->Instance == TIM2)
 	{
 		bl0910_run_timer_function();
 		bl0910_2_run_timer_function();
 		bl0906_run_timer_function();
+		
+		send_time++;
+		if(send_time >= 100)
+		{
+			send_time = 0;
+			seng_state = 1;
+		}
+		
 	}
 		if(htim->Instance == TIM1)
 	{
@@ -202,6 +214,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				{
 				  sg_datacollec_t.pulse[i] = 1;
 				  seng_state1 = 1;
+					test_pluse[i]++;
 				  time_high[i] = 0;
 				}
 			}

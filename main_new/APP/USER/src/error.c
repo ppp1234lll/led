@@ -33,6 +33,24 @@ static const ErrorItem_t err_items_sensor[] = {
     // ...
 };
 #define ERR_SENSOR_ITEM_COUNT  (sizeof(err_items_sensor) / sizeof(err_items_sensor[0]))
+
+// ---------------------- 4. 信号灯组错误项 ----------------------
+// 由于信号灯故障组合非常多，不使用固定数组，而是动态生成故障码
+// 5位数字编码格式：ABCDE
+// A: 类型 (0=远灯, 1=近灯)
+// B: 方向 (0=北, 1=东, 2=南, 3=西)
+// C: 相位 (0=左转, 1=直行, 2=右转, 3=行人1, 4=行人2, 5=非机动车1, 6=非机动车2, 7=倒计时, 8=可变车道, 9=待行, 0=辅道)
+// D: 颜色 (0=红, 1=绿, 2=黄)
+// E: 故障类型 (0=正常, 1=全不亮, 2=部分亮, 3=红绿同亮)
+
+// 空的信号灯故障数组，仅用于占位
+static const ErrorItem_t err_items_traffic[] = {
+    // 仅作为占位符，实际故障码通过TrafficFault_GetCode动态生成
+};
+#define ERR_TRAFFIC_ITEM_COUNT  (sizeof(err_items_traffic) / sizeof(err_items_traffic[0]))
+
+// 全局缓冲区，用于动态生成信号灯故障码
+static char g_traffic_fault_code[7] = "400000"; // 7字节缓冲区，包含结束符
 	
 // ===================== 第四步：定义错误组数组（管理所有组） =====================
 static const ErrorGroup_t error_groups[] = {
@@ -40,6 +58,7 @@ static const ErrorGroup_t error_groups[] = {
     {1UL << ERR_TYPE_ELEC,   err_items_elec,    ERR_ELEC_ITEM_COUNT		},
     {1UL << ERR_TYPE_NET,    err_items_net,     ERR_NET_ITEM_COUNT		},
     {1UL << ERR_TYPE_SENSOR, err_items_sensor,  ERR_SENSOR_ITEM_COUNT	},
+    {1UL << ERR_TYPE_TRAFFIC, err_items_traffic, ERR_TRAFFIC_ITEM_COUNT	},
     // 新增组只需追加一行...
 };
 #define ERROR_GROUP_COUNT  (sizeof(error_groups) / sizeof(error_groups[0]))
@@ -63,7 +82,10 @@ uint32_t g_err_item_status[ERR_MAX] = {0};
 */
 void Error_Set(ErrorType_e group, uint32_t item_idx)
 {
-	if (group >= ERR_MAX || item_idx >= error_groups[group].item_count) return;
+	if (group >= ERR_MAX) return;
+	
+	// 特殊处理信号灯故障组，允许任意有效的错误索引
+	if (group != ERR_TYPE_TRAFFIC && item_idx >= error_groups[group].item_count) return;
 
 	g_err_item_status[group] |= (1UL << item_idx);      // 单组用uint32_t直接置位
 	g_err_group_status |= error_groups[group].group_mask;
@@ -81,7 +103,10 @@ void Error_Set(ErrorType_e group, uint32_t item_idx)
 */
 void Error_Clear(ErrorType_e group, uint32_t item_idx)
 {
-	if (group >= ERR_MAX || item_idx >= error_groups[group].item_count) return;
+	if (group >= ERR_MAX) return;
+	
+	// 特殊处理信号灯故障组，允许任意有效的错误索引
+	if (group != ERR_TYPE_TRAFFIC && item_idx >= error_groups[group].item_count) return;
 	
 	g_err_item_status[group] &= ~(1UL << item_idx);
 	// 组内无错误则清零组级状态
@@ -102,8 +127,11 @@ void Error_Clear(ErrorType_e group, uint32_t item_idx)
 */
 uint8_t Error_Check(ErrorType_e group, uint32_t item_idx)
 {
+	if (group >= ERR_MAX) return 0;
 	if ((g_err_group_status & error_groups[group].group_mask) == 0) return 0;
-	if (group >= ERR_MAX || item_idx >= error_groups[group].item_count) return 0;
+	
+	// 特殊处理信号灯故障组，允许任意有效的错误索引
+	if (group != ERR_TYPE_TRAFFIC && item_idx >= error_groups[group].item_count) return 0;
 	
 	return (g_err_item_status[group] & (1UL << item_idx)) ? 1 : 0;
 }
@@ -124,7 +152,33 @@ uint8_t Error_Check(ErrorType_e group, uint32_t item_idx)
 */
 const char* Error_GetCode(ErrorType_e group, uint8_t item_idx)
 {
-	if (group >= ERR_MAX || item_idx >= error_groups[group].item_count) return NULL;
+	if (group >= ERR_MAX) return NULL;
+	
+	// 特殊处理信号灯故障组，动态生成错误码
+	if (group == ERR_TYPE_TRAFFIC) {
+		// 从item_idx中解析出类型、方向、相位、颜色
+		uint8_t type = (item_idx >> 8) & 0x01;
+		uint8_t dir = (item_idx >> 6) & 0x03;
+		uint8_t phase = (item_idx >> 2) & 0x0F;
+		uint8_t color = item_idx & 0x03;
+		
+		// 默认为全不亮故障
+		uint8_t fault = 1;
+		
+		// 生成5位错误码：4ABCDE
+		g_traffic_fault_code[0] = '4';
+		g_traffic_fault_code[1] = type + '0';
+		g_traffic_fault_code[2] = dir + '0';
+		g_traffic_fault_code[3] = (phase % 10) + '0';
+		g_traffic_fault_code[4] = color + '0';
+		g_traffic_fault_code[5] = fault + '0';
+		g_traffic_fault_code[6] = '\0';
+		
+		return g_traffic_fault_code;
+	}
+	
+	// 其他组使用静态错误码
+	if (item_idx >= error_groups[group].item_count) return NULL;
 	return error_groups[group].items[item_idx].err_code;
 }
 
@@ -178,5 +232,116 @@ int8_t Error_GetAllCodes(char* buf, uint16_t buf_len)
 	}
 	buf[buf_pos] = '\0'; // 确保字符串结尾
 	return err_count;
+}
+
+
+/*********************************************************************************************************
+* 信号灯故障管理函数实现
+*********************************************************************************************************/
+
+/**
+ * @brief 标记信号灯故障
+ */
+uint8_t TrafficFault_Set(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
+{
+	// 参数有效性检查
+	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+		return 0;
+	}
+	
+	// 生成错误索引
+	uint32_t fault_index = (((type) & 0x01) << 8) | (((dir) & 0x03) << 6) | (((phase) & 0x0F) << 2) | ((color) & 0x03);
+	
+	// 调用现有的错误设置函数
+	Error_Set(ERR_TYPE_TRAFFIC, fault_index);
+	
+	return 1;
+}
+
+/**
+ * @brief 清除信号灯故障
+ */
+uint8_t TrafficFault_Clear(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
+{
+	// 参数有效性检查
+	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+		return 0;
+	}
+	
+	// 生成错误索引
+	uint32_t fault_index = (((type) & 0x01) << 8) | (((dir) & 0x03) << 6) | (((phase) & 0x0F) << 2) | ((color) & 0x03);
+	
+	// 调用现有的错误清除函数
+	Error_Clear(ERR_TYPE_TRAFFIC, fault_index);
+	
+	return 1;
+}
+
+/**
+ * @brief 检查信号灯故障
+ */
+uint8_t TrafficFault_Check(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
+{
+	// 参数有效性检查
+	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+		return 0;
+	}
+	
+	// 生成错误索引
+	uint32_t fault_index = (((type) & 0x01) << 8) | (((dir) & 0x03) << 6) | (((phase) & 0x0F) << 2) | ((color) & 0x03);
+	
+	// 调用现有的错误检查函数
+	return Error_Check(ERR_TYPE_TRAFFIC, fault_index);
+}
+
+/**
+ * @brief 获取信号灯故障错误码
+ */
+const char* TrafficFault_GetCode(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
+{
+	// 参数有效性检查
+	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+		return NULL;
+	}
+	
+	// 直接生成5位错误码：4ABCDE
+	g_traffic_fault_code[0] = '4';
+	g_traffic_fault_code[1] = type + '0';
+	g_traffic_fault_code[2] = dir + '0';
+	g_traffic_fault_code[3] = (phase % 10) + '0';
+	g_traffic_fault_code[4] = color + '0';
+	g_traffic_fault_code[5] = fault + '0';
+	g_traffic_fault_code[6] = '\0';
+	
+	return g_traffic_fault_code;
+}
+
+/**
+ * @brief 清除所有信号灯故障
+ */
+uint8_t TrafficFault_ClearAll(void)
+{
+	// 直接清除信号灯故障组的所有错误
+	g_err_item_status[ERR_TYPE_TRAFFIC] = 0;
+	g_err_group_status &= ~error_groups[ERR_TYPE_TRAFFIC].group_mask;
+	
+	return 1;
+}
+
+/**
+ * @brief 获取信号灯故障数量
+ */
+uint8_t TrafficFault_GetCount(void)
+{
+	uint8_t count = 0;
+	uint32_t status = g_err_item_status[ERR_TYPE_TRAFFIC];
+	
+	// 统计状态位中置1的位数
+	while (status) {
+		count += status & 1;
+		status >>= 1;
+	}
+	
+	return count;
 }
 

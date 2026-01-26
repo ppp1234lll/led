@@ -79,7 +79,7 @@ void start_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define ALARM_TASK_PRIO     			10       
-#define ALARM_STK_SIZE      			256      
+#define ALARM_STK_SIZE      			512      
 TaskHandle_t ALARM_Task_Handler;     
 void alarm_task(void *pvParameters); 
 
@@ -125,7 +125,7 @@ void print_task(void *pvParameters);
 
 /* 检测板 */
 #define SINGLE_TASK_PRIO		      9
-#define SINGLE_TASK_STK_SIZE 		  512
+#define SINGLE_TASK_STK_SIZE 		  1024
 TaskHandle_t Single_Task_Handler;
 void single_task(void *p_arg);
 /******************************************************************************************************/
@@ -229,7 +229,6 @@ void start_task(void *pvParameters)
 							(UBaseType_t    )SINGLE_TASK_PRIO,
 							(TaskHandle_t * )&Single_Task_Handler);
 //	freertos_demo();		
-
 
 	printf("Free heap: %d bytes\n", xPortGetFreeHeapSize());			/*打印剩余堆栈大小*/
 	vTaskDelete(StartTask_Handler); /* 删除开始任务 */

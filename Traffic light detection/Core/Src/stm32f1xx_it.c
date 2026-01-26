@@ -268,15 +268,11 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	
-//	  uint32_t len;
-//	if(__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)==SET){
-//      __HAL_UART_CLEAR_IDLEFLAG(&huart1);
-//		  HAL_UART_DMAStop(&huart1);
-//		  len = 10 - hdma_usart1_rx.Instance->CNDTR;
-////		  Usart2type.Usart2DMArecLen = len;
-//		  HAL_UART_RxCpltCallback(&huart1);
-
-//	} 
+  if (USART1->SR & (1 << 8)) 
+			USART1->SR &= ~(1 << 8);
+	
+  if (USART1->SR & (1 << 3)) 
+			USART1->SR &= ~(1 << 3);
 
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);

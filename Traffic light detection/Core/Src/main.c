@@ -98,7 +98,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
 	
-
+  uint8_t index = 0;
 
   /* USER CODE END 1 */
 
@@ -179,16 +179,22 @@ int main(void)
 		}	
 		if(seng_state1 == 1)
 		{
-			buffer_len = pack_data(cmd,&sg_datacollec_t,send_buffer);
-			
-			HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
-			seng_state1 = 0;
-			for (int i = 0; i < 12; i++) 
+			if(index == 0)
 			{
-        sg_datacollec_t.pulse[i] = 0;
-      }
-		}
-		
+				buffer_len = pack_data(cmd,&sg_datacollec_t,send_buffer);
+				HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
+			}
+			index++;
+			if(index >= 30)
+			{
+				index = 0;
+				seng_state1 = 0;
+				for (int i = 0; i < 12; i++) 
+				{
+					sg_datacollec_t.pulse[i] = 0;
+				}			
+			}	
+		}	
   }
   /* USER CODE END 3 */
 }

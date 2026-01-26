@@ -804,7 +804,14 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 		app_system_softreset(1000);
 		return 0;
 	}
-	
+		
+	/* «Â≥˝–≈∫≈µ∆≈‰÷√ */
+	if ( strcmp(pcValue[0] , "single_clear")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		single_clear_config_function();
+		return 0;
+	}
+		
 	if ( strcmp(pcValue[0] , "loginInit")==0 ) {
 		set_return_status_function(0,(uint8_t*)"[\"root\",\" \"]");
 		return 0;

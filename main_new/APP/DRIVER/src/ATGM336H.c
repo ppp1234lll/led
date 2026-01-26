@@ -14,8 +14,8 @@
 /* 参数 */
 #define GPS_BUFF_LEN  2048
 
-__attribute__((section (".RAM_D1"))) uint8_t g_gps_buffer[GPS_BUFF_LEN];
-__attribute__((section (".RAM_D1"))) atgm336h_data_t sg_atgm336h_param_t; // 定位信息
+uint8_t g_gps_buffer[GPS_BUFF_LEN];
+atgm336h_data_t sg_atgm336h_param_t; // 定位信息
 
 /*
 *********************************************************************************************************

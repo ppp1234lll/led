@@ -16,7 +16,7 @@
 #define UART5_RX_NE     0    // 使用串口中断
 #define UART5_RX_DMA    1    // 使用串口DMA
 
-#define U5_RX_SIZE  (2048)
+#define U5_RX_SIZE  (512)
 /*  接收状态
  *  bit15，      接收完成标志
  *  bit14，      接收到0x0d
@@ -242,7 +242,9 @@ void UART5_IRQHandler(void)
 //		HAL_UART_Transmit(&huart5, (uint8_t *)g_U5RxBuffer, total_len, 1000);   /* 发送接收到的数据 */
 //		Uart5_Send_Data("123456789000\n",12);
 		
-		single_recv_board_data(BOARD_1,g_U5RxBuffer,total_len);
+//		single_recv_board_data(BOARD_1,g_U5RxBuffer,total_len);
+		single_recv_board_data_0(g_U5RxBuffer,total_len);
+		
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart5, g_U5RxBuffer, U5_RX_SIZE);
 	}
 #endif

@@ -3,6 +3,7 @@
 
 #include "./TASK/inc/app.h"
 #include "./TASK/inc/det.h"
+#include "./TASK/inc/single.h"
 
 /* 默认参数 */
 #define DEFALUT_LOCAL_IP0 (192)
@@ -119,10 +120,10 @@ int8_t save_stroage_http_ota_function(struct update_addr *param);
 int8_t save_read_http_ota_function(struct update_addr *param);
 void save_read_default_http_ota(struct update_addr *param);
 
-// 20241101 用电量
-int8_t save_stroage_electricity_function(electricity_t param);
-int8_t save_read_electricity_function(electricity_t *param);
-void save_read_default_electricity(electricity_t *param);
+// 20241101 信号灯配置信息
+int8_t save_stroage_single_led_blind_function(ConfigData_t param);
+int8_t save_read_single_led_blind_function(ConfigData_t *param);
+void save_read_default_single_led_blind(ConfigData_t *param);
 
 
 #endif

@@ -8,8 +8,8 @@
 #define SAVE_HTTP_UPDATE_ADDR_NAME  ("HTTP_OTA")          /* 更新地址 */
 #define SAVE_THRESHOLD_PARAMETER    ("threshold_params")  /* 相关阈值：电压 电流 角度 */ // 20230720
 #define SAVE_UPDATE_FILE_INFOR_NAME ("upfileinfor.bin")   /* 更新文件信息 */
-#define SAVE_ELECTRICITY_PARAM      ("electricity")           /* 用电量信息，防止重启后用电量变为0 */
-
+#define SAVE_ELECTRICITY_PARAM      ("electricity")       /* 用电量信息，防止重启后用电量变为0 */
+#define SAVE_SINGLE_LED_BLIND       ("single_led_blind")  /* 信号灯配置信息 */
 /*
 *********************************************************************************************************
 *	函 数 名: save_init_function
@@ -716,26 +716,26 @@ void save_read_default_http_ota(struct update_addr *param)
 
 /************************************************************
 *
-* Function name	: save_stroage_electricity_function
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
+* Function name	: save_stroage_single_led_blind_function
+* Description	: 存储信号灯配置信息
+* Parameter	: param - 配置数据
+* Return	: 0成功，-1失败
+*
 ************************************************************/
-int8_t save_stroage_electricity_function(electricity_t param)
+int8_t save_stroage_single_led_blind_function(ConfigData_t param)
 {
 	int8_t  ret = 0;
- 	int     err = 0;
+  int     err = 0;
 	lfs_file_t  lfs_fp	 = {0};
 	
 	/* 数据保存 */
-	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_ELECTRICITY_PARAM, LFS_O_RDWR | LFS_O_CREAT);
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_BLIND, LFS_O_RDWR | LFS_O_CREAT);
 	if(err == 0)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
-		err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(electricity_t));
-		if(err != sizeof(electricity_t)) {
-			err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(electricity_t));
+		err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(ConfigData_t));
+		if(err != sizeof(ConfigData_t)) {
+			err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(ConfigData_t));
 		}
 	}
 	else
@@ -749,45 +749,45 @@ int8_t save_stroage_electricity_function(electricity_t param)
 
 /************************************************************
 *
-* Function name	: save_read_http_ota_function
-* Description	: 
-* Parameter		: 
-* Return		: 
-*	
+* Function name	: save_read_single_led_blind_function
+* Description	: 读取信号灯配置信息
+* Parameter	: param - 配置数据指针
+* Return	: 0成功，-1失败
+*
 ************************************************************/
-int8_t save_read_electricity_function(electricity_t *param)
+int8_t save_read_single_led_blind_function(ConfigData_t *param)
 {
-	int8_t		ret      = 0;
-	int 		err 	 = 0;
+	int8_t	ret      = 0;
+	int 	err 	 = 0;
 	lfs_file_t  lfs_fp   = {0};
 	
-	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_ELECTRICITY_PARAM, LFS_O_RDWR);
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_BLIND, LFS_O_RDWR);
 
 	if(err == 0)
 	{
 		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
-		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(electricity_t));
+		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(ConfigData_t));
 		err = lfs_file_close(&g_lfs_t, &lfs_fp);
 	}
 	else
 	{
-		save_read_default_electricity(param);
-		save_stroage_electricity_function(*param);
+		save_read_default_single_led_blind(param);
+		save_stroage_single_led_blind_function(*param);
 		ret = -1;
 	}
 	return ret;
 }
 /************************************************************
 *
-* Function name	: save_read_default_electricity
-* Description	: 读取默认值
-* Parameter		: 
-* Return		: 
-*	
+* Function name	: save_read_default_single_led_blind
+* Description	: 读取默认信号灯配置信息
+* Parameter	: param - 配置数据指针
+* Return	: 无
+*
 ************************************************************/
-void save_read_default_electricity(electricity_t *param)
+void save_read_default_single_led_blind(ConfigData_t *param)
 {
-	memset(param,0,sizeof(electricity_t));
+	memset(param,0,sizeof(ConfigData_t));
 }
 
 
