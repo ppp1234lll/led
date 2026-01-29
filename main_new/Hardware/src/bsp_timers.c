@@ -357,6 +357,8 @@ void TIM6_DAC_IRQHandler(void)
 	{
 		TIM6->SR = ~ TIM_FLAG_UPDATE;
 		
+		single_current_times_recalculate();
+		
 #ifdef TIMER_DEBUG
 		g_timer_test[4]++;
 		if(g_timer_test[4] >= 1000)

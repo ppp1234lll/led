@@ -16,78 +16,54 @@
 #define RECV_END_BYTE2 (0xFF) 	 
 		
 
+
+/*
+*********************************************************************************************************
+* 发送指针函数定义
+* 包含：4个串口
+*********************************************************************************************************
+*/
 typedef void (*UartSendFuncPtr)(uint8_t *data, uint16_t len);	
 	
 static const UartSendFuncPtr uart_send_table[BOARD_MAX] = {
-  Uart5_Send_Data,    
+	Uart5_Send_Data,    
 	Usart4_Send_Data,
 	Lpuart1_Send_Data,  
-  Usart1_Send_Data,    
+	Usart1_Send_Data,    
 };		
 		
-__attribute__((at (0x30000000))) single_data_t g_singleboard_t[BOARD_MAX]={0};
-
-uint8_t g_single_time_t[BOARD_MAX][12]={0};
-
+/*
+*********************************************************************************************************
+* 发送、接收缓存
+*********************************************************************************************************
+*/
 uint8_t  single_send_buf[16];  
 uint8_t  single_send_len;
+
 uint8_t  single_recv_buf[BOARD_MAX][256];
 uint16_t single_recv_sta[BOARD_MAX];  
 
- 
-CurrentData_t  current_data = {0};
-CurrentAverageData_t current_sum_data = {0};
-
-
-void Single_Send_Data(borad_id_t num, uint8_t *data, uint16_t len);
-/*
-*********************************************************************************************************
-* 单色灯结构定义：参数
-* 包含：电压/电流/脉冲/故障状态
-*********************************************************************************************************
-*/
-typedef struct {
-    Params_t *p_params; // 指向参数结构体（电压/电流/脉冲/故障状态）
-} SingleColorLight_t;
 
 /*
 *********************************************************************************************************
-* 相位灯结构定义：包含3个颜色灯
+* 各板的数据数组（固定地址）：电流、电压、脉冲
 *********************************************************************************************************
 */
-typedef struct {
-    SingleColorLight_t *p_color[COLOR_MAX]; // 指向3个颜色灯的指针数组
-} PhaseLight_t;
+__attribute__((at (0x30000000))) single_data_t g_singleboard_t[BOARD_MAX]={0};
 
 /*
 *********************************************************************************************************
-* 方向灯结构定义：包含9个相位
+* 各电压通道的亮灯时间
 *********************************************************************************************************
 */
-typedef struct {
-    PhaseLight_t *p_phase[PHASE_MAX]; // 指向9个相位的指针数组
-} DirectionLight_t;
+uint8_t g_single_time_t[BOARD_MAX][12]={0};
 
 /*
 *********************************************************************************************************
-* 类型灯结构定义：远灯/近灯各4个方向
+* 信号灯结构定义：参数
+* 包含：类型、方向、相位、颜色
 *********************************************************************************************************
 */
-typedef struct {
-    DirectionLight_t *p_direction[DIR_MAX]; // 指向4个方向的指针数组
-} LightType_t;
-
-/*
-*********************************************************************************************************
-* 信号灯总结构：包含类型+方向+相位+颜色
-*********************************************************************************************************
-*/
-typedef struct {
-    LightType_t *p_light_type[Type_MAX]; // 指向远灯/近灯的指针数组
-} SingleLight_t;
-
-
-// 全局变量定义
 // Params_t数组
 Params_t params[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
@@ -106,12 +82,53 @@ LightType_t light_type[Type_MAX] = {0};
 // 信号灯总结构
 SingleLight_t single_light = {0};
 
-// 配置数据
+/*
+*********************************************************************************************************
+* 配置数据结构定义：参数
+* 包含：参数类型、板号、通道、信号灯类型、方向、相位、颜色
+*********************************************************************************************************
+*/
 ConfigData_t g_config_data = {0};
 
+/*
+*********************************************************************************************************
+* 信号灯电流结构定义：参数
+* 包含：电流类型、高电平计数、脉冲检测开始时间、脉冲检测标志、数据采集开始时间、数据采集标志、数据采集完成标志、上一次脉冲值
+*********************************************************************************************************
+*/
+// 定义电流状态结构体
+typedef struct {
+	CtdType_e	target_ctd_type;					// 电流类型:单灯、双灯
+	uint8_t 	high_level_count;					// 高电平持续计数（每100ms递增1）
+	uint32_t 	pulse_start_time;					// 脉冲检测开始时间
+	uint8_t 	pulse_detected;						// 标记是否检测到脉冲信号
+	uint32_t 	data_collect_start_time;	// 数据采集开始时间
+	uint8_t 	data_collecting;					// 标记是否处于数据采集期
+	uint8_t 	data_collect_completed;		// 标记是否已完成4秒数据采集
+	uint8_t 	last_pulse_value;					// 上一次的脉冲值，用于检测跳变
+} SingleCurrent_t;
 
-#define CURRENT_AVERAGE_TIME  36000 // 1小时
-void single_ch2_light_timer_run(void);
+// 全局变量，用于存储电流的状态
+SingleCurrent_t single_current_state[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] ;
+
+/*
+*********************************************************************************************************
+* 各通道平均电流计算，用于故障判断
+*********************************************************************************************************
+*/
+#define CURRENT_AVERAGE_TIME  1200 // 10min = 2*60*10(100ms基数)
+
+typedef struct __attribute__((aligned(4)))
+{
+	float sum[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX];      // 电流累计值
+	uint32_t count[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX];  // 采样次数
+} CurrentAvgData_t;
+CurrentAvgData_t current_sum_data[CTD_MAX] = {0};
+
+// 计算得到的平均电流，最终参数，用于存储、判断
+CurrentData_t  current_data[CTD_MAX] = {0}; 
+
+
 /*
 *********************************************************************************************************
 * 函 数 名: single_task_function
@@ -122,19 +139,20 @@ void single_ch2_light_timer_run(void);
 */
 void single_task_function(void)
 {
- 
+
 	printf("run single\n");
 	uint8_t index;
 	uint16_t current_time = 0;
 	
 	single_led_init_memory();
+	
 //	single_cmd_board_data(single_send_buf,&single_send_len);  
 //	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,0,1,0,0,0,0);
 //  Single_Bind_InpuToTraffic( PARAM_CURRENT,0,1,0,0,0,0);
 	single_load_config_from_flash(); // 读取配置信息
 	
-	// 初始化定时器
-	single_led_timer_init();
+	single_led_timer_init();	// 初始化定时器
+	single_current_state_init(); // 初始化电流状态结构体
 	
 	while(1)
 	{
@@ -144,17 +162,19 @@ void single_task_function(void)
 			single_deal_board_data(index);
 		}
 		
-//		single_led_timer_run();
-		single_ch2_light_timer_run();
-		single_update_current_average();
-		
-		
+		single_led_timer_run();
+//		single_ch2_light_timer_run();
+//		single_update_current_average();
+		single_update_current_average_enhanced();
+		// single_non_motor_update_current_test();
+
 		// 电流平均值计算时间
 		current_time++;
 		if(current_time >= CURRENT_AVERAGE_TIME)
 		{
 			single_calculate_current_average();
-		  current_time = 0;
+			// single_non_motor_calculate_current_average_test();
+			current_time = 0;
 		}
 		iwdg_feed();         		
 		vTaskDelay(100);     	  	
@@ -454,6 +474,8 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 	single_record_config(param_type, board_id, ch, p_type, p_dir, p_phase, p_color);
 }
 
+
+
 /*********************************************************************************************************
 * 函 数 名: single_record_config
 * 功能描述: 记录配置信息到g_config_data
@@ -563,20 +585,18 @@ void single_record_config(ParamType_e param_type,
 *********************************************************************************************************/
 
 typedef struct {
-	uint32_t count;  // 记录上次状态变化的时间戳(ms)
-	uint32_t off_time; // 记录灯熄灭的时间戳(ms)，用于检测脉冲信号
 	uint8_t  last_v; // 记录上一次的电压状态变化
 	uint8_t  new_v; // 记录新的电压状态变化
-	uint8_t  is_pulsing; // 是否处于脉冲状态
+
+	uint32_t low_time[10];   // 低电平跳变时间
+	uint32_t high_time[10];  // 高电平跳变时间
+	uint8_t high_jump_num;  // 高电平跳变计数
+	uint8_t low_jump_num;  // 低电平跳变计数		
+	uint8_t high_duration;  // 高电平持续时间
 } TimerInfo_t;
 
-// 板卡定时器信息结构体
-typedef struct {
-    TimerInfo_t timer[12]; // 每个板卡12个通道的定时器
-} BoardTimerInfo_t;
-
-// 板卡定时器信息数组
-BoardTimerInfo_t g_timer_info[BOARD_MAX] = {0};
+// 为每个板子的每个通道定义TimerInfo_t变量
+TimerInfo_t g_timer_info[BOARD_MAX][12] = {0};
 
 /*
 *********************************************************************************************************
@@ -594,11 +614,11 @@ void single_led_timer_init(void)
 	// 初始化所有板卡的所有通道定时器
 	for (board_id = 0; board_id < BOARD_MAX; board_id++) {
 		for (channel = 0; channel < 12; channel++) {
-			g_timer_info[board_id].timer[channel].count = 0;
-			g_timer_info[board_id].timer[channel].off_time = 0;
-			g_timer_info[board_id].timer[channel].new_v = 0xFF;
-			g_timer_info[board_id].timer[channel].last_v = 0xFF; // 初始化为无效值
-			g_timer_info[board_id].timer[channel].is_pulsing = 0;
+			g_timer_info[board_id][channel].new_v = 0xFF;
+			g_timer_info[board_id][channel].last_v = 0xFF; // 初始化为无效值
+			g_timer_info[board_id][channel].high_jump_num = 0;
+			g_timer_info[board_id][channel].low_jump_num  = 0;
+			g_timer_info[board_id][channel].high_duration = 0;
 		}
 	}
 }
@@ -610,159 +630,65 @@ void single_led_timer_init(void)
 * 返 回 值: 无
 *********************************************************************************************************
 */
-uint8_t pluse_test[4][12] = {0};
 void single_led_timer_run(void)
 {
 	uint8_t board_id=0;
 	uint8_t channel=0;
-	uint32_t current_time=0;
-  uint32_t elapsed_time=0;
+	uint32_t elapsed_time=0;
 	
-  for (board_id = 0; board_id < BOARD_MAX; board_id++) 
+	for (board_id = 0; board_id < BOARD_MAX; board_id++) 
 	{
 		for (channel = 0; channel < 12; channel++) 
 		{
-			if(g_singleboard_t[board_id].data.pulse[channel] == 1)
-			 pluse_test[board_id][channel]++;
-			
-			g_timer_info[board_id].timer[channel].new_v = g_singleboard_t[board_id].data.voltage[channel];
-			if (g_timer_info[board_id].timer[channel].new_v != g_timer_info[board_id].timer[channel].last_v) 
+			g_timer_info[board_id][channel].new_v = g_singleboard_t[board_id].data.voltage[channel];
+
+			if (g_timer_info[board_id][channel].new_v != g_timer_info[board_id][channel].last_v) 
 			{
-				g_timer_info[board_id].timer[channel].last_v = g_timer_info[board_id].timer[channel].new_v;
-				if (g_timer_info[board_id].timer[channel].new_v == 0) 
+				if (g_timer_info[board_id][channel].new_v == 0) // 当前为低电平（点亮）
 				{
-					g_timer_info[board_id].timer[channel].count = bsp_GetRunTime();
-				}
-				else if(g_timer_info[board_id].timer[channel].new_v == 1) 
-				{
-					current_time = bsp_GetRunTime();
-					if (g_timer_info[board_id].timer[channel].count != 0) 
+					if (g_timer_info[board_id][channel].low_jump_num < 10) // 防止数组越界
 					{
-						elapsed_time = current_time - g_timer_info[board_id].timer[channel].count;
-						g_single_time_t[board_id][channel] = (uint16_t)((elapsed_time+200)/1000);
-						g_timer_info[board_id].timer[channel].count = 0;
+						g_timer_info[board_id][channel].low_time[g_timer_info[board_id][channel].low_jump_num] = bsp_GetRunTime(); // 获取时间
+						g_timer_info[board_id][channel].low_jump_num++; // 低电平跳变计数
 					}
 				}
-			}
-    }
-  }
-
-}
-
-void single_traffic_light_timer_run(void)
-{
-	uint8_t board_id=0;
-	uint8_t channel=0;
-	uint32_t current_time=0;
-  uint32_t elapsed_time=0;
-	uint32_t off_duration=0;
-	#define PULSE_THRESHOLD 400 // 脉冲信号阈值（ms）
-
-  for (board_id = 0; board_id < BOARD_MAX; board_id++) 
-	{
-		for (channel = 0; channel < 12; channel++) 
-		{
-			if(g_singleboard_t[board_id].data.pulse[channel] == 1)
-			 pluse_test[board_id][channel]++;
-
-			g_timer_info[board_id].timer[channel].new_v = g_singleboard_t[board_id].data.voltage[channel];
-			if (g_timer_info[board_id].timer[channel].new_v != g_timer_info[board_id].timer[channel].last_v) 
-			{
-				g_timer_info[board_id].timer[channel].last_v = g_timer_info[board_id].timer[channel].new_v;
-				if (g_timer_info[board_id].timer[channel].new_v == 0) 
+				else if(g_timer_info[board_id][channel].new_v == 1) // 当前为高电平（熄灭）
 				{
-					// 灯亮（低电平），记录点亮时间
-					g_timer_info[board_id].timer[channel].count = bsp_GetRunTime();
-				}
-				else if(g_timer_info[board_id].timer[channel].new_v == 1) 
-				{
-					// 灯灭（高电平），计算点亮持续时间
-					current_time = bsp_GetRunTime();
-					if (g_timer_info[board_id].timer[channel].count != 0) 
+					if (g_timer_info[board_id][channel].high_jump_num < 10) // 防止数组越界
 					{
-						elapsed_time = current_time - g_timer_info[board_id].timer[channel].count;
-						
-						// 检查是否是脉冲信号（短暂点亮）
-						if (elapsed_time < PULSE_THRESHOLD)
+						g_timer_info[board_id][channel].high_time[g_timer_info[board_id][channel].high_jump_num] = bsp_GetRunTime(); // 获取时间
+						g_timer_info[board_id][channel].high_jump_num++; // 高电平跳变计数
+					}
+					g_timer_info[board_id][channel].high_duration = 0; // 重置高电平持续时间
+				}
+				// 更新上一次的电平状态
+				g_timer_info[board_id][channel].last_v = g_timer_info[board_id][channel].new_v;
+			}
+			else
+			{
+				if(g_timer_info[board_id][channel].low_jump_num > 0)  // 有低电平跳变
+				{
+					if(g_timer_info[board_id][channel].high_jump_num > 0)  // 有高电平跳变
+					{
+						if(g_timer_info[board_id][channel].new_v == 1) // 判断是否是高电平
 						{
-							// 是脉冲信号，不更新时间
-							g_timer_info[board_id].timer[channel].count = 0;
-						}
-						else
-						{
-							// 不是脉冲信号，正常更新时间
-							g_single_time_t[board_id][channel] = (uint16_t)((elapsed_time+200)/1000);
-							g_timer_info[board_id].timer[channel].count = 0;
+							g_timer_info[board_id][channel].high_duration++; // 高电平持续时间增加
+							if(g_timer_info[board_id][channel].high_duration >= 15) // 如果高电平时间超过150*100 = 1.5s,认为这轮结束，计算时间
+							{
+								elapsed_time = g_timer_info[board_id][channel].high_time[g_timer_info[board_id][channel].high_jump_num-1] - g_timer_info[board_id][channel].low_time[0]; // 计算低电平持续时间
+								g_single_time_t[board_id][channel] = (uint16_t)((elapsed_time+200)/1000);
+								g_timer_info[board_id][channel].high_duration = 0; // 重置高电平持续时间
+								g_timer_info[board_id][channel].high_jump_num = 0; // 重置高电平跳变计数
+								g_timer_info[board_id][channel].low_jump_num = 0; // 重置低电平跳变计数
+							}
 						}
 					}
 				}
 			}
-    }
-  }
-
-}
-
-typedef struct
-{
-	uint32_t low_time[10];   // 低电平跳变时间
-	uint32_t high_time[10];  // 高电平跳变时间
-	uint8_t high_jump_num;  // 高电平跳变计数
-	uint8_t low_jump_num;  // 低电平跳变计数		
-	uint8_t high_jump_flag;  // 高电平跳变标志
-}single_time_t;
-
-void single_ch2_light_timer_run(void)
-{
-	single_time_t single_ch2_light_time;
-	static   uint32_t high_duration = 0;  // 高电平持续时间 
-	uint32_t elapsed_time = 0;
-	#define PULSE_MIN_THRESHOLD 250 // 脉冲信号最小阈值（ms）
-	#define PULSE_MAX_THRESHOLD 400 // 脉冲信号最大阈值（ms）
-
-	g_timer_info[BOARD_2].timer[2].new_v = g_singleboard_t[BOARD_2].data.voltage[2];
-
-	if (g_timer_info[BOARD_2].timer[2].new_v != g_timer_info[BOARD_2].timer[2].last_v) 
-	{
-		if (g_timer_info[BOARD_2].timer[2].new_v == 0) // 当前为低电平（点亮）
-		{
-			single_ch2_light_time.low_time[low_jump_num] = bsp_GetRunTime(); // 获取时间
-			single_ch2_light_time.low_jump_num++; // 低电平跳变计数
-		}
-		else if(g_timer_info[BOARD_2].timer[2].new_v == 1) // 当前为高电平（熄灭）
-		{
-			single_ch2_light_time.high_jump_flag = 1; // 跳变标志
-			single_ch2_light_time.high_time[high_jump_num] = bsp_GetRunTime(); // 获取时间
-			single_ch2_light_time.high_jump_num++; // 高电平跳变计数
 		}
 	}
-	else
-	{
-		if(single_ch2_light_time.low_jump_num > 0)  // 有低电平跳变
-		{
-			if(single_ch2_light_time.high_jump_flag > 0)  // 有高电平跳变
-			{
-				if(g_singleboard_t[BOARD_2].data.voltage[2] == 1) // 判断是否是高电平
-				{
-					high_duration++; // 高电平持续时间增加
-					if(high_duration >= 150) // 如果高电平时间超过150*10 = 1.5s,认为这轮结束，计算时间
-					{
-						elapsed_time = single_ch2_light_time.high_time[high_jump_num-1] - single_ch2_light_time.low_time[low_jump_num-1]; // 计算高电平持续时间
-						g_single_time_t[BOARD_2][2] = (uint16_t)((elapsed_time+200)/1000);
-						high_duration = 0; // 重置高电平持续时间
-						single_ch2_light_time.high_jump_num = 0; // 重置高电平跳变计数
-						single_ch2_light_time.low_jump_num = 0; // 重置低电平跳变计数
-					}
-				}
-			}
-
-
-		}
-
-
-
-
-	}
 }
+
 
 /*********************************************************************************************************
 * 函 数 名: single_collect_current_data
@@ -839,7 +765,7 @@ void single_collect_current_data(CurrentData_t *data)
 
 /*********************************************************************************************************
 * 函 数 名: single_update_current_average
-* 功能描述: 更新电流平均值（每1秒计算一次）
+* 功能描述: 更新电流平均值（每100mS计算一次）
 * 参    数: 无
 * 返 回 值: 无
 *********************************************************************************************************
@@ -892,8 +818,190 @@ void single_update_current_average(void)
 						// 读取电流值
 						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
 						// 累加电流值和计数
-						current_sum_data.sum[type][dir][phase][color] += current_value;
-						current_sum_data.count[type][dir][phase][color]++;
+//						current_sum_data.sum[type][dir][phase][color] += current_value;
+//						current_sum_data.count[type][dir][phase][color]++;
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
+*********************************************************************************************************
+* 函 数 名: single_current_state_init
+* 功能描述: 初始化电流状态结构体
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_current_state_init(void)
+{
+	Type_e type;
+	Direction_e dir;
+	Phase_e phase;
+	Color_e color;
+	
+	// 遍历所有灯类型：远灯/近灯
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 遍历所有方向：北/东/南/西
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 遍历所有颜色：红/绿/黄
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 初始化电流状态结构体
+					single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE;         // 默认单灯
+					single_current_state[type][dir][phase][color].high_level_count = 0;                  // 重置高电平计数器
+					single_current_state[type][dir][phase][color].pulse_start_time = 0;                 // 重置脉冲检测开始时间
+					single_current_state[type][dir][phase][color].pulse_detected = 0;                    // 重置脉冲检测标志
+					single_current_state[type][dir][phase][color].data_collect_start_time = 0;          // 重置数据采集开始时间
+					single_current_state[type][dir][phase][color].data_collecting = 0;                   // 重置数据采集标志
+					single_current_state[type][dir][phase][color].data_collect_completed = 0;            // 重置数据采集完成标志
+					single_current_state[type][dir][phase][color].last_pulse_value = 0;                  // 重置上一次脉冲值
+				}
+			}
+		}
+	}
+}
+
+/*********************************************************************************************************
+* 函 数 名: single_update_current_average_enhanced
+* 功能描述: 增强版电流平均值更新（支持单灯和单灯+倒计时灯）
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_update_current_average_enhanced(void)
+{
+	Type_e type;
+	Direction_e dir;
+	Phase_e phase;
+	Color_e color;
+	float current_value;
+	uint8_t pulse_value;
+	
+	// 遍历所有灯类型：远灯/近灯
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 检查灯类型指针是否有效
+		if (single_light.p_light_type[type] == NULL)
+		{
+			continue;
+		}
+		
+		// 遍历所有方向：北/东/南/西
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 检查方向指针是否有效
+			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+				continue;
+			
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 检查相位指针是否有效
+				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+					continue;
+				
+				// 遍历所有颜色：红/绿/黄
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 检查颜色灯指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+						continue;
+					
+					// 检查参数指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
+						continue;
+					
+					// 首先检查电压是否为低电平（灯点亮）
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL && 
+					    *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage == 0)
+					{
+						// 重置高电平计数器
+						single_current_state[type][dir][phase][color].high_level_count = 0;
+						
+						// 检查电流指针是否有效
+						if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+						{
+							// 读取电流值
+							current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+							
+							// 检查脉冲指针是否有效
+							if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->pulse != NULL)
+							{
+								pulse_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->pulse;
+								
+								// 检测脉冲信号跳变
+								if (single_current_state[type][dir][phase][color].last_pulse_value == 0 && pulse_value == 1)
+								{
+									// 记录脉冲检测开始时间
+									single_current_state[type][dir][phase][color].pulse_start_time = bsp_GetRunTime();
+									single_current_state[type][dir][phase][color].pulse_detected = 1;
+								}
+								
+								// 更新上一次的脉冲值
+								single_current_state[type][dir][phase][color].last_pulse_value = pulse_value;
+							}
+							
+							// 检查脉冲检测延时
+							if (single_current_state[type][dir][phase][color].pulse_detected)
+							{
+								// 计算经过的时间
+								uint32_t current_time = bsp_GetRunTime();
+								uint32_t elapsed_time = current_time - single_current_state[type][dir][phase][color].pulse_start_time;
+								
+								// 如果延时达到3秒（3000毫秒），则设置为单灯+倒计时灯
+								if (elapsed_time >= 3000)
+								{
+									single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE_CTD; // 单灯+倒计时灯
+									single_current_state[type][dir][phase][color].pulse_detected = 0; // 重置标记
+									// 开始4秒数据采集期
+									single_current_state[type][dir][phase][color].data_collect_start_time = bsp_GetRunTime();
+									single_current_state[type][dir][phase][color].data_collecting = 1;
+								}
+							}
+							else
+							{
+								// 检查是否处于数据采集状态
+								if (single_current_state[type][dir][phase][color].data_collecting)
+								{
+									// 计算数据采集经过的时间
+									uint32_t current_time = bsp_GetRunTime();
+									uint32_t collect_elapsed_time = current_time - single_current_state[type][dir][phase][color].data_collect_start_time;
+									
+									// 如果在4秒数据采集期内，保存数据
+									if (collect_elapsed_time <= 4000)
+									{
+										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] = current_value;
+										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
+									}
+								}
+								// 只有在非数据采集期且未完成4秒采集的情况下，才正常保存数据
+								else
+								{
+									// 非数据采集期，正常保存数据
+									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] = current_value;
+									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
+								}
+							}
+						}
+					}
+					// 当电压为高电平时，延迟1.5秒后强制置为单灯模式
+					else
+					{
+						// 如果高电平持续时间达到1.5秒（15个100ms），则设置为单灯模式
+						if (single_current_state[type][dir][phase][color].high_level_count >= 12)
+						{
+							single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE;
+							single_current_state[type][dir][phase][color].high_level_count = 0; // 重置计数器
+							single_current_state[type][dir][phase][color].data_collecting = 0;
+						}
 					}
 				}
 			}
@@ -914,24 +1022,44 @@ void single_calculate_current_average(void)
 	Direction_e dir;
 	Phase_e phase;
 	Color_e color;
+	CtdType_e ctd_type;
 	
-	// 遍历所有灯类型：远灯/近灯
-	for (type = FAR; type < Type_MAX; type++) 
+	// 遍历所有CTD类型：单灯/单灯+倒计时灯
+	for (ctd_type = CTD_SINGLE; ctd_type < CTD_MAX; ctd_type++)
 	{
-		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		// 遍历所有灯类型：远灯/近灯
+		for (type = FAR; type < Type_MAX; type++) 
 		{
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 			{
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					// 计算平均值
-					if (current_sum_data.count[type][dir][phase][color] > 0)
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
 					{
-						current_data.current[type][dir][phase][color] = current_sum_data.sum[type][dir][phase][color] / current_sum_data.count[type][dir][phase][color];
+						// 计算平均值
+						if (current_sum_data[ctd_type].count[type][dir][phase][color] > 0)
+						{
+							current_data[ctd_type].current[type][dir][phase][color] = current_sum_data[ctd_type].sum[type][dir][phase][color] / current_sum_data[ctd_type].count[type][dir][phase][color];
+						}
 					}
-					else
+				}
+			}
+		}
+	}
+	
+	// 清除电流的计算值和计数值
+	for (ctd_type = CTD_SINGLE; ctd_type < CTD_MAX; ctd_type++)
+	{
+		for (type = FAR; type < Type_MAX; type++) 
+		{
+			for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+			{
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+				{
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
 					{
-						current_data.current[type][dir][phase][color] = 0.0f;
+						current_sum_data[ctd_type].sum[type][dir][phase][color] = 0.0f;
+						current_sum_data[ctd_type].count[type][dir][phase][color] = 0;
 					}
 				}
 			}
@@ -1236,7 +1364,225 @@ void single_clear_config_function(void)
 
 
 
+/*
+*********************************************************************************************************
+* 函 数 名: single_ch2_light_timer_run
+* 功能描述: 板2通道2时间检测测试
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+TimerInfo_t single_ch2_light_time = {0}; // 静态变量，保持状态
+void single_ch2_light_timer_run(void)
+{
+	uint32_t elapsed_time = 0;
+	single_ch2_light_time.new_v = g_singleboard_t[BOARD_2].data.voltage[2];
 
+	if (single_ch2_light_time.new_v != single_ch2_light_time.last_v) 
+	{
+		if (single_ch2_light_time.new_v == 0) // 当前为低电平（点亮）
+		{
+			if (single_ch2_light_time.low_jump_num < 10) // 防止数组越界
+			{
+				single_ch2_light_time.low_time[single_ch2_light_time.low_jump_num] = bsp_GetRunTime(); // 获取时间
+				single_ch2_light_time.low_jump_num++; // 低电平跳变计数
+			}
+		}
+		else if(single_ch2_light_time.new_v == 1) // 当前为高电平（熄灭）
+		{
+			if (single_ch2_light_time.high_jump_num < 10) // 防止数组越界
+			{
+				single_ch2_light_time.high_time[single_ch2_light_time.high_jump_num] = bsp_GetRunTime(); // 获取时间
+				single_ch2_light_time.high_jump_num++; // 高电平跳变计数
+			}
+			single_ch2_light_time.high_duration = 0; // 重置高电平持续时间
+		}
+		// 更新上一次的电平状态
+		single_ch2_light_time.last_v = single_ch2_light_time.new_v;
+	}
+	else
+	{
+		if(single_ch2_light_time.low_jump_num > 0)  // 有低电平跳变
+		{
+			if(single_ch2_light_time.high_jump_num > 0)  // 有高电平跳变
+			{
+				if(single_ch2_light_time.new_v == 1) // 判断是否是高电平
+				{
+					single_ch2_light_time.high_duration++; // 高电平持续时间增加
+					if(single_ch2_light_time.high_duration >= 15) // 如果高电平时间超过150*100 = 1.5s,认为这轮结束，计算时间
+					{
+						elapsed_time = single_ch2_light_time.high_time[single_ch2_light_time.high_jump_num-1] - single_ch2_light_time.low_time[0]; // 计算低电平持续时间
+						g_single_time_t[BOARD_2][2] = (uint16_t)((elapsed_time+200)/1000);
+						single_ch2_light_time.high_duration = 0; // 重置高电平持续时间
+						single_ch2_light_time.high_jump_num = 0; // 重置高电平跳变计数
+						single_ch2_light_time.low_jump_num = 0; // 重置低电平跳变计数
+					}
+				}
+			}
+		}
+	}
+}
+
+
+/*********************************************************************************************************
+* 函 数 名: single_non_motor_update_current_test
+* 功能描述: 非机动车测试函数
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+Params_t test_nmotor[COLOR_MAX] = {
+	{.current = &g_singleboard_t[1].data.current[0], .voltage = &g_singleboard_t[1].data.voltage[2], .pulse = &g_singleboard_t[1].data.pulse[2]},
+	{.current = &g_singleboard_t[1].data.current[2], .voltage = &g_singleboard_t[1].data.voltage[1], .pulse = &g_singleboard_t[1].data.pulse[1]},
+	{.current = &g_singleboard_t[1].data.current[1], .voltage = &g_singleboard_t[1].data.voltage[0], .pulse = &g_singleboard_t[1].data.pulse[0]}
+};
+/* 新增全局平均电流变量，用于记录每个灯类型、方向、相位、颜色下的平均电流值 */
+float g_avg_current[CTD_MAX][COLOR_MAX] = {0.0f};
+uint32_t g_avg_current_count[CTD_MAX][COLOR_MAX] = {0};
+float g_sum_current[CTD_MAX][COLOR_MAX] = {0.0f};
+
+// 定义非机动车测试的状态结构体
+typedef struct {
+	CtdType_e target_ctd_type;         // 目标类型，保持状态
+	uint8_t high_level_count;          // 高电平持续计数（每100ms递增1）
+	uint32_t pulse_start_time;         // 脉冲检测开始时间
+	uint8_t pulse_detected;            // 标记是否检测到脉冲信号
+	uint32_t data_collect_start_time;  // 数据采集开始时间
+	uint8_t data_collecting;           // 标记是否处于数据采集期
+	uint8_t data_collect_completed;    // 标记是否已完成4秒数据采集
+} NonMotorTestState_t;
+
+// 全局变量，用于存储每个颜色的测试状态
+NonMotorTestState_t non_motor_test_state[COLOR_MAX] = {
+	{CTD_SINGLE, 0, 0, 0, 0, 0, 0},
+	{CTD_SINGLE, 0, 0, 0, 0, 0, 0},
+	{CTD_SINGLE, 0, 0, 0, 0, 0, 0}
+};
+
+void single_non_motor_update_current_test(void)
+{
+	Color_e color;
+	float current_value;
+	uint8_t pulse_value;
+	// 静态变量，用于存储上一次的脉冲值，检测跳变
+	static uint8_t last_pulse_value[COLOR_MAX] = {0};
+	
+	// 遍历所有颜色：红/绿/黄
+	for (color = COLOR_RED; color < COLOR_MAX; color++)
+	{
+		// 首先检查电压是否为低电平（灯点亮）
+		if((test_nmotor[color].voltage != NULL)&&(*test_nmotor[color].voltage == 0))
+		{
+			non_motor_test_state[color].high_level_count = 0;
+			
+			// 检查电流指针是否有效
+			if (test_nmotor[color].current != NULL)
+			{
+					current_value = *test_nmotor[color].current;
+					
+					if (test_nmotor[color].pulse != NULL)
+					{
+						pulse_value = *test_nmotor[color].pulse;
+						
+						// 检测脉冲信号跳变
+						if (last_pulse_value[color] == 0 && pulse_value == 1)
+						{
+							// 记录脉冲检测开始时间
+							non_motor_test_state[color].pulse_start_time = bsp_GetRunTime();
+							non_motor_test_state[color].pulse_detected = 1;
+						}
+						last_pulse_value[color] = pulse_value;// 更新上一次的脉冲值
+					}
+					// 检查脉冲检测延时
+					if (non_motor_test_state[color].pulse_detected)
+					{
+						// 计算经过的时间
+						uint32_t current_time = bsp_GetRunTime();
+						uint32_t elapsed_time = current_time - non_motor_test_state[color].pulse_start_time;
+						
+						// 如果延时达到3秒（3000毫秒），则设置为单灯+倒计时灯
+						if (elapsed_time >= 3000)
+						{
+							non_motor_test_state[color].target_ctd_type = CTD_SINGLE_CTD; // 单灯+倒计时灯
+							non_motor_test_state[color].pulse_detected = 0; // 重置标记
+							// 开始4秒数据采集期
+							non_motor_test_state[color].data_collect_start_time = bsp_GetRunTime();
+							non_motor_test_state[color].data_collecting = 1;
+						}
+					}
+					else
+					{
+						if (non_motor_test_state[color].data_collecting)
+						{
+							// 计算数据采集经过的时间
+							uint32_t current_time = bsp_GetRunTime();
+							uint32_t collect_elapsed_time = current_time - non_motor_test_state[color].data_collect_start_time;
+							
+							// 如果在4秒数据采集期内，保存数据
+							if (collect_elapsed_time <= 4000)
+							{
+								g_avg_current[non_motor_test_state[color].target_ctd_type][color] = current_value;
+								g_sum_current[non_motor_test_state[color].target_ctd_type][color] += current_value;
+								g_avg_current_count[non_motor_test_state[color].target_ctd_type][color]++;
+							}
+						}
+						else
+						{
+							// 非数据采集期，正常保存数据
+							g_avg_current[non_motor_test_state[color].target_ctd_type][color] = current_value;
+							g_sum_current[non_motor_test_state[color].target_ctd_type][color] += current_value;
+							g_avg_current_count[non_motor_test_state[color].target_ctd_type][color]++;
+						}
+					}
+				}
+			}
+			// 当电压为高电平时，延迟1.5秒后强制置为单灯模式
+			else
+			{
+				non_motor_test_state[color].high_level_count++;
+				// 如果高电平持续时间达到1.5秒（15个100ms），则设置为单灯模式
+				if (non_motor_test_state[color].high_level_count >= 12)
+				{
+					non_motor_test_state[color].target_ctd_type = CTD_SINGLE;
+					non_motor_test_state[color].high_level_count = 0; // 重置计数器
+					non_motor_test_state[color].data_collecting = 0;
+				}
+			}
+		}
+
+}
+/*********************************************************************************************************
+* 函 数 名: single_non_motor_calculate_current_average_test
+* 功能描述: 计算电流平均值 
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+float non_motor_avg_current[CTD_MAX][COLOR_MAX] = {0}; 
+void single_non_motor_calculate_current_average_test(void)
+{
+	Color_e color;
+	CtdType_e ctd_type;
+	
+	// 遍历所有CTD类型和颜色
+	for (ctd_type = CTD_SINGLE; ctd_type < CTD_MAX; ctd_type++)
+	{
+		for (color = COLOR_RED; color < COLOR_MAX; color++)
+		{
+			// 计算平均值
+			if (g_avg_current_count[ctd_type][color] > 0)
+			{
+				non_motor_avg_current[ctd_type][color] = g_sum_current[ctd_type][color] / g_avg_current_count[ctd_type][color];
+			}
+			else
+			{
+//				non_motor_avg_current[ctd_type][color] = 0.0f;
+			}
+		}
+	}
+//	g_sum_current[target_ctd_type[color]][color] = 0.0f;
+//	g_avg_current_count[target_ctd_type[color]][color] = 0;
+}
 
 
 

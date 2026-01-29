@@ -1,7 +1,13 @@
+#if defined(__INTELLISENSE__)
+/* Minimal stdarg-like stubs for IntelliSense only to avoid missing system headers in the editor. */
+typedef void* va_list;
+#define va_start(ap, last)
+#define va_arg(ap, type) ((type)0)
+#define va_end(ap)
+#endif
+
 #include "appconfig.h"
 #include "./TASK/inc/single.h"
-#include "bsp_timers.h"
-#include "semphr.h"
 
 #define SEND_HEAD_BYTE1 (0x0F) 	 
 #define SEND_HEAD_BYTE2 (0x0F) 	 
@@ -17,12 +23,6 @@
 #define RECV_END_BYTE1 (0xFF) 	 
 #define RECV_END_BYTE2 (0xFF) 	 
 		
-
-#define SINGLE_C_T_RECAL_TIME  1200 //3600 // 1H = 60min*60s
-#define SINGLE_C_T_SAVE_TIME   600 //3600 // 1H = 60min*60s
-
-// 创建信号量
-SemaphoreHandle_t xSemaphore_CT_Recal;
 
 
 /*
@@ -51,6 +51,7 @@ uint8_t  single_send_len;
 uint8_t  single_recv_buf[BOARD_MAX][256];
 uint16_t single_recv_sta[BOARD_MAX];  
 
+
 /*
 *********************************************************************************************************
 * 各板的数据数组（固定地址）：电流、电压、脉冲
@@ -60,11 +61,10 @@ __attribute__((at (0x30000000))) single_data_t g_singleboard_t[BOARD_MAX]={0};
 
 /*
 *********************************************************************************************************
-* 各电压通道的亮灯时间（固定地址）
+* 各电压通道的亮灯时间
 *********************************************************************************************************
 */
-__attribute__((at (0x30002000))) uint8_t g_single_time_t[BOARD_MAX][12]={0};
-
+uint8_t g_single_time_t[BOARD_MAX][12]={0};
 
 /*
 *********************************************************************************************************
@@ -92,19 +92,11 @@ SingleLight_t single_light = {0};
 
 /*
 *********************************************************************************************************
-* 配置数据结构定义：用于存储
+* 配置数据结构定义：参数
 * 包含：参数类型、板号、通道、信号灯类型、方向、相位、颜色
 *********************************************************************************************************
 */
 ConfigData_t g_config_data = {0};
-
-/*
-*********************************************************************************************************
-* 配时结构定义：用于存储
-* 包含：数量、信号灯类型、方向、相位、颜色
-*********************************************************************************************************
-*/
-TimingData_t g_timing_data = {0};
 
 /*
 *********************************************************************************************************
@@ -132,7 +124,7 @@ SingleCurrent_t single_current_state[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] ;
 * 各通道平均电流计算，用于故障判断
 *********************************************************************************************************
 */
-#define CURRENT_AVERAGE_TIME  3000 // 10min = 5*60*10(100ms基数)
+#define CURRENT_AVERAGE_TIME  1200 // 10min = 2*60*10(100ms基数)
 
 typedef struct __attribute__((aligned(4)))
 {
@@ -141,18 +133,9 @@ typedef struct __attribute__((aligned(4)))
 } CurrentAvgData_t;
 CurrentAvgData_t current_sum_data[CTD_MAX] = {0};
 
-/*
-*********************************************************************************************************
-* 电流数据结构定义：用于存储
-* 包含：信号灯类型、方向、相位、颜色
-*********************************************************************************************************
-*/
-CurrentData_t  current_data = {0}; 
+// 计算得到的平均电流，最终参数，用于存储、判断
+CurrentData_t  current_data[CTD_MAX] = {0}; 
 
-
-uint32_t start_code_time = 0;
-uint32_t end_code_time = 0;
-uint32_t run_code_time = 0;
 
 /*
 *********************************************************************************************************
@@ -167,9 +150,8 @@ void single_task_function(void)
 
 	printf("run single\n");
 	uint8_t index;
-    
-    single_data_init(); // 初始化数据变量
-    
+	uint16_t current_time = 0;
+	
 	single_led_init_memory();
 	
 //	single_cmd_board_data(single_send_buf,&single_send_len);  
@@ -179,11 +161,6 @@ void single_task_function(void)
 	
 	single_led_timer_init();	// 初始化定时器
 	single_current_state_init(); // 初始化电流状态结构体
-
-	// 创建信号量
-	xSemaphore_CT_Recal = xSemaphoreCreateBinary();
-	// 发送信号量
-	xSemaphoreGive(xSemaphore_CT_Recal);
 	
 	while(1)
 	{
@@ -193,61 +170,23 @@ void single_task_function(void)
 			single_deal_board_data(index);
 		}
 		
-		// 测试
+		single_led_timer_run();
 //		single_ch2_light_timer_run();
-//    single_non_motor_update_current_test();
-		
-		// 测试运行时间（1ms内）
-		start_code_time = bsp_GetRunTime();
-		// single_led_timer_run();
-		// single_update_current_average_enhanced();
-		// single_calculate_current_average();
-		// single_timing_assign_function();  // 更新时间
+//		single_update_current_average();
+		single_update_current_average_enhanced();
+		// single_non_motor_update_current_test();
 
-		// 电流、配时检测任务
-		single_current_times_detect_task();
-		
-		single_led_fault_detection_task(); // 故障检测任务
-
-		end_code_time = bsp_GetRunTime();
-		run_code_time = end_code_time - start_code_time;
+		// 电流平均值计算时间
+		current_time++;
+		if(current_time >= CURRENT_AVERAGE_TIME)
+		{
+			single_calculate_current_average();
+			// single_non_motor_calculate_current_average_test();
+			current_time = 0;
+		}
 		iwdg_feed();         		
 		vTaskDelay(100);     	  	
 	}
-}
-
-/*
-*********************************************************************************************************
-* 函 数 名: single_data_init
-* 功能描述: 初始化数据变量
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_data_init(void)
-{
-    uint8_t board;
-    uint8_t channel;
-    
-    // 初始化g_singleboard_t为0
-    for (board = 0; board < BOARD_MAX; board++)
-    {
-        for (channel = 0; channel < 12; channel++)
-        {
-            g_singleboard_t[board].data.current[channel] = 0;
-            g_singleboard_t[board].data.voltage[channel] = 0;
-            g_singleboard_t[board].data.pulse[channel] = 0;
-        }
-    }
-    
-    // 初始化g_single_time_t为0
-    for (board = 0; board < BOARD_MAX; board++)
-    {
-        for (channel = 0; channel < 12; channel++)
-        {
-            g_single_time_t[board][channel] = 0;
-        }
-    }
 }
 
 /*
@@ -529,18 +468,11 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 			   = &g_singleboard_t[board_id].data.voltage[ch];
 			
 			// 将pulse数据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-										->p_phase[p_phase]
-										->p_color[p_color]
-										->p_params->pulse
-			= &g_singleboard_t[board_id].data.pulse[ch];
-
-			// 将配时信息据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-										->p_phase[p_phase]
-										->p_color[p_color]
-										->p_params->times
-			   = &g_single_time_t[board_id][ch];
+		single_light.p_light_type[p_type]->p_direction[p_dir]
+									->p_phase[p_phase]
+									->p_color[p_color]
+									->p_params->pulse
+	   = &g_singleboard_t[board_id].data.pulse[ch];
 		break;
 	default:
 		break;
@@ -566,9 +498,9 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 *********************************************************************************************************
 */
 void single_record_config(ParamType_e param_type, 
-						uint8_t board_id, uint8_t ch, 
-						Type_e p_type, Direction_e p_dir, 
-						Phase_e p_phase, Color_e p_color)
+					uint8_t board_id, uint8_t ch, 
+					Type_e p_type, Direction_e p_dir, 
+					Phase_e p_phase, Color_e p_color)
 {
 	uint32_t i;
 	uint8_t config_exists = 0;
@@ -581,8 +513,8 @@ void single_record_config(ParamType_e param_type,
 		{
 			ConfigItem_t *existing_item = &g_config_data.config_items[i];
 			if (existing_item->param_type == PARAM_CURRENT &&
-					existing_item->board_id == board_id &&
-					existing_item->ch == ch)
+				existing_item->board_id == board_id &&
+				existing_item->ch == ch)
 			{
 				// 更新现有配置的信号灯信息
 				existing_item->p_type = p_type;
@@ -601,13 +533,13 @@ void single_record_config(ParamType_e param_type,
 			{
 				ConfigItem_t *existing_item = &g_config_data.config_items[i];
 				if (existing_item->param_type == PARAM_CURRENT &&
+					existing_item->board_id == board_id &&
 					existing_item->p_type == p_type &&
 					existing_item->p_dir == p_dir &&
 					existing_item->p_phase == p_phase &&
 					existing_item->p_color == p_color)
 				{
 					// 更新现有配置的通道号
-					existing_item->board_id = board_id;
 					existing_item->ch = ch;
 					config_exists = 1;
 					break;
@@ -624,13 +556,13 @@ void single_record_config(ParamType_e param_type,
 		{
 			ConfigItem_t *existing_item = &g_config_data.config_items[i];
 			if (existing_item->param_type == PARAM_VOLTAGE &&
+				existing_item->board_id == board_id &&
 				existing_item->p_type == p_type &&
 				existing_item->p_dir == p_dir &&
 				existing_item->p_phase == p_phase &&
 				existing_item->p_color == p_color)
 			{
-				// 更新现有配置的board_id和通道号
-				existing_item->board_id = board_id;
+				// 更新现有配置的通道号
 				existing_item->ch = ch;
 				config_exists = 1;
 				break;
@@ -758,6 +690,144 @@ void single_led_timer_run(void)
 								g_timer_info[board_id][channel].low_jump_num = 0; // 重置低电平跳变计数
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+/*********************************************************************************************************
+* 函 数 名: single_collect_current_data
+* 功能描述: 收集single_light中的电流数据并存储到CurrentData_t结构体中
+* 参    数: data - 指向电流数据结构体的指针
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_collect_current_data(CurrentData_t *data)
+{
+	Type_e type;                     // 灯类型：远灯/近灯
+	Direction_e dir;                 // 方向：北/东/南/西
+	Phase_e phase;                   // 相位
+	Color_e color;                   // 颜色：红/绿/黄
+	
+	// 遍历所有灯类型：远灯/近灯
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 检查灯类型指针是否有效
+		if (single_light.p_light_type[type] == NULL)
+		{
+			continue;
+		}
+		
+		// 遍历所有方向：北/东/南/西
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 检查方向指针是否有效
+			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+			{
+				continue;
+			}
+			
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 检查相位指针是否有效
+				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+				{
+					continue;
+				}
+				
+				// 遍历所有颜色：红/绿/黄
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 检查颜色灯指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+					{
+						continue;
+					}
+					
+					// 检查参数指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
+					{
+						continue;
+					}
+					
+					// 检查电流指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+					{
+						// 读取电流值
+						data->current[type][dir][phase][color] = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+					}
+					else
+					{
+						// 指针无效时设为0
+						data->current[type][dir][phase][color] = 0.0f;
+					}
+				}
+			}
+		}
+	}
+}
+
+/*********************************************************************************************************
+* 函 数 名: single_update_current_average
+* 功能描述: 更新电流平均值（每100mS计算一次）
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_update_current_average(void)
+{
+	Type_e type;
+	Direction_e dir;
+	Phase_e phase;
+	Color_e color;
+	float current_value;
+	
+	// 遍历所有灯类型：远灯/近灯
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		// 检查灯类型指针是否有效
+		if (single_light.p_light_type[type] == NULL)
+		{
+			continue;
+		}
+		
+		// 遍历所有方向：北/东/南/西
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 检查方向指针是否有效
+			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+				continue;
+			
+			// 遍历所有相位
+			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			{
+				// 检查相位指针是否有效
+				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+					continue;
+				
+				// 遍历所有颜色：红/绿/黄
+				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				{
+					// 检查颜色灯指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+						continue;
+					
+					// 检查参数指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
+						continue;
+					
+					// 检查电流指针是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+					{
+						// 读取电流值
+						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+						// 累加电流值和计数
+//						current_sum_data.sum[type][dir][phase][color] += current_value;
+//						current_sum_data.count[type][dir][phase][color]++;
 					}
 				}
 			}
@@ -916,7 +986,7 @@ void single_update_current_average_enhanced(void)
 									// 如果在4秒数据采集期内，保存数据
 									if (collect_elapsed_time <= 4000)
 									{
-										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] += current_value;
+										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] = current_value;
 										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
 									}
 								}
@@ -924,7 +994,7 @@ void single_update_current_average_enhanced(void)
 								else
 								{
 									// 非数据采集期，正常保存数据
-									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] += current_value;
+									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] = current_value;
 									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
 								}
 							}
@@ -977,7 +1047,7 @@ void single_calculate_current_average(void)
 						// 计算平均值
 						if (current_sum_data[ctd_type].count[type][dir][phase][color] > 0)
 						{
-							current_data.current[ctd_type][type][dir][phase][color] = current_sum_data[ctd_type].sum[type][dir][phase][color] / current_sum_data[ctd_type].count[type][dir][phase][color];
+							current_data[ctd_type].current[type][dir][phase][color] = current_sum_data[ctd_type].sum[type][dir][phase][color] / current_sum_data[ctd_type].count[type][dir][phase][color];
 						}
 					}
 				}
@@ -1006,415 +1076,13 @@ void single_calculate_current_average(void)
 }
 
 /*********************************************************************************************************
-* 函 数 名: single_save_config_to_flash
-* 功能描述: 将配置保存到FLASH
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_save_config_to_flash(void)
-{
-	// 使用文件系统保存配置数据
-	if (save_stroage_single_led_blind_function(g_config_data) == 0)
-	{
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_load_config_from_flash
-* 功能描述: 从FLASH读取配置
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_load_config_from_flash(void)
-{
-	// 使用文件系统读取配置数据
-	if (save_read_single_led_blind_function(&g_config_data) == 0)
-	{
-		// 应用配置
-		for (uint32_t i = 0; i < g_config_data.config_count; i++)
-		{
-			ConfigItem_t *item = &g_config_data.config_items[i];
-			Single_Bind_InpuToTraffic(item->param_type, 
-								item->board_id, item->ch, 
-								item->p_type, item->p_dir, 
-								item->p_phase, item->p_color);
-		}
-		return 0;
-	}
-	else
-	{
-		// 配置数据无效，初始化为默认值
-		memset(&g_config_data, 0, sizeof(ConfigData_t));
-		return -1;
-	}
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_clear_config_function
-* 功能描述: 清除所有信号灯配置
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_clear_config_function(void)
-{
-	// 清空配置数据
-	memset(&g_config_data, 0, sizeof(ConfigData_t));
-	single_save_config_to_flash();
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_clear_timing_function
-* 功能描述: 清除所有信号灯配时
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_clear_timing_function(void)
-{
-	// 清空配置数据
-	memset(&g_timing_data, 0, sizeof(TimingData_t));
-	single_save_config_to_flash();
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_save_timing_to_flash
-* 功能描述: 将配时数据保存到FLASH
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_save_timing_to_flash(void)
-{
-	// 使用文件系统保存配时数据
-	if (save_stroage_single_led_timing_function(g_timing_data) == 0)
-	{
-		return 0;
-	}
-	else
-	{
-		return -1;
-	}
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_load_timing_from_flash
-* 功能描述: 从FLASH读取配时数据
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_load_timing_from_flash(void)
-{
-	// 使用文件系统读取配时数据
-	if (save_read_single_led_timing_function(&g_timing_data) == 0)
-	{
-		// 配时数据读取成功
-		return 0;
-	}
-	else
-	{
-		// 配时数据无效，初始化为默认值
-		memset(&g_timing_data, 0, sizeof(TimingData_t));
-		return -1;
-	}
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_timing_assign_function
-* 功能描述: 根据single_light中的配对信息，将g_single_time_t中对应的配时时间赋值给g_timing_data
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_timing_assign_function(void)
-{
-    uint8_t type;
-    uint8_t dir;
-    uint8_t phase;
-    uint8_t color;
-    uint8_t current_time;
-    uint8_t is_same = 0;
-    uint8_t timing_index;
-    
-    // 遍历所有现有的配时索引，检查是否与single_light中的数据相同
-    for (timing_index = 0; timing_index < g_timing_data.timing_count; timing_index++)
-    {
-        // 检查当前配时索引是否有数据
-        if (g_timing_data.times[timing_index][0][0][0][0] != 0)
-        {
-            // 重置相同标志
-            is_same = 1;
-            
-            // 遍历所有灯的组合
-            for (type = 0; type < Type_MAX; type++)
-            {
-                if (single_light.p_light_type[type] != NULL)
-                {
-                    for (dir = 0; dir < DIR_MAX; dir++)
-                    {
-                        if (single_light.p_light_type[type]->p_direction[dir] != NULL)
-                        {
-                            for (phase = 0; phase < PHASE_MAX; phase++)
-                            {
-                                if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] != NULL)
-                                {
-                                    for (color = 0; color < COLOR_MAX; color++)
-                                    {
-                                        if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] != NULL)
-                                        {
-                                            // 检查必要的指针
-                                            if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params != NULL &&
-                                                single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times != NULL)
-                                            {
-                                                // 获取当前配时时间
-                                                current_time = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times;
-                                                
-                                                // 检查是否有不同
-                                                if (g_timing_data.times[timing_index][type][dir][phase][color] != current_time)
-                                                {
-                                                    is_same = 0;
-                                                    break; // 跳出颜色循环
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (!is_same) break; // 跳出相位循环
-                                }
-                            }
-                            if (!is_same) break; // 跳出方向循环
-                        }
-                    }
-                    if (!is_same) break; // 跳出类型循环
-                }
-            }
-            
-            // 如果找到相同的配时，直接返回
-            if (is_same)
-            {
-                return;
-            }
-        }
-    }
-    
-    // 如果没有找到相同的配时，在g_timing_data中新增配时数据
-    // 检查是否已达到最大配时数量
-    if (g_timing_data.timing_count >= MAX_TIMING_ITEMS)
-    {
-        // 已达到最大配时数量，无法新增
-        return;
-    }
-    
-    // 直接使用timing_count作为新的配时索引
-    uint8_t new_timing_index = g_timing_data.timing_count;
-    
-    // 确保索引有效
-    if (new_timing_index < MAX_TIMING_ITEMS)
-    {
-        // 复制当前配时数据到新的索引位置
-        for (type = 0; type < Type_MAX; type++)
-        {
-            if (single_light.p_light_type[type] != NULL)
-            {
-                for (dir = 0; dir < DIR_MAX; dir++)
-                {
-                    if (single_light.p_light_type[type]->p_direction[dir] != NULL)
-                    {
-                        for (phase = 0; phase < PHASE_MAX; phase++)
-                        {
-                            if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] != NULL)
-                            {
-                                for (color = 0; color < COLOR_MAX; color++)
-                                {
-                                    if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] != NULL)
-                                    {
-                                        // 检查必要的指针
-                                        if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params != NULL &&
-                                            single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times != NULL)
-                                        {
-                                            // 获取当前配时时间并更新到新索引
-                                            current_time = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times;
-                                            g_timing_data.times[new_timing_index][type][dir][phase][color] = current_time;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        // 计数值加1
-        g_timing_data.timing_count++;
-    }
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_save_current_to_flash
-* 功能描述: 将电流平均值保存到FLASH
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_save_current_to_flash(void)
-{	
-    // 使用文件系统保存电流数据
-    if (save_stroage_single_led_current_function(current_data) == 0)
-    {
-        return 0;
-    }
-    else
-    {
-        return -1;
-    }
-}
-
-/*********************************************************************************************************
-* 函 数 名: single_load_current_from_flash
-* 功能描述: 从FLASH读取电流平均值
-* 参    数: 无
-* 返 回 值: 错误状态
-*********************************************************************************************************
-*/
-int single_load_current_from_flash(void)
-{
-    // 使用文件系统读取电流数据
-    if (save_read_single_led_current_function(&current_data) == 0)
-    {
-        // 电流数据读取成功
-        return 0;
-    }
-    else
-    {
-        // 电流数据无效，初始化为默认值
-        memset(&current_data, 0, sizeof(CurrentData_t));
-        return -1;
-    }
-}
-
-
-
-/*
-*********************************************************************************************************
-* 函 数 名: single_current_times_recalculate
-* 功能描述: 电流、配时重新检测（1h间隔）
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_current_times_recalculate(void)
-{
-	static uint16_t recal_time = 0;
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	
-	recal_time++;
-	if(recal_time >= SINGLE_C_T_RECAL_TIME)	
-	{
-		recal_time= 0;
-		// 发送信号量
-		xSemaphoreGiveFromISR(xSemaphore_CT_Recal,&xHigherPriorityTaskWoken);
-		// 如果发生了上下文切换，执行必要的上下文切换
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-	}
-}
-
-/*
-*********************************************************************************************************
-* 函 数 名: single_current_times_detect_task
-* 功能描述: 信号灯电流、配时检测任务（10分钟检测，状态机模式）
-* 参    数: 无
-* 返 回 值: 无
-*********************************************************************************************************
-*/
-void single_current_times_detect_task(void)
-{
-	static uint8_t detect_state = 0;
-	static uint32_t start_time = 0;
-	static uint32_t current_time = 0;
-	static uint16_t detect_time = 0;
-	
-	switch (detect_state)
-	{
-		case 0:
-			if (xSemaphoreTake(xSemaphore_CT_Recal, 0) == pdTRUE)
-			{
-				start_time = bsp_GetRunTime();
-				detect_time = 0;
-				detect_state = 1;
-			}
-			break;
-			
-		case 1:
-			current_time = bsp_GetRunTime();
-			detect_time = (current_time - start_time) / 1000;
-		
-			single_led_timer_run();
-			single_update_current_average_enhanced();
-	
-			if (detect_time >= SINGLE_C_T_SAVE_TIME) 
-			{
-				printf("detect_time: %d\n", detect_time);
-				detect_state = 2;
-			}
-			break;
-			
-		case 2:
-			single_calculate_current_average();
-			single_timing_assign_function();  // 更新时间
-			// single_save_timing_to_flash();
-			// single_save_current_to_flash();
-				
-//			xSemaphoreGive(xSemaphore_CT_Recal);
-			
-			detect_state = 0;
-			break;
-	}
-}
-
-
-/*********************************************************************************************************
 * 故障检测相关函数
 *********************************************************************************************************/
-
-void single_led_fault_detection_task(void)
-{
-	int fault_flag = 0;
-	uint8_t fault_type = 0;
-	uint8_t fault_dir = 0;
-	// 1、信号灯全灭、单方向信号灯不亮
-	single_led_check_all_off();
-	fault_flag = single_check_signal_status(&fault_type,&fault_dir);
-	
-	switch(fault_flag)
-	{
-		case -1:
-			// 所有灯全灭，添加故障标志
-			printf("led_all_off\n");
-			TrafficFault_Set(0,0,0,0,0x0f);
-			break;
-		case -2:
-			// 单方向信号灯不亮，添加故障标志
-			printf("led_dir_off: 0x%2x...0x%2x\n", fault_type,fault_dir);
-			TrafficFault_Set(0,0,0,0,0x0f);
-			break;
-		default:
-			break;
-	}
-	
-}
 
 /*
 *********************************************************************************************************
 * 函 数 名: single_led_check_all_off
-* 功能描述: 检查所有信号灯状态-所有灯全灭、单方向信号灯不亮、单个相位灯不亮
+* 功能描述: 检查所有信号灯是否全灭
 * 参    数: 无
 * 返 回 值: uint8_t - 1表示全灭，0表示不全灭
 *********************************************************************************************************
@@ -1429,6 +1097,7 @@ uint8_t single_led_check_all_off(void)
 	uint32_t voltage_value;          // 电压值
 	uint8_t has_valid_channel = 0;   // 是否有有效通道
 	uint8_t is_dir_all_off;          // 方向是否全灭
+	uint8_t dir_channel_count;       // 方向通道数量
 	uint8_t dir_all_off_mask = 0;    // 方向全灭掩码，用于标记哪些方向全灭
 	uint8_t is_all_system_off = 1;   // 系统是否全灭
 	
@@ -1441,7 +1110,7 @@ uint8_t single_led_check_all_off(void)
 			continue;
 		}
 		
-		for (dir = DIR_EAST; dir < DIR_SOUTH; dir++) 
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
 			// 检查方向指针是否有效
 			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
@@ -1451,6 +1120,7 @@ uint8_t single_led_check_all_off(void)
 			
 			// 初始化方向全灭标志和通道计数
 			is_dir_all_off = 1;
+			dir_channel_count = 0;
 			
 			// 遍历所有相位
 			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
@@ -1482,13 +1152,14 @@ uint8_t single_led_check_all_off(void)
 					{
 						// 标记有有效通道
 						has_valid_channel = 1;
+						dir_channel_count++;
 						
 						// 读取电压和电流值
 						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage;
 						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
 						
-						// 检查是否有灯亮：有电压(低电平)且有电流>10ma才认为灯亮
-						if (voltage_value == 0 && current_value > 10)
+						// 检查是否有灯亮
+						if (voltage_value != 0 || current_value >= 0.1f) // 电流大于0.1A认为灯亮
 						{
 							// 只要有一个灯亮，方向就不是全灭，系统也不是全灭
 							is_dir_all_off = 0;
@@ -1499,7 +1170,7 @@ uint8_t single_led_check_all_off(void)
 			}
 			
 			// 方向是否全灭
-			if (is_dir_all_off)
+			if (is_dir_all_off && dir_channel_count > 0)
 			{
 				// 标记方向全灭
 				dir_all_off_mask |= (1 << dir);
@@ -1526,138 +1197,6 @@ uint8_t single_led_check_all_off(void)
 		return 0x20; // 无有效通道，返回特殊标记
 	}
 }
-
-
-/*********************************************************************************************************
-* 函 数 名: single_check_signal_status
-* 功能描述: 检查所有信号灯状态-所有灯全灭、单方向信号灯不亮、单个相位灯不亮
-* 参    数: fault_mask - 输出参数，用于存储有问题的方向掩码（每一位代表一个方向是否有问题）
-*           type_out - 输出参数，用于存储有问题的信号灯类型
-*           dir_out - 输出参数，用于存储有问题的方向（仅返回第一个发现的问题方向）
-* 返 回 值: int - 状态码：0-正常，-1-所有灯全灭，1-有方向信号灯不亮
-*********************************************************************************************************/
-int single_check_signal_status(uint8_t *fault_type,uint8_t *fault_dir)
-{
-	Type_e type;                     // 灯类型：远灯/近灯
-	Direction_e dir;                 // 方向：北/东/南/西
-	Phase_e phase;                   // 相位
-	Color_e color;                   // 颜色：红/绿/黄
-	float current_value;             // 电流值
-	uint8_t voltage_value;          // 电压值
-	uint8_t light_dir_off;          // 方向是否全灭
-	uint8_t light_all_off = 1;      // 所有灯是否全灭
-	uint8_t has_fault = 0;           // 是否有故障
-	
-	// 检查参数指针是否有效
-	if ((fault_type == NULL) || (fault_dir == NULL))
-	{
-		return -11;
-	}
-
-	// 初始化故障掩码
-	*fault_type = 0;
-	*fault_dir = 0;
-
-	// 遍历所有灯类型：远灯/近灯
-	for (type = FAR; type < Type_MAX; type++) 
-	{
-		// 检查灯类型指针是否有效
-		if (single_light.p_light_type[type] == NULL)
-		{
-			continue;
-		}
-		
-		// 遍历所有方向：北/东/南/西
-		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
-		{
-			// 检查方向指针是否有效
-			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
-			{
-				continue;
-			}
-			
-			// 初始化方向全灭标志
-			light_dir_off = 1;
-			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
-			{
-				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
-				{
-					continue;
-				}
-				
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
-				{
-					// 检查颜色灯指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
-					{
-						continue;
-					}
-					
-					// 检查参数指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
-					{
-						continue;
-					}
-					
-					// 检查电压和电流指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL &&
-						single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
-					{
-						
-						// 读取电压和电流值
-						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage;
-						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
-						
-						// 检查是否有灯亮：有电压(低电平)且有电流>10ma才认为灯亮
-						if (voltage_value == 0 && current_value > 10)
-						{
-							// 只要有一个灯亮，方向就不是全灭，系统也不是全灭
-							light_dir_off = 0;
-							light_all_off = 0;
-						}
-					}
-				}
-				// 如果方向不全灭，继续检查下一个相位
-				if (!light_dir_off)
-				{
-					break;
-				}
-			}
-			
-			// 方向是否全灭
-			if (light_dir_off)
-			{
-				// 标记方向全灭
-				*fault_type |= (1 << type);
-				*fault_dir  |= (1 << dir);
-				has_fault = 1;
-			}
-		}
-	}
-	
-	// 全灭返回-1
-	if (light_all_off)
-	{
-		return -1;
-	}
-	
-	// 有方向灯不亮，返回1
-	if (has_fault)
-	{
-		return 1;
-	}
-
-	// 所有灯正常，返回0
-	return 0;
-}
-
-
-
-
 
 /*********************************************************************************************************
 * 函 数 名: single_check_phase_red_green_simultaneous
@@ -1763,10 +1302,75 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 	return fault_mask;
 }
 
+/*********************************************************************************************************
+* 函 数 名: single_save_config_to_flash
+* 功能描述: 将配置保存到FLASH
+* 参    数: 无
+* 返 回 值: 错误状态
+*********************************************************************************************************
+*/
+int single_save_config_to_flash(void)
+{
+	// 使用文件系统保存配置数据
+	if (save_stroage_single_led_blind_function(g_config_data) == 0)
+	{
+		return SUCCESS;
+	}
+	else
+	{
+		return ERROR;
+	}
+}
 
 /*********************************************************************************************************
-* 测试检测相关函数
-*********************************************************************************************************/
+* 函 数 名: single_load_config_from_flash
+* 功能描述: 从FLASH读取配置
+* 参    数: 无
+* 返 回 值: 错误状态
+*********************************************************************************************************
+*/
+int single_load_config_from_flash(void)
+{
+	// 使用文件系统读取配置数据
+	if (save_read_single_led_blind_function(&g_config_data) == 0)
+	{
+		// 应用配置
+		for (uint32_t i = 0; i < g_config_data.config_count; i++)
+		{
+			ConfigItem_t *item = &g_config_data.config_items[i];
+			Single_Bind_InpuToTraffic(item->param_type, 
+								item->board_id, item->ch, 
+								item->p_type, item->p_dir, 
+								item->p_phase, item->p_color);
+		}
+		return SUCCESS;
+	}
+	else
+	{
+		// 配置数据无效，初始化为默认值
+		memset(&g_config_data, 0, sizeof(ConfigData_t));
+		return ERROR;
+	}
+}
+
+/*********************************************************************************************************
+* 函 数 名: single_clear_config_function
+* 功能描述: 清除所有信号灯配置
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_clear_config_function(void)
+{
+	// 清空配置数据
+	memset(&g_config_data, 0, sizeof(ConfigData_t));
+	single_save_config_to_flash();
+}
+
+
+
+
+
 
 /*
 *********************************************************************************************************
@@ -1836,9 +1440,9 @@ void single_ch2_light_timer_run(void)
 *********************************************************************************************************
 */
 Params_t test_nmotor[COLOR_MAX] = {
-	{.current = &g_singleboard_t[2].data.current[6], .voltage = &g_singleboard_t[2].data.voltage[2], .pulse = &g_singleboard_t[2].data.pulse[2]},
-	{.current = &g_singleboard_t[2].data.current[8], .voltage = &g_singleboard_t[2].data.voltage[1], .pulse = &g_singleboard_t[2].data.pulse[1]},
-	{.current = &g_singleboard_t[2].data.current[7], .voltage = &g_singleboard_t[2].data.voltage[0], .pulse = &g_singleboard_t[2].data.pulse[0]}
+	{.current = &g_singleboard_t[1].data.current[0], .voltage = &g_singleboard_t[1].data.voltage[2], .pulse = &g_singleboard_t[1].data.pulse[2]},
+	{.current = &g_singleboard_t[1].data.current[2], .voltage = &g_singleboard_t[1].data.voltage[1], .pulse = &g_singleboard_t[1].data.pulse[1]},
+	{.current = &g_singleboard_t[1].data.current[1], .voltage = &g_singleboard_t[1].data.voltage[0], .pulse = &g_singleboard_t[1].data.pulse[0]}
 };
 /* 新增全局平均电流变量，用于记录每个灯类型、方向、相位、颜色下的平均电流值 */
 float g_avg_current[CTD_MAX][COLOR_MAX] = {0.0f};

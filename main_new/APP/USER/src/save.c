@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include "./USER/inc/save.h"
 
 #define SAVE_LOCAL_NETWORK_NAME     ("network_name")      /* 本地网络信息 */
 #define SAVE_REMOTE_NETWORK_NAME    ("remote_name")       /* 远端网络信息 */
@@ -10,6 +11,9 @@
 #define SAVE_UPDATE_FILE_INFOR_NAME ("upfileinfor.bin")   /* 更新文件信息 */
 #define SAVE_ELECTRICITY_PARAM      ("electricity")       /* 用电量信息，防止重启后用电量变为0 */
 #define SAVE_SINGLE_LED_BLIND       ("single_led_blind")  /* 信号灯配置信息 */
+#define SAVE_SINGLE_LED_TIMES       ("single_led_times")  /* 信号灯配时信息 */
+#define SAVE_SINGLE_LED_CURRENT     ("single_led_current")  /* 信号灯电流信息 */
+
 /*
 *********************************************************************************************************
 *	函 数 名: save_init_function
@@ -788,6 +792,160 @@ int8_t save_read_single_led_blind_function(ConfigData_t *param)
 void save_read_default_single_led_blind(ConfigData_t *param)
 {
 	memset(param,0,sizeof(ConfigData_t));
+}
+
+/************************************************************
+*
+* Function name	: save_stroage_single_led_current_function
+* Description	: 存储信号灯电流信息
+* Parameter	: param - 电流数据
+* Return	: 0成功，-1失败
+*
+************************************************************/
+int8_t save_stroage_single_led_current_function(CurrentData_t param)
+{
+	int8_t  ret = 0;
+  int     err = 0;
+	lfs_file_t  lfs_fp	 = {0};
+	
+	/* 数据保存 */
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_CURRENT, LFS_O_RDWR | LFS_O_CREAT);
+	if(err == 0)
+	{
+		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
+		err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(CurrentData_t));
+		if(err != sizeof(CurrentData_t)) {
+			err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(CurrentData_t));
+		}
+	}
+	else
+	{
+		ret = -1;
+	}
+	err = lfs_file_close(&g_lfs_t, &lfs_fp);
+	
+	return ret;
+}
+
+/************************************************************
+*
+* Function name	: save_read_single_led_current_function
+* Description	: 读取信号灯电流信息
+* Parameter	: param - 电流数据指针
+* Return	: 0成功，-1失败
+*
+************************************************************/
+int8_t save_read_single_led_current_function(CurrentData_t *param)
+{
+	int8_t	ret      = 0;
+	int 	err 	 = 0;
+	lfs_file_t  lfs_fp   = {0};
+	
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_CURRENT, LFS_O_RDWR);
+
+	if(err == 0)
+	{
+		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
+		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(CurrentData_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
+	}
+	else
+	{
+		save_read_default_single_led_current(param);
+		save_stroage_single_led_current_function(*param);
+		ret = -1;
+	}
+	return ret;
+}
+
+/************************************************************
+*
+* Function name	: save_read_default_single_led_current
+* Description	: 读取默认信号灯电流信息
+* Parameter	: param - 电流数据指针
+* Return	: 无
+*
+************************************************************/
+void save_read_default_single_led_current(CurrentData_t *param)
+{
+	memset(param,0,sizeof(CurrentData_t));
+}
+
+/************************************************************
+*
+* Function name	: save_stroage_single_led_timing_function
+* Description	: 存储信号灯配时信息
+* Parameter	: param - 配时数据
+* Return	: 0成功，-1失败
+*
+************************************************************/
+int8_t save_stroage_single_led_timing_function(TimingData_t param)
+{
+	int8_t  ret = 0;
+  int     err = 0;
+	lfs_file_t  lfs_fp	 = {0};
+	
+	/* 数据保存 */
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_TIMES, LFS_O_RDWR | LFS_O_CREAT);
+	if(err == 0)
+	{
+		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
+		err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(TimingData_t));
+		if(err != sizeof(TimingData_t)) {
+			err = lfs_file_write(&g_lfs_t, &lfs_fp, (uint8_t*)&param, sizeof(TimingData_t));
+		}
+	}
+	else
+	{
+		ret = -1;
+	}
+	err = lfs_file_close(&g_lfs_t, &lfs_fp);
+	
+	return ret;
+}
+
+/************************************************************
+*
+* Function name	: save_read_single_led_timing_function
+* Description	: 读取信号灯配时信息
+* Parameter	: param - 配时数据指针
+* Return	: 0成功，-1失败
+*
+************************************************************/
+int8_t save_read_single_led_timing_function(TimingData_t *param)
+{
+	int8_t	ret      = 0;
+	int 	err 	 = 0;
+	lfs_file_t  lfs_fp   = {0};
+	
+	err = lfs_file_open(&g_lfs_t, &lfs_fp, SAVE_SINGLE_LED_TIMES, LFS_O_RDWR);
+
+	if(err == 0)
+	{
+		err = lfs_file_rewind(&g_lfs_t, &lfs_fp);
+		err = lfs_file_read(&g_lfs_t, &lfs_fp, param,sizeof(TimingData_t));
+		err = lfs_file_close(&g_lfs_t, &lfs_fp);
+	}
+	else
+	{
+		save_read_default_single_led_timing(param);
+		save_stroage_single_led_timing_function(*param);
+		ret = -1;
+	}
+	return ret;
+}
+
+/************************************************************
+*
+* Function name	: save_read_default_single_led_timing
+* Description	: 读取默认信号灯配时信息
+* Parameter	: param - 配时数据指针
+* Return	: 无
+*
+************************************************************/
+void save_read_default_single_led_timing(TimingData_t *param)
+{
+	memset(param,0,sizeof(TimingData_t));
 }
 
 

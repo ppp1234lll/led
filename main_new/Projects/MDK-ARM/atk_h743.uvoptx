@@ -183,22 +183,32 @@
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>single_ch2_light_time,0x0A</ItemText>
+          <ItemText>g_timer_info</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>high_duration,0x0A</ItemText>
+          <ItemText>single_ch2_light_time</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>elapsed_time,0x0A</ItemText>
+          <ItemText>g_timing_data,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>single_ch2_light_time,0x0A</ItemText>
+          <ItemText>run_code_time,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>7</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>dir_channel_count</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_config_data</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -207,12 +217,17 @@
           <WinNumber>2</WinNumber>
           <ItemText>\\atk_h743\../../APP/TASK/src/single.c\g_singleboard_t[0].data.current[1]</ItemText>
         </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>\\atk_h743\../../APP/TASK/src/single.c\g_singleboard_t[2].data.voltage[0]</ItemText>
+        </Ww>
       </WatchWindow2>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>2</SubType>
-          <ItemText>0X081E0000</ItemText>
+          <ItemText>0x30002000</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -747,7 +762,7 @@
 
   <Group>
     <GroupName>Hardware</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2471,7 +2486,7 @@
 
   <Group>
     <GroupName>Middlewares/FreeRTOS_CORE</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

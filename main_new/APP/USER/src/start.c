@@ -46,9 +46,9 @@ void start_bsp_init(void)
 	
 	bsp_InitTimers(TIM2,1000,2,0);
 	bsp_InitTimers(TIM3,1000,2,0);
-	bsp_InitTimers(TIM4,1000,2,0);
-	bsp_InitTimers(TIM5,1000,2,0);
-	bsp_InitTimers(TIM6,1000,2,0);
+	bsp_InitTimers(TIM4,1,2,0);
+	bsp_InitTimers(TIM5,1,2,0);
+	bsp_InitTimers(TIM6,1,2,0);
 	
 	hal_lis3dh_init(true);
 	aht20_init_function();

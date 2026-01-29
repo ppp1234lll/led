@@ -37,11 +37,11 @@ static const ErrorItem_t err_items_sensor[] = {
 // ---------------------- 4. 信号灯组错误项 ----------------------
 // 由于信号灯故障组合非常多，不使用固定数组，而是动态生成故障码
 // 5位数字编码格式：ABCDE
-// A: 类型 (0=远灯, 1=近灯)
-// B: 方向 (0=北, 1=东, 2=南, 3=西)
-// C: 相位 (0=左转, 1=直行, 2=右转, 3=行人1, 4=行人2, 5=非机动车1, 6=非机动车2, 7=倒计时, 8=可变车道, 9=待行, 0=辅道)
-// D: 颜色 (0=红, 1=绿, 2=黄)
-// E: 故障类型 (0=正常, 1=全不亮, 2=部分亮, 3=红绿同亮)
+// A: 故障类型 (0=正常, 1=单灯不亮, 2=部分亮, 3=红绿同亮，E=某方向灯不亮，F=全部灯不亮)
+// B: 类型 (0=远灯, 1=近灯)
+// C: 方向 (0=北, 1=东, 2=南, 3=西)
+// D: 相位 (0=左转, 1=直行, 2=右转, 3=行人1, 4=行人2, 5=非机动车1, 6=非机动车2, 7=倒计时, 8=可变车道, 9=待行, 0=辅道)
+// E: 颜色 (0=红, 1=绿, 2=黄)
 
 // 空的信号灯故障数组，仅用于占位
 static const ErrorItem_t err_items_traffic[] = {
@@ -167,11 +167,11 @@ const char* Error_GetCode(ErrorType_e group, uint8_t item_idx)
 		
 		// 生成5位错误码：4ABCDE
 		g_traffic_fault_code[0] = '4';
-		g_traffic_fault_code[1] = type + '0';
-		g_traffic_fault_code[2] = dir + '0';
-		g_traffic_fault_code[3] = (phase % 10) + '0';
-		g_traffic_fault_code[4] = color + '0';
-		g_traffic_fault_code[5] = fault + '0';
+		g_traffic_fault_code[1] = fault + '0';
+		g_traffic_fault_code[2] = type + '0';
+		g_traffic_fault_code[3] = dir + '0';
+		g_traffic_fault_code[4] = (phase % 10) + '0';
+		g_traffic_fault_code[5] = color + '0';
 		g_traffic_fault_code[6] = '\0';
 		
 		return g_traffic_fault_code;
@@ -245,7 +245,7 @@ int8_t Error_GetAllCodes(char* buf, uint16_t buf_len)
 uint8_t TrafficFault_Set(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
 {
 	// 参数有效性检查
-	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+	if (type > 1 || dir > 3 || phase > 10 || color > 2) {
 		return 0;
 	}
 	
@@ -264,7 +264,7 @@ uint8_t TrafficFault_Set(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color
 uint8_t TrafficFault_Clear(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
 {
 	// 参数有效性检查
-	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+	if (type > 1 || dir > 3 || phase > 10 || color > 2) {
 		return 0;
 	}
 	
@@ -283,7 +283,7 @@ uint8_t TrafficFault_Clear(uint8_t type, uint8_t dir, uint8_t phase, uint8_t col
 uint8_t TrafficFault_Check(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
 {
 	// 参数有效性检查
-	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+	if (type > 1 || dir > 3 || phase > 10 || color > 2) {
 		return 0;
 	}
 	
@@ -300,17 +300,17 @@ uint8_t TrafficFault_Check(uint8_t type, uint8_t dir, uint8_t phase, uint8_t col
 const char* TrafficFault_GetCode(uint8_t type, uint8_t dir, uint8_t phase, uint8_t color, uint8_t fault)
 {
 	// 参数有效性检查
-	if (type > 1 || dir > 3 || phase > 10 || color > 2 || fault > 3) {
+	if (type > 1 || dir > 3 || phase > 10 || color > 2) {
 		return NULL;
 	}
 	
 	// 直接生成5位错误码：4ABCDE
 	g_traffic_fault_code[0] = '4';
-	g_traffic_fault_code[1] = type + '0';
-	g_traffic_fault_code[2] = dir + '0';
-	g_traffic_fault_code[3] = (phase % 10) + '0';
-	g_traffic_fault_code[4] = color + '0';
-	g_traffic_fault_code[5] = fault + '0';
+	g_traffic_fault_code[1] = fault + '0';
+	g_traffic_fault_code[2] = type + '0';
+	g_traffic_fault_code[3] = dir + '0';
+	g_traffic_fault_code[4] = (phase % 10) + '0';
+	g_traffic_fault_code[5] = color + '0';
 	g_traffic_fault_code[6] = '\0';
 	
 	return g_traffic_fault_code;

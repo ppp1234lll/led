@@ -227,9 +227,9 @@ void gsm_tcp_control_function(void)
 		flag = 0;
 	}
 #else 
-//	if(sg_gsmoperate_t.tcp_status == 0) {
-//			flag = 0;
-//	}
+	if(sg_gsmoperate_t.tcp_status == 0) {
+			flag = 0;
+	}
 #endif
 }
 

@@ -125,5 +125,15 @@ int8_t save_stroage_single_led_blind_function(ConfigData_t param);
 int8_t save_read_single_led_blind_function(ConfigData_t *param);
 void save_read_default_single_led_blind(ConfigData_t *param);
 
+// 20241101 信号灯电流信息
+int8_t save_stroage_single_led_current_function(CurrentData_t param);
+int8_t save_read_single_led_current_function(CurrentData_t *param);
+void save_read_default_single_led_current(CurrentData_t *param);
+
+// 20241101 信号灯配时信息
+int8_t save_stroage_single_led_timing_function(TimingData_t param);
+int8_t save_read_single_led_timing_function(TimingData_t *param);
+void save_read_default_single_led_timing(TimingData_t *param);
+
 
 #endif
