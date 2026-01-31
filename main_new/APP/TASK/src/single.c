@@ -73,13 +73,16 @@ __attribute__((at (0x30002000))) uint8_t g_single_time_t[BOARD_MAX][12]={0};
 *********************************************************************************************************
 */
 // Params_t数组
-Params_t params[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
+Params_t params[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
 // SingleColorLight_t数组
-SingleColorLight_t single_color_light[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] = {0};
+SingleColorLight_t single_color_light[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
 // PhaseLight_t数组
-PhaseLight_t phase_light[Type_MAX][DIR_MAX][PHASE_MAX] = {0};
+PhaseLight_t phase_light[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX] = {0};
+
+// RoadLight_t数组
+RoadLight_t road_light[Type_MAX][DIR_MAX][ROAD_MAX] = {0};
 
 // DirectionLight_t数组
 DirectionLight_t direction_light[Type_MAX][DIR_MAX] = {0};
@@ -93,7 +96,7 @@ SingleLight_t single_light = {0};
 /*
 *********************************************************************************************************
 * 配置数据结构定义：用于存储
-* 包含：参数类型、板号、通道、信号灯类型、方向、相位、颜色
+* 包含：参数类型、板号、通道、信号灯类型、方向、道路类型、相位、颜色
 *********************************************************************************************************
 */
 ConfigData_t g_config_data = {0};
@@ -101,10 +104,12 @@ ConfigData_t g_config_data = {0};
 /*
 *********************************************************************************************************
 * 配时结构定义：用于存储
-* 包含：数量、信号灯类型、方向、相位、颜色
+* 包含：数量、信号灯类型、方向、道路类型、相位、颜色
 *********************************************************************************************************
 */
 TimingData_t g_timing_data = {0};
+
+ErrorCode_t g_error_code = {0};
 
 /*
 *********************************************************************************************************
@@ -125,7 +130,7 @@ typedef struct {
 } SingleCurrent_t;
 
 // 全局变量，用于存储电流的状态
-SingleCurrent_t single_current_state[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] ;
+SingleCurrent_t single_current_state[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX] ;
 
 /*
 *********************************************************************************************************
@@ -136,11 +141,11 @@ SingleCurrent_t single_current_state[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX] ;
 
 typedef struct __attribute__((aligned(4)))
 {
-	float sum[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX];      // 电流累计值
-	uint32_t count[Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX];  // 采样次数
+	float sum[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX];      // 电流累计值
+	uint32_t count[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX];  // 采样次数
 } CurrentAvgData_t;
 CurrentAvgData_t current_sum_data[CTD_MAX] = {0};
-
+CurrentAvgData_t current_test_watch[CTD_MAX] = {0}; // 用于观测电流数据
 /*
 *********************************************************************************************************
 * 电流数据结构定义：用于存储
@@ -167,18 +172,16 @@ void single_task_function(void)
 
 	printf("run single\n");
 	uint8_t index;
-    
-    single_data_init(); // 初始化数据变量
-    
+   
 	single_led_init_memory();
+	single_data_init(); // 初始化数据变量
+	single_led_timer_init();	// 初始化定时器
+	single_current_state_init(); // 初始化电流状态结构体	
 	
 //	single_cmd_board_data(single_send_buf,&single_send_len);  
-//	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,0,1,0,0,0,0);
-//  Single_Bind_InpuToTraffic( PARAM_CURRENT,0,1,0,0,0,0);
-	single_load_config_from_flash(); // 读取配置信息
 	
-	single_led_timer_init();	// 初始化定时器
-	single_current_state_init(); // 初始化电流状态结构体
+	single_light_channel_config_test();
+//	single_load_config_from_flash(); // 读取配置信息
 
 	// 创建信号量
 	xSemaphore_CT_Recal = xSemaphoreCreateBinary();
@@ -195,18 +198,19 @@ void single_task_function(void)
 		
 		// 测试
 //		single_ch2_light_timer_run();
-//    single_non_motor_update_current_test();
-		
+		// single_non_motor_update_current_test();
+		// single_non_motor_calculate_current_average_test();
+
 		// 测试运行时间（1ms内）
 		start_code_time = bsp_GetRunTime();
-		// single_led_timer_run();
-		// single_update_current_average_enhanced();
-		// single_calculate_current_average();
-		// single_timing_assign_function();  // 更新时间
+//		single_led_timer_run();
+//		single_update_current_average_enhanced();
+//		single_calculate_current_average();
+//		single_timing_assign_function();  // 更新时间
 
 		// 电流、配时检测任务
 		single_current_times_detect_task();
-		
+
 		single_led_fault_detection_task(); // 故障检测任务
 
 		end_code_time = bsp_GetRunTime();
@@ -440,6 +444,7 @@ void single_led_init_memory(void)
 {
 	Type_e type;
 	Direction_e dir;
+	RoadType_e road;
 	Phase_e phase;
 	Color_e color;
 	
@@ -455,20 +460,27 @@ void single_led_init_memory(void)
 			// 将direction_light数组中的元素绑定到light_type中
 			single_light.p_light_type[type]->p_direction[dir] = &direction_light[type][dir];
 			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 			{
-				// 将phase_light数组中的元素绑定到direction_light中
-				single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] = &phase_light[type][dir][phase];
+				// 将road_light数组中的元素绑定到direction_light中
+				single_light.p_light_type[type]->p_direction[dir]->p_road[road] = &road_light[type][dir][road];
 				
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					// 将single_color_light数组中的元素绑定到phase_light中
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] = &single_color_light[type][dir][phase][color];
+					// 将phase_light数组中的元素绑定到road_light中
+					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase] = &phase_light[type][dir][road][phase];
 					
-					// 将params数组中的元素绑定到single_color_light中
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params = &params[type][dir][phase][color];
+					// 遍历所有颜色：红/绿/黄
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
+					{
+						// 将single_color_light数组中的元素绑定到phase_light中
+						single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color] = &single_color_light[type][dir][road][phase][color];
+						
+						// 将params数组中的元素绑定到single_color_light中
+						single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params = &params[type][dir][road][phase][color];
+					}
 				}
 			}
 		}
@@ -489,10 +501,9 @@ void single_led_init_memory(void)
 * 返 回 值: 无
 *********************************************************************************************************
 */
-void Single_Bind_InpuToTraffic(ParamType_e param_type, 
-								uint8_t board_id,uint8_t ch,	
-								Type_e p_type,Direction_e p_dir, 
-								Phase_e p_phase,Color_e p_color)
+void Single_Bind_InpuToTraffic(ParamType_e param_type, uint8_t board_id,uint8_t ch,	
+							Type_e p_type,Direction_e p_dir, 
+							RoadType_e p_road,Phase_e p_phase,Color_e p_color)
 {
 	// 检查board_id是否有效
 	if (board_id >= BOARD_MAX)
@@ -504,50 +515,54 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 	switch (param_type) 
 	{
 			case PARAM_CURRENT:
-			// 检查通道号是否在有效范围内
-			if (ch >= 24)  
-				return;
+		// 检查通道号是否在有效范围内
+		if (ch >= 24)  
+			return;
 
-			// 将current数据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-											->p_phase[p_phase]
-											->p_color[p_color]
-											->p_params->current
-			   = &g_singleboard_t[board_id].data.current[ch];
-			break;
-			
-		case PARAM_VOLTAGE:
-			// 检查通道号是否在有效范围内
-			if (ch >= 12)  
-				return;
-
-			// 将voltage数据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-											->p_phase[p_phase]
-											->p_color[p_color]
-											->p_params->voltage
-			   = &g_singleboard_t[board_id].data.voltage[ch];
-			
-			// 将pulse数据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-										->p_phase[p_phase]
-										->p_color[p_color]
-										->p_params->pulse
-			= &g_singleboard_t[board_id].data.pulse[ch];
-
-			// 将配时信息据绑定到板卡对应通道
-			single_light.p_light_type[p_type]->p_direction[p_dir]
-										->p_phase[p_phase]
-										->p_color[p_color]
-										->p_params->times
-			   = &g_single_time_t[board_id][ch];
+		// 将current数据绑定到板卡对应通道
+		single_light.p_light_type[p_type]->p_direction[p_dir]
+								->p_road[p_road]
+								->p_phase[p_phase]
+								->p_color[p_color]
+								->p_params->current
+		   = &g_singleboard_t[board_id].data.current[ch];
 		break;
+		
+	case PARAM_VOLTAGE:
+		// 检查通道号是否在有效范围内
+		if (ch >= 12)  
+			return;
+
+		// 将voltage数据绑定到板卡对应通道
+		single_light.p_light_type[p_type]->p_direction[p_dir]
+								->p_road[p_road]
+								->p_phase[p_phase]
+								->p_color[p_color]
+								->p_params->voltage
+		   = &g_singleboard_t[board_id].data.voltage[ch];
+		
+		// 将pulse数据绑定到板卡对应通道
+		single_light.p_light_type[p_type]->p_direction[p_dir]
+							->p_road[p_road]
+							->p_phase[p_phase]
+							->p_color[p_color]
+							->p_params->pulse
+		= &g_singleboard_t[board_id].data.pulse[ch];
+
+		// 将配时信息据绑定到板卡对应通道
+		single_light.p_light_type[p_type]->p_direction[p_dir]
+							->p_road[p_road]
+							->p_phase[p_phase]
+							->p_color[p_color]
+							->p_params->times
+		   = &g_single_time_t[board_id][ch];
+	break;
 	default:
 		break;
 	}
 	
 	// 记录配置信息到g_config_data
-	single_record_config(param_type, board_id, ch, p_type, p_dir, p_phase, p_color);
+	single_record_config(param_type, board_id, ch, p_type, p_dir, p_road, p_phase, p_color);
 }
 
 
@@ -565,10 +580,9 @@ void Single_Bind_InpuToTraffic(ParamType_e param_type,
 * 返 回 值: 无
 *********************************************************************************************************
 */
-void single_record_config(ParamType_e param_type, 
-						uint8_t board_id, uint8_t ch, 
-						Type_e p_type, Direction_e p_dir, 
-						Phase_e p_phase, Color_e p_color)
+void single_record_config(ParamType_e param_type,uint8_t board_id, uint8_t ch, 
+					Type_e p_type, Direction_e p_dir, 
+					RoadType_e p_road, Phase_e p_phase, Color_e p_color)
 {
 	uint32_t i;
 	uint8_t config_exists = 0;
@@ -587,6 +601,7 @@ void single_record_config(ParamType_e param_type,
 				// 更新现有配置的信号灯信息
 				existing_item->p_type = p_type;
 				existing_item->p_dir = p_dir;
+				existing_item->p_road = p_road;
 				existing_item->p_phase = p_phase;
 				existing_item->p_color = p_color;
 				config_exists = 1;
@@ -603,6 +618,7 @@ void single_record_config(ParamType_e param_type,
 				if (existing_item->param_type == PARAM_CURRENT &&
 					existing_item->p_type == p_type &&
 					existing_item->p_dir == p_dir &&
+					existing_item->p_road == p_road &&
 					existing_item->p_phase == p_phase &&
 					existing_item->p_color == p_color)
 				{
@@ -626,6 +642,7 @@ void single_record_config(ParamType_e param_type,
 			if (existing_item->param_type == PARAM_VOLTAGE &&
 				existing_item->p_type == p_type &&
 				existing_item->p_dir == p_dir &&
+				existing_item->p_road == p_road &&
 				existing_item->p_phase == p_phase &&
 				existing_item->p_color == p_color)
 			{
@@ -647,13 +664,12 @@ void single_record_config(ParamType_e param_type,
 		item->ch = ch;
 		item->p_type = p_type;
 		item->p_dir = p_dir;
+		item->p_road = p_road;
 		item->p_phase = p_phase;
 		item->p_color = p_color;
 		g_config_data.config_count++;
 	}
 	
-	// 保存配置
-	single_save_config_to_flash();
 }
 
 /*********************************************************************************************************
@@ -777,6 +793,7 @@ void single_current_state_init(void)
 {
 	Type_e type;
 	Direction_e dir;
+	RoadType_e road;
 	Phase_e phase;
 	Color_e color;
 	
@@ -786,21 +803,25 @@ void single_current_state_init(void)
 		// 遍历所有方向：北/东/南/西
 		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 			{
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					// 初始化电流状态结构体
-					single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE;         // 默认单灯
-					single_current_state[type][dir][phase][color].high_level_count = 0;                  // 重置高电平计数器
-					single_current_state[type][dir][phase][color].pulse_start_time = 0;                 // 重置脉冲检测开始时间
-					single_current_state[type][dir][phase][color].pulse_detected = 0;                    // 重置脉冲检测标志
-					single_current_state[type][dir][phase][color].data_collect_start_time = 0;          // 重置数据采集开始时间
-					single_current_state[type][dir][phase][color].data_collecting = 0;                   // 重置数据采集标志
-					single_current_state[type][dir][phase][color].data_collect_completed = 0;            // 重置数据采集完成标志
-					single_current_state[type][dir][phase][color].last_pulse_value = 0;                  // 重置上一次脉冲值
+					// 遍历所有颜色：红/绿/黄
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
+					{
+						// 初始化电流状态结构体
+						single_current_state[type][dir][road][phase][color].target_ctd_type = CTD_SINGLE;         // 默认单灯
+						single_current_state[type][dir][road][phase][color].high_level_count = 0;                  // 重置高电平计数器
+						single_current_state[type][dir][road][phase][color].pulse_start_time = 0;                 // 重置脉冲检测开始时间
+						single_current_state[type][dir][road][phase][color].pulse_detected = 0;                    // 重置脉冲检测标志
+						single_current_state[type][dir][road][phase][color].data_collect_start_time = 0;          // 重置数据采集开始时间
+						single_current_state[type][dir][road][phase][color].data_collecting = 0;                   // 重置数据采集标志
+						single_current_state[type][dir][road][phase][color].data_collect_completed = 0;            // 重置数据采集完成标志
+						single_current_state[type][dir][road][phase][color].last_pulse_value = 0;                  // 重置上一次脉冲值
+					}
 				}
 			}
 		}
@@ -818,6 +839,7 @@ void single_update_current_average_enhanced(void)
 {
 	Type_e type;
 	Direction_e dir;
+	RoadType_e road;
 	Phase_e phase;
 	Color_e color;
 	float current_value;
@@ -826,119 +848,103 @@ void single_update_current_average_enhanced(void)
 	// 遍历所有灯类型：远灯/近灯
 	for (type = FAR; type < Type_MAX; type++) 
 	{
-		// 检查灯类型指针是否有效
-		if (single_light.p_light_type[type] == NULL)
-		{
-			continue;
-		}
-		
 		// 遍历所有方向：北/东/南/西
 		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
-			// 检查方向指针是否有效
-			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
-				continue;
-			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 			{
-				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
-					continue;
-				
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					// 检查颜色灯指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
-						continue;
-					
-					// 检查参数指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
-						continue;
-					
-					// 首先检查电压是否为低电平（灯点亮）
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL && 
-					    *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage == 0)
+					// 遍历所有颜色：红/绿/黄
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
 					{
-						// 重置高电平计数器
-						single_current_state[type][dir][phase][color].high_level_count = 0;
-						
-						// 检查电流指针是否有效
-						if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+						// 首先检查电压是否为低电平（灯点亮）
+						if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage != NULL && 
+							*single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage == 0)
 						{
-							// 读取电流值
-							current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
+							// 重置高电平计数器
+								single_current_state[type][dir][road][phase][color].high_level_count = 0;
+					
+							// 检查电流指针是否有效
+							if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current != NULL)
+							{
+								// 读取电流值
+								current_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current;
+						
+								// 检查脉冲指针是否有效
+								if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse != NULL)
+								{
+									pulse_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse;	
 							
-							// 检查脉冲指针是否有效
-							if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->pulse != NULL)
-							{
-								pulse_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->pulse;
-								
-								// 检测脉冲信号跳变
-								if (single_current_state[type][dir][phase][color].last_pulse_value == 0 && pulse_value == 1)
-								{
-									// 记录脉冲检测开始时间
-									single_current_state[type][dir][phase][color].pulse_start_time = bsp_GetRunTime();
-									single_current_state[type][dir][phase][color].pulse_detected = 1;
-								}
-								
-								// 更新上一次的脉冲值
-								single_current_state[type][dir][phase][color].last_pulse_value = pulse_value;
-							}
-							
-							// 检查脉冲检测延时
-							if (single_current_state[type][dir][phase][color].pulse_detected)
-							{
-								// 计算经过的时间
-								uint32_t current_time = bsp_GetRunTime();
-								uint32_t elapsed_time = current_time - single_current_state[type][dir][phase][color].pulse_start_time;
-								
-								// 如果延时达到3秒（3000毫秒），则设置为单灯+倒计时灯
-								if (elapsed_time >= 3000)
-								{
-									single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE_CTD; // 单灯+倒计时灯
-									single_current_state[type][dir][phase][color].pulse_detected = 0; // 重置标记
-									// 开始4秒数据采集期
-									single_current_state[type][dir][phase][color].data_collect_start_time = bsp_GetRunTime();
-									single_current_state[type][dir][phase][color].data_collecting = 1;
-								}
-							}
-							else
-							{
-								// 检查是否处于数据采集状态
-								if (single_current_state[type][dir][phase][color].data_collecting)
-								{
-									// 计算数据采集经过的时间
-									uint32_t current_time = bsp_GetRunTime();
-									uint32_t collect_elapsed_time = current_time - single_current_state[type][dir][phase][color].data_collect_start_time;
-									
-									// 如果在4秒数据采集期内，保存数据
-									if (collect_elapsed_time <= 4000)
+									// 检测脉冲信号跳变
+									if (single_current_state[type][dir][road][phase][color].last_pulse_value == 0 && pulse_value == 1)
 									{
-										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] += current_value;
-										current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
+										// 记录脉冲检测开始时间
+										single_current_state[type][dir][road][phase][color].pulse_start_time = bsp_GetRunTime();
+										single_current_state[type][dir][road][phase][color].pulse_detected = 1;
+									}
+									
+									// 更新上一次的脉冲值
+									single_current_state[type][dir][road][phase][color].last_pulse_value = pulse_value;
+								}
+							
+								// 检查脉冲检测延时
+								if (single_current_state[type][dir][road][phase][color].pulse_detected)
+								{
+									// 计算经过的时间
+									uint32_t current_time = bsp_GetRunTime();
+									uint32_t elapsed_time = current_time - single_current_state[type][dir][road][phase][color].pulse_start_time;
+										
+									// 如果延时达到3秒（3000毫秒），则设置为单灯+倒计时灯
+									if (elapsed_time >= 3000)
+									{
+										single_current_state[type][dir][road][phase][color].target_ctd_type = CTD_SINGLE_CTD; // 单灯+倒计时灯
+										single_current_state[type][dir][road][phase][color].pulse_detected = 0; // 重置标记
+										// 开始4秒数据采集期
+										single_current_state[type][dir][road][phase][color].data_collect_start_time = bsp_GetRunTime();
+										single_current_state[type][dir][road][phase][color].data_collecting = 1;
 									}
 								}
-								// 只有在非数据采集期且未完成4秒采集的情况下，才正常保存数据
 								else
 								{
-									// 非数据采集期，正常保存数据
-									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].sum[type][dir][phase][color] += current_value;
-									current_sum_data[single_current_state[type][dir][phase][color].target_ctd_type].count[type][dir][phase][color]++;
+									// 检查是否处于数据采集状态
+									if (single_current_state[type][dir][road][phase][color].data_collecting)
+									{
+										// 计算数据采集经过的时间
+										uint32_t current_time = bsp_GetRunTime();
+										uint32_t collect_elapsed_time = current_time - single_current_state[type][dir][road][phase][color].data_collect_start_time;
+										
+										// 如果在4秒数据采集期内，保存数据
+										if (collect_elapsed_time <= 4000)
+										{
+											current_test_watch[single_current_state[type][dir][road][phase][color].target_ctd_type].sum[type][dir][road][phase][color] = current_value;
+											current_sum_data[single_current_state[type][dir][road][phase][color].target_ctd_type].sum[type][dir][road][phase][color] += current_value;
+											current_sum_data[single_current_state[type][dir][road][phase][color].target_ctd_type].count[type][dir][road][phase][color]++;
+										}
+									}
+									// 只有在非数据采集期且未完成4秒采集的情况下，才正常保存数据
+									else
+									{
+										// 非数据采集期，正常保存数据
+										current_test_watch[single_current_state[type][dir][road][phase][color].target_ctd_type].sum[type][dir][road][phase][color] = current_value;
+										current_sum_data[single_current_state[type][dir][road][phase][color].target_ctd_type].sum[type][dir][road][phase][color] += current_value;
+										current_sum_data[single_current_state[type][dir][road][phase][color].target_ctd_type].count[type][dir][road][phase][color]++;
+									}
 								}
 							}
 						}
-					}
-					// 当电压为高电平时，延迟1.5秒后强制置为单灯模式
-					else
-					{
-						// 如果高电平持续时间达到1.5秒（15个100ms），则设置为单灯模式
-						if (single_current_state[type][dir][phase][color].high_level_count >= 12)
+						// 当电压为高电平时，延迟1.5秒后强制置为单灯模式
+						else
 						{
-							single_current_state[type][dir][phase][color].target_ctd_type = CTD_SINGLE;
-							single_current_state[type][dir][phase][color].high_level_count = 0; // 重置计数器
-							single_current_state[type][dir][phase][color].data_collecting = 0;
+							// 如果高电平持续时间达到1.5秒（15个100ms），则设置为单灯模式
+							if (single_current_state[type][dir][road][phase][color].high_level_count >= 12)
+							{
+								single_current_state[type][dir][road][phase][color].target_ctd_type = CTD_SINGLE;
+								single_current_state[type][dir][road][phase][color].high_level_count = 0; // 重置计数器
+								single_current_state[type][dir][road][phase][color].data_collecting = 0;
+							}
 						}
 					}
 				}
@@ -958,6 +964,7 @@ void single_calculate_current_average(void)
 {
 	Type_e type;
 	Direction_e dir;
+	RoadType_e road;
 	Phase_e phase;
 	Color_e color;
 	CtdType_e ctd_type;
@@ -970,14 +977,18 @@ void single_calculate_current_average(void)
 		{
 			for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 			{
-				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+				for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 				{
-					for (color = COLOR_RED; color < COLOR_MAX; color++)
+					for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 					{
-						// 计算平均值
-						if (current_sum_data[ctd_type].count[type][dir][phase][color] > 0)
+						for (color = COLOR_RED; color < COLOR_MAX; color++)
 						{
-							current_data.current[ctd_type][type][dir][phase][color] = current_sum_data[ctd_type].sum[type][dir][phase][color] / current_sum_data[ctd_type].count[type][dir][phase][color];
+							// 计算平均值
+							if (current_sum_data[ctd_type].count[type][dir][road][phase][color] > 0)
+							{
+								current_data.current[ctd_type][type][dir][road][phase][color] = \
+								current_sum_data[ctd_type].sum[type][dir][road][phase][color] / current_sum_data[ctd_type].count[type][dir][road][phase][color];
+							}
 						}
 					}
 				}
@@ -992,12 +1003,15 @@ void single_calculate_current_average(void)
 		{
 			for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 			{
-				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+				for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 				{
-					for (color = COLOR_RED; color < COLOR_MAX; color++)
+					for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 					{
-						current_sum_data[ctd_type].sum[type][dir][phase][color] = 0.0f;
-						current_sum_data[ctd_type].count[type][dir][phase][color] = 0;
+						for (color = COLOR_RED; color < COLOR_MAX; color++)
+						{
+							current_sum_data[ctd_type].sum[type][dir][road][phase][color] = 0.0f;
+							current_sum_data[ctd_type].count[type][dir][road][phase][color] = 0;
+						}
 					}
 				}
 			}
@@ -1044,7 +1058,7 @@ int single_load_config_from_flash(void)
 			Single_Bind_InpuToTraffic(item->param_type, 
 								item->board_id, item->ch, 
 								item->p_type, item->p_dir, 
-								item->p_phase, item->p_color);
+								item->p_road, item->p_phase, item->p_color);
 		}
 		return 0;
 	}
@@ -1082,6 +1096,7 @@ void single_clear_timing_function(void)
 	// 清空配置数据
 	memset(&g_timing_data, 0, sizeof(TimingData_t));
 	single_save_config_to_flash();
+	single_clear_timing_function();
 }
 
 /*********************************************************************************************************
@@ -1138,6 +1153,7 @@ void single_timing_assign_function(void)
 {
     uint8_t type;
     uint8_t dir;
+    uint8_t road;
     uint8_t phase;
     uint8_t color;
     uint8_t current_time;
@@ -1148,7 +1164,7 @@ void single_timing_assign_function(void)
     for (timing_index = 0; timing_index < g_timing_data.timing_count; timing_index++)
     {
         // 检查当前配时索引是否有数据
-        if (g_timing_data.times[timing_index][0][0][0][0] != 0)
+        if (g_timing_data.times[timing_index][0][0][0][0][0] != 0)
         {
             // 重置相同标志
             is_same = 1;
@@ -1162,31 +1178,38 @@ void single_timing_assign_function(void)
                     {
                         if (single_light.p_light_type[type]->p_direction[dir] != NULL)
                         {
-                            for (phase = 0; phase < PHASE_MAX; phase++)
+                            for (road = 0; road < ROAD_MAX; road++)
                             {
-                                if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] != NULL)
+                                if (single_light.p_light_type[type]->p_direction[dir]->p_road[road] != NULL)
                                 {
-                                    for (color = 0; color < COLOR_MAX; color++)
+                                    for (phase = 0; phase < PHASE_MAX; phase++)
                                     {
-                                        if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] != NULL)
+                                        if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase] != NULL)
                                         {
-                                            // 检查必要的指针
-                                            if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params != NULL &&
-                                                single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times != NULL)
+                                            for (color = 0; color < COLOR_MAX; color++)
                                             {
-                                                // 获取当前配时时间
-                                                current_time = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times;
-                                                
-                                                // 检查是否有不同
-                                                if (g_timing_data.times[timing_index][type][dir][phase][color] != current_time)
+                                                if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color] != NULL)
                                                 {
-                                                    is_same = 0;
-                                                    break; // 跳出颜色循环
+                                                    // 检查必要的指针
+                                                    if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params != NULL &&
+                                                        single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->times != NULL)
+                                                    {
+                                                        // 获取当前配时时间
+                                                        current_time = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->times;
+                                                        
+                                                        // 检查是否有不同
+                                                        if (g_timing_data.times[timing_index][type][dir][road][phase][color] != current_time)
+                                                        {
+                                                            is_same = 0;
+                                                            break; // 跳出颜色循环
+                                                        }
+                                                    }
                                                 }
                                             }
+                                            if (!is_same) break; // 跳出相位循环
                                         }
                                     }
-                                    if (!is_same) break; // 跳出相位循环
+                                    if (!is_same) break; // 跳出道路循环
                                 }
                             }
                             if (!is_same) break; // 跳出方向循环
@@ -1227,21 +1250,27 @@ void single_timing_assign_function(void)
                 {
                     if (single_light.p_light_type[type]->p_direction[dir] != NULL)
                     {
-                        for (phase = 0; phase < PHASE_MAX; phase++)
+                        for (road = 0; road < ROAD_MAX; road++)
                         {
-                            if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] != NULL)
+                            if (single_light.p_light_type[type]->p_direction[dir]->p_road[road] != NULL)
                             {
-                                for (color = 0; color < COLOR_MAX; color++)
+                                for (phase = 0; phase < PHASE_MAX; phase++)
                                 {
-                                    if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] != NULL)
+                                    if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase] != NULL)
                                     {
-                                        // 检查必要的指针
-                                        if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params != NULL &&
-                                            single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times != NULL)
+                                        for (color = 0; color < COLOR_MAX; color++)
                                         {
-                                            // 获取当前配时时间并更新到新索引
-                                            current_time = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->times;
-                                            g_timing_data.times[new_timing_index][type][dir][phase][color] = current_time;
+                                            if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color] != NULL)
+                                            {
+                                                // 检查必要的指针
+                                                if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params != NULL &&
+                                                    single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->times != NULL)
+                                                {
+                                                    // 获取当前配时时间并更新到新索引
+                                                    current_time = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->times;
+                                                    g_timing_data.times[new_timing_index][type][dir][road][phase][color] = current_time;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1386,147 +1415,47 @@ void single_current_times_detect_task(void)
 
 void single_led_fault_detection_task(void)
 {
-	int fault_flag = 0;
-	uint8_t fault_type = 0;
-	uint8_t fault_dir = 0;
+	static ErrorCode_t last_fault_flag = {0};
+	ErrorCode_t fault_flag = {0};
+	uint8_t state_changed = 0;
+	
 	// 1、信号灯全灭、单方向信号灯不亮
-	single_led_check_all_off();
-	fault_flag = single_check_signal_status(&fault_type,&fault_dir);
+	// single_led_check_all_off();
+	fault_flag = single_check_signal_status();
 	
-	switch(fault_flag)
+	// 检查故障状态是否改变
+	if (fault_flag.fault != last_fault_flag.fault ||
+		fault_flag.type != last_fault_flag.type ||
+		fault_flag.dir != last_fault_flag.dir)
 	{
-		case -1:
-			// 所有灯全灭，添加故障标志
+		state_changed = 1;
+	}
+	
+	if (fault_flag.fault & (1<<LED_ALL_NO_LIGHT))
+	{
+		// 所有灯全灭，添加故障标志
+		if (state_changed)
+		{
 			printf("led_all_off\n");
-			TrafficFault_Set(0,0,0,0,0x0f);
-			break;
-		case -2:
-			// 单方向信号灯不亮，添加故障标志
-			printf("led_dir_off: 0x%2x...0x%2x\n", fault_type,fault_dir);
-			TrafficFault_Set(0,0,0,0,0x0f);
-			break;
-		default:
-			break;
+		}
+		// TrafficFault_Set(0,0,0,0,0x0f);
 	}
-	
-}
-
-/*
-*********************************************************************************************************
-* 函 数 名: single_led_check_all_off
-* 功能描述: 检查所有信号灯状态-所有灯全灭、单方向信号灯不亮、单个相位灯不亮
-* 参    数: 无
-* 返 回 值: uint8_t - 1表示全灭，0表示不全灭
-*********************************************************************************************************
-*/
-uint8_t single_led_check_all_off(void)
-{
-	Type_e type;                     // 灯类型：远灯/近灯
-	Direction_e dir;                 // 方向：北/东/南/西
-	Phase_e phase;                   // 相位
-	Color_e color;                   // 颜色：红/绿/黄
-	float current_value;             // 电流值
-	uint32_t voltage_value;          // 电压值
-	uint8_t has_valid_channel = 0;   // 是否有有效通道
-	uint8_t is_dir_all_off;          // 方向是否全灭
-	uint8_t dir_all_off_mask = 0;    // 方向全灭掩码，用于标记哪些方向全灭
-	uint8_t is_all_system_off = 1;   // 系统是否全灭
-	
-	// 遍历所有灯类型：远灯/近灯
-	for (type = FAR; type < Type_MAX; type++) 
+	else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
 	{
-		// 检查灯类型指针是否有效
-		if (single_light.p_light_type[type] == NULL)
+		// 单方向信号灯不亮，添加故障标志
+		if (state_changed)
 		{
-			continue;
+			printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
 		}
-		
-		for (dir = DIR_EAST; dir < DIR_SOUTH; dir++) 
-		{
-			// 检查方向指针是否有效
-			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
-			{
-				continue;
-			}
-			
-			// 初始化方向全灭标志和通道计数
-			is_dir_all_off = 1;
-			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
-			{
-				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
-				{
-					continue;
-				}
-				
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
-				{
-					// 检查颜色灯指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
-					{
-						continue;
-					}
-					
-					// 检查参数指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
-					{
-						continue;
-					}
-					
-					// 检查电压和电流指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL &&
-						single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
-					{
-						// 标记有有效通道
-						has_valid_channel = 1;
-						
-						// 读取电压和电流值
-						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage;
-						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
-						
-						// 检查是否有灯亮：有电压(低电平)且有电流>10ma才认为灯亮
-						if (voltage_value == 0 && current_value > 10)
-						{
-							// 只要有一个灯亮，方向就不是全灭，系统也不是全灭
-							is_dir_all_off = 0;
-							is_all_system_off = 0;
-						}
-					}
-				}
-			}
-			
-			// 方向是否全灭
-			if (is_dir_all_off)
-			{
-				// 标记方向全灭
-				dir_all_off_mask |= (1 << dir);
-			}
-		}
-	}
-	
-	// 返回结果
-	// 低4位表示方向全灭掩码，高4位表示状态
-	// 高4位为0表示系统不全灭，1表示系统全灭，2表示无有效通道
-	if (has_valid_channel)
-	{
-		if (is_all_system_off)
-		{
-			return 0x10 | dir_all_off_mask; // 系统全灭
-		}
-		else
-		{
-			return dir_all_off_mask; // 系统不全灭，返回方向全灭掩码
-		}
+		// TrafficFault_Set(0,0,0,0,0x0f);
 	}
 	else
 	{
-		return 0x20; // 无有效通道，返回特殊标记
 	}
+	
+	// 更新上一次的故障状态
+	last_fault_flag = fault_flag;
 }
-
 
 /*********************************************************************************************************
 * 函 数 名: single_check_signal_status
@@ -1534,94 +1463,70 @@ uint8_t single_led_check_all_off(void)
 * 参    数: fault_mask - 输出参数，用于存储有问题的方向掩码（每一位代表一个方向是否有问题）
 *           type_out - 输出参数，用于存储有问题的信号灯类型
 *           dir_out - 输出参数，用于存储有问题的方向（仅返回第一个发现的问题方向）
-* 返 回 值: int - 状态码：0-正常，-1-所有灯全灭，1-有方向信号灯不亮
+* 返 回 值: ErrorCode_t - 错误码结构，包含故障类型、方向等信息
 *********************************************************************************************************/
-int single_check_signal_status(uint8_t *fault_type,uint8_t *fault_dir)
+ErrorCode_t single_check_signal_status(void)
 {
 	Type_e type;                     // 灯类型：远灯/近灯
 	Direction_e dir;                 // 方向：北/东/南/西
+	RoadType_e road;                 // 道路类型：主道/辅道
 	Phase_e phase;                   // 相位
 	Color_e color;                   // 颜色：红/绿/黄
 	float current_value;             // 电流值
 	uint8_t voltage_value;          // 电压值
 	uint8_t light_dir_off;          // 方向是否全灭
 	uint8_t light_all_off = 1;      // 所有灯是否全灭
-	uint8_t has_fault = 0;           // 是否有故障
-	
-	// 检查参数指针是否有效
-	if ((fault_type == NULL) || (fault_dir == NULL))
-	{
-		return -11;
-	}
 
-	// 初始化故障掩码
-	*fault_type = 0;
-	*fault_dir = 0;
+	uint8_t has_valid_channel = 0;   // 是否有有效通道
+	ErrorCode_t error_code = {0};
 
 	// 遍历所有灯类型：远灯/近灯
 	for (type = FAR; type < Type_MAX; type++) 
 	{
-		// 检查灯类型指针是否有效
-		if (single_light.p_light_type[type] == NULL)
-		{
-			continue;
-		}
-		
 		// 遍历所有方向：北/东/南/西
 		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
-			// 检查方向指针是否有效
-			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
-			{
-				continue;
-			}
-			
 			// 初始化方向全灭标志
 			light_dir_off = 1;
+			has_valid_channel = 0;
 			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 			{
-				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					continue;
-				}
-				
-				// 遍历所有颜色：红/绿/黄
-				for (color = COLOR_RED; color < COLOR_MAX; color++)
-				{
-					// 检查颜色灯指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color] == NULL)
+					// 遍历所有颜色：红/绿/黄
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
 					{
-						continue;
-					}
-					
-					// 检查参数指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params == NULL)
-					{
-						continue;
-					}
-					
-					// 检查电压和电流指针是否有效
-					if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage != NULL &&
-						single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current != NULL)
-					{
-						
-						// 读取电压和电流值
-						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->voltage;
-						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[color]->p_params->current;
-						
-						// 检查是否有灯亮：有电压(低电平)且有电流>10ma才认为灯亮
-						if (voltage_value == 0 && current_value > 10)
+						// 检查电压和电流指针是否有效
+						if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage != NULL &&
+							  single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current != NULL)
 						{
-							// 只要有一个灯亮，方向就不是全灭，系统也不是全灭
-							light_dir_off = 0;
-							light_all_off = 0;
+
+							// 标记有有效通道
+							has_valid_channel = 1;
+							
+							// 读取电压和电流值
+							voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage;
+							current_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current;
+							
+							// 检查是否有灯亮：有电压(低电平)且有电流>10ma才认为灯亮
+							if (voltage_value == 0 && current_value > 10)
+							{
+								// 只要有一个灯亮，方向就不是全灭，系统也不是全灭
+								light_dir_off = 0;
+								light_all_off = 0;
+							}
 						}
 					}
+					// 如果方向不全灭，继续检查下一个相位
+					if (!light_dir_off)
+					{
+						break;
+					}
 				}
-				// 如果方向不全灭，继续检查下一个相位
+				// 如果方向不全灭，继续检查下一个道路类型
 				if (!light_dir_off)
 				{
 					break;
@@ -1629,30 +1534,27 @@ int single_check_signal_status(uint8_t *fault_type,uint8_t *fault_dir)
 			}
 			
 			// 方向是否全灭
-			if (light_dir_off)
-			{
-				// 标记方向全灭
-				*fault_type |= (1 << type);
-				*fault_dir  |= (1 << dir);
-				has_fault = 1;
+			if (light_dir_off && has_valid_channel )
+			{				
+				TrafficFault_Set(TRAFFIC_PART_NO_LIGHT, type, dir, 0, 0, 0);
+				
+				error_code.fault |= 1<<LED_PART_NO_LIGHT;
+				error_code.type |= 1<<type;
+				error_code.dir |= 1 <<dir;
+				error_code.road = 0;
+				error_code.phase = 0;
+				error_code.color = 0;
 			}
 		}
 	}
 	
-	// 全灭返回-1
+	// 全灭返回错误码
 	if (light_all_off)
 	{
-		return -1;
-	}
-	
-	// 有方向灯不亮，返回1
-	if (has_fault)
-	{
-		return 1;
+		error_code.fault |= 1<<LED_ALL_NO_LIGHT;
 	}
 
-	// 所有灯正常，返回0
-	return 0;
+	return error_code;
 }
 
 
@@ -1674,6 +1576,7 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 {
 	Type_e type;
 	Direction_e dir;
+	RoadType_e road;
 	Phase_e phase;
 	float red_current = 0.0f;
 	float green_current = 0.0f;
@@ -1704,7 +1607,7 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 			{
 				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase] == NULL)
+				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase] == NULL)
 				{
 					continue;
 				}
@@ -1714,12 +1617,12 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 				green_on = 0;
 				
 				// 检查红灯是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_RED] != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_RED]->p_params != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_RED]->p_params->current != NULL)
+				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED] != NULL &&
+					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params != NULL &&
+					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current != NULL)	
 				{
 					// 读取红灯电流
-					red_current = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_RED]->p_params->current;
+					red_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current;
 					// 电流大于等于0.1A认为灯亮
 					if (red_current >= 0.1f)
 					{
@@ -1728,12 +1631,12 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 				}
 				
 				// 检查绿灯是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_GREEN] != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_GREEN]->p_params != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current != NULL)
+				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN] != NULL &&
+					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params != NULL &&
+					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current != NULL)
 				{
 					// 读取绿灯电流
-					green_current = *single_light.p_light_type[type]->p_direction[dir]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current;
+					green_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current;
 					// 电流大于等于0.1A认为灯亮
 					if (green_current >= 0.1f)
 					{
@@ -1768,6 +1671,77 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 * 测试检测相关函数
 *********************************************************************************************************/
 
+
+void single_light_channel_config_test(void)
+{
+	// 电流
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_2,0,FAR,DIR_EAST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_2,1,FAR,DIR_EAST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,0,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,1,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,2,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,3,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,4,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,5,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,6,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_PERSON1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_CURRENT,BOARD_3,7,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_PERSON1,COLOR_GREEN);
+	
+	// 电压-板1
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,11,FAR,DIR_NORTH,ROAD_MAIN,PHASE_LEFT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,10,FAR,DIR_NORTH,ROAD_MAIN,PHASE_LEFT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,9,FAR,DIR_NORTH,ROAD_MAIN,PHASE_LEFT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,8,FAR,DIR_NORTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,7,FAR,DIR_NORTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,6,FAR,DIR_NORTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,5,FAR,DIR_NORTH,ROAD_MAIN,PHASE_PERSON1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,4,FAR,DIR_NORTH,ROAD_MAIN,PHASE_PERSON1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,3,FAR,DIR_NORTH,ROAD_MAIN,PHASE_PERSON1,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,2,FAR,DIR_NORTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,1,FAR,DIR_NORTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_1,0,FAR,DIR_NORTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_GREEN);
+
+	// 电压-板2
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,11,FAR,DIR_EAST,ROAD_MAIN,PHASE_LEFT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,10,FAR,DIR_EAST,ROAD_MAIN,PHASE_LEFT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,9,FAR,DIR_EAST,ROAD_MAIN,PHASE_LEFT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,8,FAR,DIR_EAST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,7,FAR,DIR_EAST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,6,FAR,DIR_EAST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,5,FAR,DIR_EAST,ROAD_MAIN,PHASE_PERSON1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,4,FAR,DIR_EAST,ROAD_MAIN,PHASE_PERSON1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,3,FAR,DIR_EAST,ROAD_MAIN,PHASE_PERSON1,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,2,FAR,DIR_EAST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,1,FAR,DIR_EAST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_2,0,FAR,DIR_EAST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_GREEN);
+	// 电压-板3
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,11,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,10,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,9,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_LEFT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,8,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,7,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,6,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_STRAIGHT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,5,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,4,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,3,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,2,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_PERSON1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,1,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_PERSON1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_3,0,FAR,DIR_SOUTH,ROAD_MAIN,PHASE_PERSON1,COLOR_GREEN);
+	// 电压-板4
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,11,FAR,DIR_WEST,ROAD_MAIN,PHASE_LEFT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,10,FAR,DIR_WEST,ROAD_MAIN,PHASE_LEFT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,9,FAR,DIR_WEST,ROAD_MAIN,PHASE_LEFT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,8,FAR,DIR_WEST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,7,FAR,DIR_WEST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,6,FAR,DIR_WEST,ROAD_MAIN,PHASE_STRAIGHT,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,5,FAR,DIR_WEST,ROAD_MAIN,PHASE_PERSON1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,4,FAR,DIR_WEST,ROAD_MAIN,PHASE_PERSON1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,3,FAR,DIR_WEST,ROAD_MAIN,PHASE_PERSON1,COLOR_GREEN);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,2,FAR,DIR_WEST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_RED);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,1,FAR,DIR_WEST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_YELLOW);
+	Single_Bind_InpuToTraffic( PARAM_VOLTAGE,BOARD_4,0,FAR,DIR_WEST,ROAD_MAIN,PHASE_NONMOTOR1,COLOR_GREEN);
+
+
+}
 /*
 *********************************************************************************************************
 * 函 数 名: single_ch2_light_timer_run
@@ -1987,15 +1961,6 @@ void single_non_motor_calculate_current_average_test(void)
 //	g_sum_current[target_ctd_type[color]][color] = 0.0f;
 //	g_avg_current_count[target_ctd_type[color]][color] = 0;
 }
-
-
-
-
-
-
-
-
-
 
 
 

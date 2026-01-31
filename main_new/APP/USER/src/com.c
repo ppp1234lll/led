@@ -969,17 +969,19 @@ void com_deal_configure_single_voltage_ch(com_rec_data_t *buff)
 {
 	uint8_t ch_num = 0;
 	
-	
-	ch_num = (buff->size - 2) / 4; // 获取对应通道数量
+	ch_num = (buff->size - 2) / 5; // 获取对应通道数量
 	
 	for(uint8_t i=0;i<ch_num;i++)  // 配置关联通道
 	{
 		Single_Bind_InpuToTraffic( PARAM_VOLTAGE,buff->buff[0],buff->buff[1],
-		                           (Type_e)buff->buff[2+i*4], \
-		                           (Direction_e)buff->buff[3+i*4],\
-		                           (Phase_e)buff->buff[4+i*4], \
-		                           (Color_e)buff->buff[5+i*4]);
+		                           (Type_e)buff->buff[2+i*5], \
+		                           (Direction_e)buff->buff[3+i*5],\
+		                           (RoadType_e)buff->buff[4+i*5], \
+		                           (Phase_e)buff->buff[5+i*5], \
+		                           (Color_e)buff->buff[6+i*5]);
 	}
+	// 保存配置
+	single_save_config_to_flash();
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
@@ -995,11 +997,13 @@ void com_deal_configure_single_current_ch(com_rec_data_t *buff)
 {
 	// 配置关联通道
     Single_Bind_InpuToTraffic( PARAM_CURRENT,buff->buff[0],buff->buff[1],
-				                       (Type_e)buff->buff[2],\
+	                             (Type_e)buff->buff[2],\
 	                             (Direction_e)buff->buff[3],\
-								               (Phase_e)buff->buff[4],\
-	                             (Color_e)buff->buff[5]);
-
+	                             (RoadType_e)buff->buff[4],\
+	                             (Phase_e)buff->buff[5],\
+	                             (Color_e)buff->buff[6]);
+		// 保存配置
+	single_save_config_to_flash();	
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }

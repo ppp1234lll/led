@@ -809,6 +809,7 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 	if ( strcmp(pcValue[0] , "single_clear")==0 ) {
 		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
 		single_clear_config_function();
+		single_clear_timing_function();
 		return 0;
 	}
 		

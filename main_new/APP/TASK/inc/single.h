@@ -57,21 +57,30 @@ typedef enum {
 } Direction_e;
 
 /*********************************************************************************************************
+* 道路类型枚举
+*********************************************************************************************************/
+typedef enum {
+    ROAD_MAIN = 0,   // 主道
+    ROAD_AUXILIARY,  // 辅道
+    ROAD_MAX         // 道路类型总数
+} RoadType_e;
+
+/*********************************************************************************************************
 * 相位枚举
 *********************************************************************************************************/
 typedef enum {
-	PHASE_LEFT = 0,  // 左转向
-	PHASE_STRAIGHT,  // 直行车
-	PHASE_RIGHT,     // 右转向
-	PHASE_PERSON1,   // 行人灯
-	PHASE_PERSON2,   // 行人灯
-	PHASE_NONMOTOR1, // 非机动车灯 
-	PHASE_NONMOTOR2, // 非机动车灯
-	PHASE_COUNTDOWN, // 倒计时  
-	PHASE_VARIABLE,  // 可变车道
-	PHASE_WATE,      // 待行
-	PHASE_SERVICE,   // 辅道
-	PHASE_MAX        // 相位总数
+	PHASE_LEFT = 0,      // 左转
+	PHASE_STRAIGHT,      // 直行
+	PHASE_RIGHT,         // 右转
+	PHASE_PERSON1,       // 人行1
+	PHASE_PERSON2,       // 人行2
+	PHASE_NONMOTOR1,     // 非机动车1
+	PHASE_NONMOTOR2,     // 非机动车2
+	PHASE_U_TURN,        // 掉头
+	PHASE_VARIABLE,      // 可变
+	PHASE_REVERSE,       // 逆向
+	PHASE_TIDAL,         // 潮汐
+	PHASE_MAX            // 相位总数
 } Phase_e;
 
 /*********************************************************************************************************
@@ -134,11 +143,20 @@ typedef struct {
 
 /*
 *********************************************************************************************************
-* 方向灯结构定义：包含9个相位
+* 道路灯结构定义：主道/辅道各包含相位
 *********************************************************************************************************
 */
 typedef struct {
-    PhaseLight_t *p_phase[PHASE_MAX]; // 指向9个相位的指针数组
+    PhaseLight_t *p_phase[PHASE_MAX]; // 指向多个相位的指针数组
+} RoadLight_t;
+
+/*
+*********************************************************************************************************
+* 方向灯结构定义：北/东/南/西各包含道路类型
+*********************************************************************************************************
+*/
+typedef struct {
+    RoadLight_t *p_road[ROAD_MAX]; // 指向主道/辅道的指针数组
 } DirectionLight_t;
 
 /*
@@ -152,7 +170,7 @@ typedef struct {
 
 /*
 *********************************************************************************************************
-* 信号灯总结构：包含类型+方向+相位+颜色
+* 信号灯总结构：包含类型+方向+道路+相位+颜色
 *********************************************************************************************************
 */
 typedef struct {
@@ -171,12 +189,13 @@ typedef struct __attribute__((aligned(4)))
 	uint8_t ch;                 // 通道号
 	Type_e p_type;              // 灯类型
 	Direction_e p_dir;          // 方向
+	RoadType_e p_road;          // 道路类型
 	Phase_e p_phase;            // 相位
 	Color_e p_color;            // 颜色
 } ConfigItem_t;
 
 // 最大配置项数量
-#define MAX_CONFIG_ITEMS (Type_MAX*DIR_MAX*PHASE_MAX*COLOR_MAX)
+#define MAX_CONFIG_ITEMS (Type_MAX*DIR_MAX*ROAD_MAX*PHASE_MAX*COLOR_MAX)
 
 /*********************************************************************************************************
 * 配置数据结构（用于保存到FLASH）
@@ -193,7 +212,7 @@ typedef struct __attribute__((aligned(4)))
 *********************************************************************************************************/
 typedef struct __attribute__((aligned(4)))
 {
-	float current[CTD_MAX][Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX]; 
+	float current[CTD_MAX][Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX]; 
 } CurrentData_t;
 
 /*********************************************************************************************************
@@ -206,8 +225,30 @@ typedef struct __attribute__((aligned(4)))
 typedef struct __attribute__((aligned(4)))
 {
     uint32_t timing_count;                      // 配时项数量
-    uint8_t times[MAX_TIMING_ITEMS][Type_MAX][DIR_MAX][PHASE_MAX][COLOR_MAX]; // 配时时间（秒）
+    uint8_t times[MAX_TIMING_ITEMS][Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX]; // 配时时间（秒）
 } TimingData_t;
+
+// 定义错误码
+typedef struct __attribute__((aligned(4)))
+{
+	uint8_t fault;
+	uint8_t type;
+	uint8_t dir;
+	uint8_t road;
+	uint16_t phase;
+	uint8_t color;
+} ErrorCode_t;
+
+typedef enum {
+	LED_NORMAL = 0,
+	LED_ALL_NO_LIGHT ,  
+	LED_PART_NO_LIGHT,   
+	LED_RED_GREEN_SAME_LIGHT,   
+	LED_SINGLE_NO_LIGHT,   
+	LED_SINGLE_PART_LIGHT,  
+
+} LedError_e;         
+
 
 /*********************************************************************************************************
 * 函数声明
@@ -236,16 +277,17 @@ int single_load_current_from_flash(void);
 int single_save_config_to_flash(void);
 int single_load_config_from_flash(void);
 void single_clear_config_function(void);
-void single_record_config(ParamType_e param_type, 
-			uint8_t board_id, uint8_t ch, 
-			Type_e p_type, Direction_e p_dir, 
-			Phase_e p_phase, Color_e p_color);
+void single_record_config(ParamType_e param_type,
+					uint8_t board_id, uint8_t ch, 
+					Type_e p_type, Direction_e p_dir, 
+					RoadType_e p_road, Phase_e p_phase, Color_e p_color);
 void Single_Bind_InpuToTraffic(ParamType_e param_type, 
-															 uint8_t board_id,uint8_t ch,	
-															 Type_e p_type,Direction_e p_dir, 
-															 Phase_e p_phase,Color_e p_color);
+							uint8_t board_id,uint8_t ch,	
+							Type_e p_type,Direction_e p_dir, 
+							RoadType_e p_road,Phase_e p_phase,Color_e p_color);
 
 // 配时管理函数
+void single_clear_timing_function(void);
 int single_save_timing_to_flash(void);
 int single_load_timing_from_flash(void);
 void single_timing_assign_function(void);
@@ -273,15 +315,16 @@ int single_check_signal_led_status(void);
 // 相位灯状态检查函数
 uint32_t single_check_phase_red_green_simultaneous(void);
 uint8_t single_led_check_all_off(void);
-int single_check_signal_status(uint8_t *fault_type,uint8_t *fault_dir);
+ErrorCode_t single_check_signal_status(void);
+
 
 
 void single_current_times_recalculate(void);
 
 
 // 测试函数
+void single_light_channel_config_test(void);
 void single_ch2_light_timer_run(void);
-void single_non_motor_vehicle_test(void); // 非机动车测试函数
 void single_non_motor_update_current_test(void);
 void single_non_motor_calculate_current_average_test(void);
 
