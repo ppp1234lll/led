@@ -311,10 +311,8 @@ void single_recv_board_data_3(uint8_t *data, uint8_t len);
 // 故障检测函数
 void single_led_fault_detection_task(void);
 
-int single_check_signal_led_status(void);
 // 相位灯状态检查函数
-uint32_t single_check_phase_red_green_simultaneous(void);
-uint8_t single_led_check_all_off(void);
+ErrorCode_t single_check_phase_red_green_simultaneous(void);
 ErrorCode_t single_check_signal_status(void);
 
 

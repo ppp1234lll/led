@@ -18,8 +18,10 @@
 #define RECV_END_BYTE2 (0xFF) 	 
 		
 
-#define SINGLE_C_T_RECAL_TIME  1200 //3600 // 1H = 60min*60s
-#define SINGLE_C_T_SAVE_TIME   600 //3600 // 1H = 60min*60s
+#define SINGLE_C_T_RECAL_TIME  	1200 //3600 // 1H = 60min*60s
+#define SINGLE_C_T_SAVE_TIME		600 //3600 // 1H = 60min*60s
+
+#define STARTUP_CHECK_DELAY_MS	600  // 5MIN * 60S * 10
 
 // 创建信号量
 SemaphoreHandle_t xSemaphore_CT_Recal;
@@ -171,6 +173,7 @@ void single_task_function(void)
 {
 
 	printf("run single\n");
+	uint16_t fault_detection_started = 0;	// 标记是否已经开始故障检测
 	uint8_t index;
    
 	single_led_init_memory();
@@ -188,6 +191,7 @@ void single_task_function(void)
 	// 发送信号量
 	xSemaphoreGive(xSemaphore_CT_Recal);
 	
+	
 	while(1)
 	{
 		for(index = 0;index<BOARD_MAX;index++)
@@ -198,8 +202,8 @@ void single_task_function(void)
 		
 		// 测试
 //		single_ch2_light_timer_run();
-		// single_non_motor_update_current_test();
-		// single_non_motor_calculate_current_average_test();
+//		single_non_motor_update_current_test();
+//		single_non_motor_calculate_current_average_test();
 
 		// 测试运行时间（1ms内）
 		start_code_time = bsp_GetRunTime();
@@ -211,12 +215,17 @@ void single_task_function(void)
 		// 电流、配时检测任务
 		single_current_times_detect_task();
 
-		single_led_fault_detection_task(); // 故障检测任务
-
+		fault_detection_started++;
+		if (fault_detection_started >= STARTUP_CHECK_DELAY_MS)
+		{		
+			fault_detection_started = STARTUP_CHECK_DELAY_MS;
+			single_led_fault_detection_task(); // 故障检测任务
+		}
+		
 		end_code_time = bsp_GetRunTime();
 		run_code_time = end_code_time - start_code_time;
-		iwdg_feed();         		
-		vTaskDelay(100);     	  	
+		iwdg_feed();          		
+		vTaskDelay(100);      	   	
 	}
 }
 
@@ -1415,46 +1424,67 @@ void single_current_times_detect_task(void)
 
 void single_led_fault_detection_task(void)
 {
-	static ErrorCode_t last_fault_flag = {0};
+	static ErrorCode_t led_off_fault = {0}; // 全灭故障
+	static ErrorCode_t led_rg_fault = {0};  // 红绿同时亮故障
 	ErrorCode_t fault_flag = {0};
-	uint8_t state_changed = 0;
-	
+	uint8_t led_off_state = 0;
+	uint8_t led_rg_state = 0;
+
 	// 1、信号灯全灭、单方向信号灯不亮
-	// single_led_check_all_off();
 	fault_flag = single_check_signal_status();
-	
 	// 检查故障状态是否改变
-	if (fault_flag.fault != last_fault_flag.fault ||
-		fault_flag.type != last_fault_flag.type ||
-		fault_flag.dir != last_fault_flag.dir)
+	if (fault_flag.fault != led_off_fault.fault ||
+		fault_flag.type != led_off_fault.type ||
+		fault_flag.dir != led_off_fault.dir)
 	{
-		state_changed = 1;
+		led_off_state = 1;
 	}
 	
 	if (fault_flag.fault & (1<<LED_ALL_NO_LIGHT))
 	{
 		// 所有灯全灭，添加故障标志
-		if (state_changed)
+		if (led_off_state)
 		{
+			app_report_information_immediately();
 			printf("led_all_off\n");
 		}
-		// TrafficFault_Set(0,0,0,0,0x0f);
 	}
 	else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
 	{
 		// 单方向信号灯不亮，添加故障标志
-		if (state_changed)
+		if (led_off_state)
 		{
+			app_report_information_immediately();
 			printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
 		}
-		// TrafficFault_Set(0,0,0,0,0x0f);
 	}
 	else
 	{
-	}
-	
+	}	
 	// 更新上一次的故障状态
-	last_fault_flag = fault_flag;
+	led_off_fault = fault_flag;
+
+	// 2、检查相位红绿同时亮
+	fault_flag = single_check_signal_status();
+	// 检查故障状态是否改变
+	if (fault_flag.type != led_rg_fault.type ||
+		fault_flag.dir != led_rg_fault.dir ||
+		fault_flag.road != led_rg_fault.road ||
+		fault_flag.phase != led_rg_fault.phase)
+	{
+		led_rg_state = 1;
+	}
+
+	if (fault_flag.fault & (1<<LED_RED_GREEN_SAME_LIGHT))
+	{
+		if (led_rg_state)
+		{
+			app_report_information_immediately();
+			printf("led_phase_rg_simultaneous: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
+		}
+	}
+	// 更新上一次的故障状态
+	led_rg_fault = fault_flag;
 }
 
 /*********************************************************************************************************
@@ -1545,6 +1575,10 @@ ErrorCode_t single_check_signal_status(void)
 				error_code.phase = 0;
 				error_code.color = 0;
 			}
+			else 
+			{
+				TrafficFault_Clear(TRAFFIC_PART_NO_LIGHT, type, dir, 0, 0, 0);
+			}
 		}
 	}
 	
@@ -1552,13 +1586,23 @@ ErrorCode_t single_check_signal_status(void)
 	if (light_all_off)
 	{
 		error_code.fault |= 1<<LED_ALL_NO_LIGHT;
+		TrafficFault_Set(TRAFFIC_ALL_NO_LIGHT,0,0,0,0,0);
+		// 清除所有的方向不亮故障
+		for (type = FAR; type < Type_MAX; type++) 
+		{
+			for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+			{
+				TrafficFault_Clear(TRAFFIC_PART_NO_LIGHT, type, dir, 0, 0, 0);
+			}
+		}
+	}
+	else
+	{
+		TrafficFault_Clear(TRAFFIC_ALL_NO_LIGHT,0,0,0,0,0);
 	}
 
 	return error_code;
 }
-
-
-
 
 
 /*********************************************************************************************************
@@ -1572,7 +1616,7 @@ ErrorCode_t single_check_signal_status(void)
 *           位14-15对应类型0-1（保留）
 *********************************************************************************************************
 */
-uint32_t single_check_phase_red_green_simultaneous(void)
+ErrorCode_t single_check_phase_red_green_simultaneous(void)
 {
 	Type_e type;
 	Direction_e dir;
@@ -1582,88 +1626,70 @@ uint32_t single_check_phase_red_green_simultaneous(void)
 	float green_current = 0.0f;
 	uint8_t red_on = 0;
 	uint8_t green_on = 0;
-	uint32_t fault_mask = 0;
-	
+	ErrorCode_t error_code = {0};	
+
 	// 遍历single_light结构检查每个相位
 	// 遍历所有灯类型：远灯/近灯
 	for (type = FAR; type < Type_MAX; type++) 
 	{
-		// 检查灯类型指针是否有效
-		if (single_light.p_light_type[type] == NULL)
-		{
-			continue;
-		}
-		
 		// 遍历所有方向：北/东/南/西
 		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
 		{
-			// 检查方向指针是否有效
-			if (single_light.p_light_type[type]->p_direction[dir] == NULL)
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
 			{
-				continue;
-			}
-			
-			// 遍历所有相位
-			for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
-			{
-				// 检查相位指针是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase] == NULL)
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
 				{
-					continue;
-				}
-				
-				// 初始化标志
-				red_on = 0;
-				green_on = 0;
-				
-				// 检查红灯是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED] != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current != NULL)	
-				{
-					// 读取红灯电流
-					red_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current;
-					// 电流大于等于0.1A认为灯亮
-					if (red_current >= 0.1f)
-					{
-						red_on = 1;
-					}
-				}
-				
-				// 检查绿灯是否有效
-				if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN] != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params != NULL &&
-					single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current != NULL)
-				{
-					// 读取绿灯电流
-					green_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current;
-					// 电流大于等于0.1A认为灯亮
-					if (green_current >= 0.1f)
-					{
-						green_on = 1;
-					}
-				}
-				
-				// 检查是否红绿同亮
-				if (red_on && green_on)
-				{
-					// 构建故障掩码
-					// 位0-11：相位
-					// 位12-13：方向
-					// 位14-15：类型
-					uint32_t current_fault = 0;
-					current_fault |= (1 << phase);                          // 相位位
-					current_fault |= ((uint32_t)dir << 12);                 // 方向位
-					current_fault |= ((uint32_t)type << 14);                // 类型位
+					// 初始化标志
+					red_on = 0;
+					green_on = 0;
 					
-					// 保存到故障掩码
-					fault_mask |= current_fault;
+					// 检查红灯是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current != NULL)	
+					{
+						// 读取红灯电流
+						red_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current;
+						// 电流大于等于10ma认为灯亮
+						if (red_current >= 10)
+						{
+							red_on = 1;
+						}
+					}
+					
+					// 检查绿灯是否有效
+					if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current != NULL)
+					{
+						// 读取绿灯电流
+						green_current = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current;
+						// 电流大于等于10ma认为灯亮
+						if (green_current >= 10)
+						{
+							green_on = 1;
+						}
+					}
+					
+					// 检查是否红绿同亮
+					if (red_on && green_on)
+					{
+						TrafficFault_Set(TRAFFIC_RED_GREEN_SAME_LIGHT, type, dir, road, phase, 0);
+
+						error_code.fault = 1<<LED_RED_GREEN_SAME_LIGHT;
+						error_code.type |= 1<<type;
+						error_code.dir |= 1<<dir;
+						error_code.road |= 1<<road;
+						error_code.phase |= 1<<phase;
+						error_code.color = 0;
+					}
+					else
+					{
+						TrafficFault_Clear(TRAFFIC_RED_GREEN_SAME_LIGHT, type, dir, road, phase, 0);
+					}
 				}
 			}
 		}
 	}
-	
-	return fault_mask;
+	return error_code;	
 }
 
 

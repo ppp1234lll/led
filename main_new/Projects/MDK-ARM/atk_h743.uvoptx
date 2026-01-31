@@ -250,6 +250,16 @@
           <WinNumber>1</WinNumber>
           <ItemText>last_fault_flag</ItemText>
         </Ww>
+        <Ww>
+          <count>17</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>g_err_item_count</ItemText>
+        </Ww>
+        <Ww>
+          <count>18</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>error_groups</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>

@@ -224,40 +224,6 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"MIU=%d;",alarm_get_miu_protec_status());
 	strcat((char*)data,(char*)str);
-
-	/** 交换机信息 **/
-//	snmp_t *switch_data = snmp_get_switch_data();
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"MODEL=%s;UPTIME=%d;",
-//										switch_data->device_model,switch_data->uptime_ticks);
-//	strcat((char*)data,(char*)str);  
-//	
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_STATUS=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_status[0],switch_data->port_status[1],\
-//											switch_data->port_status[2],switch_data->port_status[3],\
-//											switch_data->port_status[4],switch_data->port_status[5],\
-//											switch_data->port_status[6],switch_data->port_status[7],\
-//											switch_data->port_status[8],switch_data->port_status[9]);
-//	strcat((char*)data,(char*)str);
-
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_SPEED=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_speed[0],switch_data->port_speed[1],\
-//											switch_data->port_speed[2],switch_data->port_speed[3],\
-//											switch_data->port_speed[4],switch_data->port_speed[5],\
-//											switch_data->port_speed[6],switch_data->port_speed[7],\
-//											switch_data->port_speed[8],switch_data->port_speed[9]);
-//	strcat((char*)data,(char*)str);
-	
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_POE=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_poe[0],switch_data->port_poe[1],\
-//											switch_data->port_poe[2],switch_data->port_poe[3],\
-//											switch_data->port_poe[4],switch_data->port_poe[5],\
-//											switch_data->port_poe[6],switch_data->port_poe[7],\
-//											switch_data->port_poe[8],switch_data->port_poe[9]);
-//	strcat((char*)data,(char*)str);	
 	
 	/** 北斗定位信息只包含经纬度即可 */
 	atgm336h_data_t *gnss_data = atgm336h_get_gnss_data();
@@ -266,6 +232,10 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 										fabs(gnss_data->latitude),fabs(gnss_data->longitude));
 	strcat((char*)data,(char*)str);
 
+	uint8_t error_buf_str[1024] = {0};
+	Error_Get_Codesbuf(error_buf_str);
+	strcat((char*)data,(char*)error_buf_str);
+		
 	strcat((char*)data,"&&");
 	
 	/* 数据长度 */
