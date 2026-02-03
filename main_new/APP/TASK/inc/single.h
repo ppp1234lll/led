@@ -212,7 +212,7 @@ typedef struct __attribute__((aligned(4)))
 *********************************************************************************************************/
 typedef struct __attribute__((aligned(4)))
 {
-	float current[CTD_MAX][Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX]; 
+	float current[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX][CTD_MAX]; 
 } CurrentData_t;
 
 /*********************************************************************************************************
@@ -305,16 +305,13 @@ void single_recv_board_data_2(uint8_t *data, uint8_t len);
 void single_recv_board_data_3(uint8_t *data, uint8_t len);
  
 
-
-
-
 // 故障检测函数
 void single_led_fault_detection_task(void);
 
 // 相位灯状态检查函数
-ErrorCode_t single_check_phase_red_green_simultaneous(void);
 ErrorCode_t single_check_signal_status(void);
-
+ErrorCode_t single_check_single_light_status(void);
+ErrorCode_t single_check_phase_red_green_simultaneous(void);
 
 
 void single_current_times_recalculate(void);
@@ -325,6 +322,7 @@ void single_light_channel_config_test(void);
 void single_ch2_light_timer_run(void);
 void single_non_motor_update_current_test(void);
 void single_non_motor_calculate_current_average_test(void);
+ErrorCode_t single_check_single_light_status_test(void);
 
 
 #endif

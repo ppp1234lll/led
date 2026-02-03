@@ -1228,11 +1228,8 @@ static int http_update_parse_crc_bin_data(void)
 
 	// 保存这块数据
 	write_addr = UPDATA_SPIFLASH_ADDR + (sg_http_update_param.section_current * sg_http_update_param.section_len);
-	taskENTER_CRITICAL();// 关中断
-	{
-		sf_WriteBuffer(body_pt, write_addr, sg_http_update_param.section_len);
-	}
-	taskEXIT_CRITICAL();// 开中断
+
+	sf_WriteBuffer(body_pt, write_addr, sg_http_update_param.section_len);
 
 	(sg_http_update_param.section_current)++;
 
@@ -1250,11 +1247,7 @@ void http_update_success_reboot(void)
 	boot_update_param.section_count = sg_http_update_param.section_total;
 	boot_update_param.section_size = sg_http_update_param.section_len;
 
-	taskENTER_CRITICAL();// 关中断
-	{
-		sf_WriteBuffer((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
-	}
-	taskEXIT_CRITICAL();// 开中断
+	sf_WriteBuffer((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 
 	lfs_unmount(&g_lfs_t);
 

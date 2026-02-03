@@ -1,5 +1,4 @@
 #include "./USER/inc/error.h"
-#include "stdbool.h"
 #include "stdint.h"
 #include "string.h"
 #include "stdio.h"
@@ -127,8 +126,7 @@ int8_t Error_Get_Codesbuf(uint8_t* codes)
 	if (codes == NULL) return -1;
 	
 	uint8_t err_count = 0;
-  uint8_t buf[16] = {0};
-	uint16_t str_pos = 0;
+	uint8_t buf[16] = {0};
 
 	// 计算故障数量
 	for (uint8_t group = 0; group < ERR_MAX; group++) 
@@ -144,8 +142,6 @@ int8_t Error_Get_Codesbuf(uint8_t* codes)
 	// 写入故障码
 	if (err_count > 0)
 	{
-		uint8_t code_index = 0;
-		
 		// 遍历所有组
 		for (uint8_t group = 0; group < ERR_MAX; group++) 
 		{
@@ -161,8 +157,6 @@ int8_t Error_Get_Codesbuf(uint8_t* codes)
 				// 将故障码转换为字符串
 				sprintf((char*)buf, "%08X", g_err_item_status[group][i]);
 				strcat((char*)codes,(char*)buf);
-				
-				code_index++;
 			}
 		}
 	}

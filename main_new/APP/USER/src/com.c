@@ -157,10 +157,10 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	strcat((char*)data,(char*)str);
 	/** Êª¶È¡¢ÎÂ¶È **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str, "H=%.2f;", det_get_inside_humi(0)); 
+	sprintf((char*)str, "H=%.2f,%.2f;", det_get_inside_humi(0), det_get_inside_humi(1)); 
 	strcat((char*)data,(char*)str);
 	memset(str,0,sizeof(str));
-	sprintf((char*)str, "T=%.2f;", det_get_inside_temp(1)); 
+	sprintf((char*)str, "T=%.2f,%.2f;", det_get_inside_temp(0), det_get_inside_temp(1)); 
 	strcat((char*)data,(char*)str);	
 	/** ÃÅ×´Ì¬¡¢ÏäÌå×ËÌ¬¡¢·ÀÀ××´Ì¬ **/
 	memset(str,0,sizeof(str));

@@ -207,7 +207,7 @@ static void DeviceRstReason(void)
 */
 static void read_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 {
-//	read_boot_update_param((uint8_t*)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+	sf_ReadBuffer((uint8_t*)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 }
 
 /*
@@ -220,7 +220,7 @@ static void read_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 */
 static void write_boot_update_param(struct BOOT_UPDATE_PARAM *boot_update_param)
 {
-//	sf_WriteBuffer((uint8_t *)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+	sf_WriteBuffer((uint8_t *)boot_update_param, UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
 }
 
 

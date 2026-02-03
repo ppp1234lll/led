@@ -1427,11 +1427,9 @@ void single_led_fault_detection_task(void)
 {
 	static ErrorCode_t led_off_fault = {0}; // 全灭故障
 	static ErrorCode_t led_rg_fault = {0};  // 红绿同时亮故障
-	static ErrorCode_t led_single_fault = {0};  // 单个灯故障	
 	ErrorCode_t fault_flag = {0};
 	uint8_t led_off_state = 0;
 	uint8_t led_rg_state = 0;
-	uint8_t led_single_state = 0;
 
 	// 1、信号灯全灭、单方向信号灯不亮
 	fault_flag = single_check_signal_status();
@@ -1442,24 +1440,28 @@ void single_led_fault_detection_task(void)
 	{
 		led_off_state = 1;
 	}
-	if (led_off_state)
-	{	
-		led_off_state = 0;
-		if (fault_flag.fault & (1<<LED_ALL_NO_LIGHT))
+	
+	if (fault_flag.fault & (1<<LED_ALL_NO_LIGHT))
+	{
+		// 所有灯全灭，添加故障标志
+		if (led_off_state)
 		{
-			// 所有灯全灭，添加故障标志
 			app_report_information_immediately();
 			// printf("led_all_off\n");
 		}
-		else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
+	}
+	else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
+	{
+		// 单方向信号灯不亮，添加故障标志
+		if (led_off_state)
 		{
 			app_report_information_immediately();
 			// printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
 		}
-		else
-		{
-		}	
 	}
+	else
+	{
+	}	
 	// 更新上一次的故障状态
 	led_off_fault = fault_flag;
 
@@ -1473,10 +1475,10 @@ void single_led_fault_detection_task(void)
 	{
 		led_rg_state = 1;
 	}
-	if (led_rg_state)
+
+	if (fault_flag.fault & (1<<LED_RED_GREEN_SAME_LIGHT))
 	{
-		led_rg_state = 0;
-		if (fault_flag.fault & (1<<LED_RED_GREEN_SAME_LIGHT))
+		if (led_rg_state)
 		{
 			// app_report_information_immediately();
 			printf("rg_sim: 0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase);
@@ -1484,29 +1486,6 @@ void single_led_fault_detection_task(void)
 	}
 	// 更新上一次的故障状态
 	led_rg_fault = fault_flag;
-
-	// 3、检查单个灯状态-全灭、部分亮
-	fault_flag = single_check_single_light_status();
-	// 检查故障状态是否改变
-	if (fault_flag.fault != led_single_fault.fault ||
-		fault_flag.type != led_single_fault.type ||
-		fault_flag.dir != led_single_fault.dir ||
-		fault_flag.road != led_single_fault.road ||
-		fault_flag.phase != led_single_fault.phase ||
-		fault_flag.color != led_single_fault.color)
-	{
-		led_single_state = 1;
-	}
-	if (led_single_state)
-	{
-		led_single_state = 0;
-		if (fault_flag.fault & (1<<LED_SINGLE_NO_LIGHT))
-		{
-			// app_report_information_immediately();
-			// printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
-		}
-	}
-	led_single_fault = fault_flag;
 }
 
 /*********************************************************************************************************
@@ -1793,12 +1772,8 @@ typedef struct {
 CurrentCheckState_t single_check_state[Type_MAX][DIR_MAX][ROAD_MAX][PHASE_MAX][COLOR_MAX] = {0};
 
 // 定义电流阈值
-#define CURRENT_THRESHOLD_1 40.0f  // 电流阈值1
+#define CURRENT_THRESHOLD_1 10.0f  // 电流阈值1
 #define CURRENT_THRESHOLD_2 50.0f  // 电流阈值2
-#define LED_VOLTAGE_LOW_DELAY_TIME1 600  // 低电平跳变后等待时间1，单位毫秒
-#define LED_VOLTAGE_LOW_DELAY_TIME2 1500  // 低电平跳变后等待时间2，单位毫秒
-#define LED_PULSE_DELAY_TIME 		3000  // 脉冲信号后等待时间，单位毫秒
-#define LED_VOLTAGE_HIGH_DELAY_TIME 500  // 高电平跳变后等待时间，单位毫秒
 
 ErrorCode_t single_check_single_light_status(void)
 {
@@ -1807,17 +1782,14 @@ ErrorCode_t single_check_single_light_status(void)
 	RoadType_e road;
 	Phase_e phase;
 	Color_e color;
-
 	uint8_t voltage_value;
 	float current_value;
 	uint8_t pulse_value = 0;
 	uint32_t current_time = bsp_GetRunTime();
-	uint32_t transition_time = 0;
+	const uint32_t TRANSITION_TIME = 1000; // 切换过程时间，单位毫秒
+	const uint32_t PULSE_WAIT_TIME = 5000; // 脉冲检测后等待时间，单位毫秒
 	ErrorCode_t error_code = {0};
-	float current_threshold[CTD_MAX] = {CURRENT_THRESHOLD_1, CURRENT_THRESHOLD_2}; // 电流判断阈值
 
-	uint32_t test_time[3] = {0};
-	
 	for (type = FAR; type < Type_MAX; type++)
 	{
 		for (dir = DIR_NORTH; dir < DIR_MAX; dir++)
@@ -1829,31 +1801,36 @@ ErrorCode_t single_check_single_light_status(void)
 					for (color = COLOR_RED; color < COLOR_MAX; color++)
 					{
 						if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage == NULL ||
-							single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current == NULL ||
-							single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse == NULL)
+							single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current == NULL)
 						{
 							continue;
 						}
 
 						voltage_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage;
 						current_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current;
-						pulse_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse;
 
-						// 检测脉冲信号跳变
-						if (single_check_state[type][dir][road][phase][color].pulse_state.prev == 0 && pulse_value == 1)
+						// 读取脉冲值
+						if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse != NULL)
 						{
-							// 记录脉冲检测开始时间
-							single_check_state[type][dir][road][phase][color].pulse_state.detect_time = bsp_GetRunTime();
-							single_check_state[type][dir][road][phase][color].pulse_state.detected = 1; 
+							pulse_value = *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse;
+
+							// 检测脉冲跳变
+						if (p_state[type][dir][road][phase][color].p_prev != 255 && 
+							p_state[type][dir][road][phase][color].p_prev != pulse_value)
+						{
+							p_state[type][dir][road][phase][color].p_detected = 1;
+							p_state[type][dir][road][phase][color].p_detect_time = current_time;
+							p_state[type][dir][road][phase][color].p_wait = 1;
 						}
-						single_check_state[type][dir][road][phase][color].pulse_state.prev = pulse_value;// 更新上一次的脉冲值
+
+						// 更新前一次脉冲状态
+						p_state[type][dir][road][phase][color].p_prev = pulse_value;
+						}
 
 						// 检查是否在脉冲检测后的等待期内
-						if (single_check_state[type][dir][road][phase][color].pulse_state.detected)	
+						if (p_state[type][dir][road][phase][color].p_wait)
 						{
-							current_time = bsp_GetRunTime();
-							test_time[0] = current_time;
-							if (current_time - single_check_state[type][dir][road][phase][color].pulse_state.detect_time < LED_PULSE_DELAY_TIME)
+							if (current_time - p_state[type][dir][road][phase][color].p_detect_time < PULSE_WAIT_TIME)
 							{
 								// 在等待期内，跳过检测
 								continue;
@@ -1861,113 +1838,72 @@ ErrorCode_t single_check_single_light_status(void)
 							else
 							{
 								// 等待期结束，重置状态
-								single_check_state[type][dir][road][phase][color].cur_ctd_type = CTD_SINGLE_CTD;
-								single_check_state[type][dir][road][phase][color].pulse_state.detected = 0;
+								p_state[type][dir][road][phase][color].p_detected = 0;
+								p_state[type][dir][road][phase][color].p_wait = 0;
 							}
 						}
-						else 
+
+						// 检测电压变化
+						uint8_t in_transition = 0;
+						
+						if (v_state[type][dir][road][phase][color].v_prev != 255 && 
+							v_state[type][dir][road][phase][color].v_prev != voltage_value)
 						{
-							// 判断电平跳变
-							if(single_check_state[type][dir][road][phase][color].voltage_state.prev != voltage_value)
+							v_state[type][dir][road][phase][color].v_change_time = current_time;
+							v_state[type][dir][road][phase][color].v_changed = 1;
+						}
+						
+						// 检查是否在切换过程中
+						if (v_state[type][dir][road][phase][color].v_changed)
+						{
+							if (current_time - v_state[type][dir][road][phase][color].v_change_time < TRANSITION_TIME)
 							{
-								// 低电平跳变 0 -> 1
-								if (single_check_state[type][dir][road][phase][color].voltage_state.prev == 0 && 
-									voltage_value == 1)
-								{
-									single_check_state[type][dir][road][phase][color].voltage_state.low_change_time = bsp_GetRunTime(); 
-									single_check_state[type][dir][road][phase][color].voltage_state.low_changed = 1;
-								} 
-								// 高电平跳变 1 -> 0
-								if (single_check_state[type][dir][road][phase][color].voltage_state.prev == 1 && 
-									voltage_value == 0)
-								{
-									single_check_state[type][dir][road][phase][color].voltage_state.high_change_time = bsp_GetRunTime(); 
-									single_check_state[type][dir][road][phase][color].voltage_state.high_changed = 1;
-								} 
-								single_check_state[type][dir][road][phase][color].voltage_state.prev = voltage_value;
+								in_transition = 1;
 							}
-							// 低电平跳变后延时1.5秒判断
-							if (single_check_state[type][dir][road][phase][color].voltage_state.low_changed == 1)
+							else
 							{
-								current_time = bsp_GetRunTime();
-								transition_time = current_time - single_check_state[type][dir][road][phase][color].voltage_state.low_change_time;
-								test_time[1] = current_time;
-								if((transition_time >= LED_VOLTAGE_LOW_DELAY_TIME2)&&(voltage_value == 1))
-								{
-									single_check_state[type][dir][road][phase][color].cur_ctd_type = CTD_SINGLE;	
-									single_check_state[type][dir][road][phase][color].voltage_state.low_changed = 0;
-								}
-								else
-								{
-									continue;
-								}
+								v_state[type][dir][road][phase][color].v_changed = 0;
 							}
-							
-							// 检查是否在切换过程中
-							if (single_check_state[type][dir][road][phase][color].voltage_state.high_changed == 1)
+						}
+						
+						// 更新电压状态
+						v_state[type][dir][road][phase][color].v_prev = voltage_value;
+						
+						// 在切换过程中不进行判断
+						if (!in_transition)
+						{
+							if (voltage_value == 0 && current_value <= CURRENT_THRESHOLD_1)
 							{
-								current_time = bsp_GetRunTime();
-								test_time[2] = current_time;
-								if((current_time - single_check_state[type][dir][road][phase][color].voltage_state.high_change_time >= 1500) &&(voltage_value == 0))
-								{
-									single_check_state[type][dir][road][phase][color].voltage_state.high_changed = 0;
-
-								}
-								else
-								{
-									// 在等待期内，跳过检测
-									continue;									
-								}
+								error_code.fault |= 1<<LED_SINGLE_NO_LIGHT;
+								error_code.type |= 1<<type;
+								error_code.dir |= 1<<dir;
+								error_code.road |= 1<<road;
+								error_code.phase |= 1<<phase;
+								error_code.color |= 1<<color;
+								TrafficFault_Set(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
 							}
-							else 
+							else if (voltage_value == 0 && (current_value > CURRENT_THRESHOLD_1 && current_value < CURRENT_THRESHOLD_2))
 							{
-								if(voltage_value == 0)
-								{
-									// current_threshold 电流判断阈值小于阈值*25%为不亮，25%-60%为部分灯亮，60%以上为全灯亮
-									if ( current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.25f)
-									{
-										printf("led_no_light: %d,%f,%d\n",color,current_value,voltage_value);
-										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
-										error_code.fault |= 1<<LED_SINGLE_NO_LIGHT;
-										error_code.type |= 1<<type;
-										error_code.dir |= 1<<dir;
-										error_code.road |= 1<<road;
-										error_code.phase |= 1<<phase;
-										error_code.color |= 1<<color;
-										TrafficFault_Set(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
-
-									}
-									else if (current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.6f)
-									{
-										printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
-										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
-										error_code.fault |= 1<<LED_SINGLE_PART_LIGHT;
-										error_code.type |= 1<<type;
-										error_code.dir |= 1<<dir;
-										error_code.road |= 1<<road;
-										error_code.phase |= 1<<phase;
-										error_code.color |= 1<<color;
-										TrafficFault_Set(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
-
-									}
-									else if (current_value > current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*2)
-									{
-//										printf("led_light: %d,%f,%d\n",color,current_value,voltage_value);
-										TrafficFault_Clear(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
-										TrafficFault_Clear(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
-									}	
-								}		
-							}			
+								error_code.fault |= 1<<LED_SINGLE_PART_LIGHT;
+								error_code.type |= 1<<type;
+								error_code.dir |= 1<<dir;
+								error_code.road |= 1<<road;
+								error_code.phase |= 1<<phase;
+								error_code.color |= 1<<color;
+								TrafficFault_Set(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
+							}
+							else
+							{
+								TrafficFault_Clear(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
+								TrafficFault_Clear(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
+							}
 						}
 					}
 				}
 			}
 		}
 	}
+
 	return error_code;
 }
 
@@ -2279,16 +2215,35 @@ void single_non_motor_calculate_current_average_test(void)
 *********************************************************************************************************
 */
 
+// 定义电压结构体
+typedef struct {
+	uint8_t prev;   
+	uint32_t high_change_time;
+	uint8_t high_changed;
+	uint32_t low_change_time;
+	uint8_t low_changed;
+} TestVoltageState_t;
+
+// 定义脉冲结构体
+typedef struct {
+	uint8_t prev;     // 前一次脉冲状态
+	uint32_t detect_time; // 脉冲检测开始时间
+	uint8_t detected;
+} TestPulseState_t;
+
 // 定义测试电压状态结构体
 typedef struct {
 	VoltageState_t voltage_state;
-	PulseState_t pulse_state;
+	TestPulseState_t pulse_state;
 	CtdType_e cur_ctd_type;	// 目标类型，保持状态
 } TestCheckState_t;
 
 // 全局测试电压状态
 TestCheckState_t test_voltage_state[COLOR_MAX] = {0};
 
+// 定义电流阈值
+#define CURRENT_THRESHOLD_1 40.0f  // 电流阈值1
+#define CURRENT_THRESHOLD_2 40.0f  // 电流阈值2
 
 ErrorCode_t single_check_single_light_status_test(void)
 {
@@ -2342,29 +2297,26 @@ ErrorCode_t single_check_single_light_status_test(void)
 		}
 		else 
 		{
-			// 判断电平跳变
-			if(test_voltage_state[color].voltage_state.prev != voltage_value)
+			// 低电平跳变 0 -> 1
+			if (test_voltage_state[color].voltage_state.prev == 0 && 
+				voltage_value == 1)
 			{
-				// 低电平跳变 0 -> 1
-				if (test_voltage_state[color].voltage_state.prev == 0 && 
-					voltage_value == 1)
-				{
-					test_voltage_state[color].voltage_state.low_change_time = bsp_GetRunTime(); 
-					test_voltage_state[color].voltage_state.low_changed = 1;
-				} 
-				// 高电平跳变 1 -> 0
-				if (test_voltage_state[color].voltage_state.prev == 1 && 
-					voltage_value == 0)
-				{
-					test_voltage_state[color].voltage_state.high_change_time = bsp_GetRunTime(); 
-					test_voltage_state[color].voltage_state.high_changed = 1;
-				} 
-				test_voltage_state[color].voltage_state.prev = voltage_value;
-			}
+				test_voltage_state[color].voltage_state.low_change_time = current_time; 
+				test_voltage_state[color].voltage_state.low_changed = 1;
+			} 
+			// 高电平跳变 1 -> 0
+			if (test_voltage_state[color].voltage_state.prev == 1 && 
+				voltage_value == 0)
+			{
+				test_voltage_state[color].voltage_state.high_change_time = current_time; 
+				test_voltage_state[color].voltage_state.high_changed = 1;
+			} 
+			test_voltage_state[color].voltage_state.prev = voltage_value;
+
 			// 低电平跳变后延时1.5秒判断
 			if (test_voltage_state[color].voltage_state.low_changed == 1)
 			{
-				transition_time = current_time - test_voltage_state[color].voltage_state.low_change_time;
+				transition_time = current_time - test_voltage_state[color].voltage_state.high_change_time;
 				if (transition_time < 600)
 				{
 					continue;
@@ -2399,19 +2351,19 @@ ErrorCode_t single_check_single_light_status_test(void)
 					// current_threshold 电流判断阈值小于阈值*25%为不亮，25%-60%为部分灯亮，60%以上为全灯亮
 					if ( current_value <= current_threshold[test_voltage_state[color].cur_ctd_type]*0.25f)
 					{
-						printf("led_no_light test: %d,%f,%d\n",color,current_value,voltage_value);
+						printf("led_no_light: %d,%f,%d\n",color,current_value,voltage_value);
 						error_code.fault |= 1<<LED_SINGLE_NO_LIGHT;
 						error_code.color |= 1<<color;
 					}
 					else if (current_value <= current_threshold[test_voltage_state[color].cur_ctd_type]*0.6f)
 					{
-						printf("led_part_light test: %d,%f,%d,%d\n",color,current_value,voltage_value,transition_time);
+						printf("led_part_light: %d,%f,%d,%d\n",color,current_value,voltage_value,transition_time);
 						error_code.fault |= 1<<LED_SINGLE_PART_LIGHT;
 						error_code.color |= 1<<color;
 					}
 					else if (current_value > current_threshold[test_voltage_state[color].cur_ctd_type]*2)
 					{
-//						printf("led_light: %d,%f,%d\n",color,current_value,voltage_value);
+						printf("led_light: %d,%f,%d\n",color,current_value,voltage_value);
 					}	
 				}		
 			}			
