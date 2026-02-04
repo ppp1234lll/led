@@ -184,7 +184,7 @@
 #define PING_DEBUG   				0
 #define COM_DEBUG    				0  
 #define ERROR_DEBUG  				0
-#define ENCRYPT_DEBUG     	0
+#define ENCRYPT_DEBUG               0
 
 /*
 *********************************************************************************************************

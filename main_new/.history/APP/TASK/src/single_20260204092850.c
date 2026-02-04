@@ -1463,12 +1463,12 @@ void single_led_fault_detection_task(void)
 		{
 			// 所有灯全灭，添加故障标志
 			app_report_information_immediately();
-			printf("led_all_off\n");
+			// printf("led_all_off\n");
 		}
 		else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
 		{
 			app_report_information_immediately();
-			printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
+			// printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
 		}
 		else
 		{
@@ -1517,7 +1517,7 @@ void single_led_fault_detection_task(void)
 		if (fault_flag.fault & (1<<LED_SINGLE_NO_LIGHT))
 		{
 			// app_report_information_immediately();
-			printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
+			// printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
 		}
 	}
 	led_single_fault = fault_flag;
@@ -1745,13 +1745,13 @@ ErrorCode_t single_check_phase_red_green_simultaneous(void)
 					// 检查是否红绿同亮，排除绿灯电压变化后的1秒内
 					if (red_on && green_on && !green_voltage_state[type][dir][road][phase].changed)
 					{
-						// printf("led_phase_rg_simultaneous: %d,%d,%d,%d\n",type,dir,road,phase);
-						// // 打印电流地址、大小
-						// printf("red_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current, red_current);
-						// printf("green_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current, green_current);
-						// // 打印电压
-						// printf("red_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage, *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage);
-						// printf("green_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->voltage, green_voltage);
+						printf("led_phase_rg_simultaneous: %d,%d,%d,%d\n",type,dir,road,phase);
+						// 打印电流地址、大小
+						printf("red_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current, red_current);
+						printf("green_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current, green_current);
+						// 打印电压
+						printf("red_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage, *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage);
+						printf("green_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->voltage, green_voltage);
 						
 						TrafficFault_Set(TRAFFIC_RED_GREEN_SAME_LIGHT, type, dir, road, phase, 0);
 						
@@ -1945,10 +1945,10 @@ ErrorCode_t single_check_single_light_status(void)
 									// current_threshold 电流判断阈值小于阈值*25%为不亮，25%-60%为部分灯亮，60%以上为全灯亮
 									if ( current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.25f)
 									{
-										// printf("led_no_light: %d,%d,%d,%d,%d,%f,%d\n",type,dir,road,phase,color,current_value,voltage_value);
-										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										// printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										// printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
+										printf("led_no_light: %d,%d,%d,%d,%d,%f,%d\n",type,dir,road,phase,color,current_value,voltage_value);
+										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
+										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
+										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
 										error_code.fault |= 1<<LED_SINGLE_NO_LIGHT;
 										error_code.type |= 1<<type;
 										error_code.dir |= 1<<dir;
@@ -1960,10 +1960,10 @@ ErrorCode_t single_check_single_light_status(void)
 									}
 									else if (current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.6f)
 									{
-										// printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
-										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										// printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										// printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
+										printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
+										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
+										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
+										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
 										error_code.fault |= 1<<LED_SINGLE_PART_LIGHT;
 										error_code.type |= 1<<type;
 										error_code.dir |= 1<<dir;
@@ -2310,76 +2310,23 @@ void single_report_config_function(uint8_t *data, uint16_t *len)
 	strcat((char*)data,(char*)str);
 
 	/** 配置数据信息 **/
-	// 格式：CF<index>=<param_type><board_id><channel><type><direction><road><phase><color>
-	// 例如：CF1=010AAAAA
-	// 只上报有配置的数据
+	// 格式：配置=参数类型+板号+通道+类型+方向+道路+相位+颜色
+	// 例如：CF1=010AAAAA;
 	for(uint32_t i=0; i<g_config_data.config_count; i++)
 	{
 		// 获取当前配置项
 		ConfigItem_t config_item = g_config_data.config_items[i];
 		
-		// 获取配置项的参数类型、板号、通道、类型、方向、道路、相位、颜色信息
-		uint8_t param_type = config_item.param_type; // 电压=1, 电流=0
-		uint8_t board_id = config_item.board_id; // 0-3
-		uint8_t channel = config_item.ch; // 0-11/0-23
-		uint8_t type = config_item.p_type; // 远灯=0, 近灯=1
-		uint8_t dir = config_item.p_dir; // 北=0, 东=1, 南=2, 西=3
-		uint8_t road = config_item.p_road; // 主道=0, 辅道=1
-		uint8_t phase = config_item.p_phase; // 左转=0, 直行=1, 右转=2, 人行1=3, 人行2=4, 非机动车1=5, 非机动车2=6, 掉头=7, 可变车道=8, 逆向可变=9, 潮汐车道=10
-		uint8_t color = config_item.p_color; // 红=0, 黄=1, 绿=2
+		char param_char = (config_item.param_type == PARAM_VOLTAGE) ? '1' : '0';
+		char board_char = '0' + config_item.board_id;
+		char type_char = (config_item.p_type == FAR) ? 'A' : 'B';
+		char dir_char = 'A' + config_item.p_dir;
+		char road_char = (config_item.p_road == ROAD_MAIN) ? 'A' : 'B';
+		char phase_char = 'A' + config_item.p_phase;
+		char color_char = 'A' + config_item.p_color;
 		
-		// 生成字符编码
-		// 类型：远灯A、近灯B
-		// 方向：北A、东B、南C、西D
-		// 道路：主道A、辅道B
-		// 相位：左转A、直行B、右转C、人行1D、人行2E、非机动车1F、非机动车2G、掉头H、可变车道I、逆向可变J、潮汐车道K
-		// 颜色：红A、黄B、绿C
-		char type_char = (type == 0) ? 'A' : 'B'; // 远灯A、近灯B
-		char dir_char = 'A'; // 默认北A
-		switch(dir)
-		{
-			case 0: dir_char = 'A'; break; // 北A
-			case 1: dir_char = 'B'; break; // 东B
-			case 2: dir_char = 'C'; break; // 南C
-			case 3: dir_char = 'D'; break; // 西D
-		}
-		char road_char = (road == 0) ? 'A' : 'B'; // 主道A、辅道B
-		char phase_char = 'A'; // 默认左转A
-		switch(phase)
-		{
-			case 0: phase_char = 'A'; break; // 左转A
-			case 1: phase_char = 'B'; break; // 直行B
-			case 2: phase_char = 'C'; break; // 右转C
-			case 3: phase_char = 'D'; break; // 人行1D
-			case 4: phase_char = 'E'; break; // 人行2E
-			case 5: phase_char = 'F'; break; // 非机动车1F
-			case 6: phase_char = 'G'; break; // 非机动车2G
-			case 7: phase_char = 'H'; break; // 掉头H
-			case 8: phase_char = 'I'; break; // 可变车道I
-			case 9: phase_char = 'J'; break; // 逆向可变J
-			case 10: phase_char = 'K'; break; // 潮汐车道K
-		}
-		char color_char = 'A'; // 默认红A
-		switch(color)
-		{
-			case 0: color_char = 'A'; break; // 红A
-			case 1: color_char = 'B'; break; // 黄B
-			case 2: color_char = 'C'; break; // 绿C
-		}
-		
-		// 生成配置字符串
 		memset(str,0,sizeof(str));
-		sprintf((char*)str,"CF%d=%d%d%d%c%c%c%c%c;", 
-				(i+1), // 索引从1开始
-				param_type, // 参数类型：电压=1, 电流=0
-				board_id, // 板号：0-3
-				channel, // 通道：0-11/0-23
-				type_char, // 类型：远灯A、近灯B
-				dir_char, // 方向：北A、东B、南C、西D
-				road_char, // 道路：主道A、辅道B
-				phase_char, // 相位：左转A、直行B、右转C等
-				color_char); // 颜色：红A、黄B、绿C
-		
+		sprintf((char*)str,"CF%d=%c%c%d%c%c%c%c%c;", i+1, param_char, board_char, config_item.ch, type_char, dir_char, road_char, phase_char, color_char);
 		strcat((char*)data,(char*)str);
 	}
 	

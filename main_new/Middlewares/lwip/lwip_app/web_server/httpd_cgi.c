@@ -800,7 +800,7 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 	if (strcmp(pcValue[0] , "eacres")==0)
 	{
 		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
-//		W25QXX_Erase_Chip();
+		sf_EraseChip();
 		app_system_softreset(1000);
 		return 0;
 	}

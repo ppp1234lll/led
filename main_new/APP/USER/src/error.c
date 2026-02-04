@@ -136,7 +136,7 @@ int8_t Error_Get_Codesbuf(uint8_t* codes)
 	
 	// 生成格式：ERR:数量,故障码1,故障码2;
 	// 写入前缀和数量
-	sprintf((char*)buf, "ERR:%d", err_count);
+	sprintf((char*)buf, "ERR=%d", err_count);
 	strcat((char*)codes,(char*)buf);
 	
 	// 写入故障码

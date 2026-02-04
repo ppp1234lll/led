@@ -88,7 +88,7 @@ void print_task_function(void)
 	{
 		print_buff_deal_function(); 	// 处理接收数据
 		print_udp_send_function();    // 数据发送
-    iwdg_feed();	
+		iwdg_feed();	
 		vTaskDelay(100);
 	}
 }

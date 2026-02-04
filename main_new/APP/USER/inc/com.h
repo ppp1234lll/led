@@ -30,6 +30,9 @@
 #define CR_QUERY_CONFIG                     (0xE1) // 查询设备当前参数设置 - 对应上传查询配置
 #define CR_QUERY_INFO                       (0xE2) // 立即上报设备状态	    - 正常上报
 #define CR_QUERY_SOFTWARE_VERSION           (0xE3) // 查询设备软件版本号	 
+#define CR_SINGLE_TIME                      (0xE4) // 查询设备配时	
+#define CR_SINGLE_CURRENT                   (0xE5) // 查询设备电流	
+#define CR_SINGLE_CONFIG                    (0xE6) // 查询设备配置	
 
 /* 重启指令 */
 #define CR_SINGLE_CAMERA_CONTROL            (0xDA) // 单路摄像头供电重启

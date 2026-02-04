@@ -30,16 +30,22 @@ typedef struct
 		uint8_t save_remote_network; 	// 保存远端网络参数
 		uint8_t save_update_addr;    	// 保存更新地址
 		uint8_t com_parameter;			 	// 通信相关参数
-		uint8_t save_threshold;       // 阈值
+		uint8_t save_threshold;       	// 阈值
 		uint8_t save_reset;		     		// 恢复出厂化
+		uint8_t save_single_config;			// 单灯配时
+		uint8_t save_single_time;			// 单灯配时
+		uint8_t save_single_current;			// 单灯电流
 	} save_flag;
 	struct
 	{
-		uint8_t report_normally;	   // 正常上报
-		uint8_t query_configuration; // 查询配置上传
-		uint8_t heart_pack;			     // 心跳包
-		uint8_t version;			       // 版本信息
-		uint8_t config_return;		   // 配置回复
+		uint8_t report_normally;		// 正常上报
+		uint8_t query_configuration;	// 查询配置上传
+		uint8_t heart_pack;				// 心跳包
+		uint8_t version;				// 版本信息
+		uint8_t config_return;			// 配置回复
+		uint8_t single_time;			// 信号灯配时
+		uint8_t single_current;			// 信号灯电流
+		uint8_t single_config;			// 单灯配时
 	} com_flag;
 	struct
 	{
@@ -132,6 +138,9 @@ void app_set_com_send_flag_function(uint8_t cmd, uint8_t data)
 		case CR_QUERY_SOFTWARE_VERSION:
 			sg_sysoperate_t.com_flag.version = 1;
 			break;
+		case CR_SINGLE_CONFIG:
+			sg_sysoperate_t.com_flag.single_config = 1;
+			break;
 
 	}
 }
@@ -221,6 +230,23 @@ void app_deal_com_flag_function(void)
 		sg_sysoperate_t.com.repeat   = 0; 		// 重启一次正常上报计时   
 	}
 	
+	/* 立即上报设备状态 */
+	if(sg_sysoperate_t.com_flag.single_time == 1)
+	{
+		sg_sysoperate_t.com_flag.single_time = 0;
+		memset(sg_send_buff,0,sizeof(sg_send_buff));
+		single_report_timing_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
+		sg_sysoperate_t.com.send_cmd = CR_SINGLE_TIME;
+	}
+	/* 立即上报设备状态 */
+	if(sg_sysoperate_t.com_flag.single_current == 1)
+	{
+		sg_sysoperate_t.com_flag.single_current = 0;
+		memset(sg_send_buff,0,sizeof(sg_send_buff));
+		single_report_current_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
+		sg_sysoperate_t.com.send_cmd = CR_SINGLE_CURRENT;
+	}
+
 	/* 直接发送，不需要检测回传 */
 	/* 查询配置当前参数设置 */
 	if(sg_sysoperate_t.com_flag.query_configuration == 1)
@@ -238,7 +264,15 @@ void app_deal_com_flag_function(void)
 		com_version_information(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
 	}
-		
+
+	/* 上报配置参数 */
+	if(sg_sysoperate_t.com_flag.single_config == 1)
+	{
+		sg_sysoperate_t.com_flag.single_config = 0;
+		single_report_config_function(sg_send_buff,&sg_send_size);
+		app_send_data_task_function();
+	}
+	
 	/* 回传信号 */
 	if(sg_sysoperate_t.com_flag.config_return == 1)
 	{
@@ -719,7 +753,13 @@ void app_task_save_function(void)
 		sg_sysoperate_t.save_flag.save_threshold = 0;
 		save_stroage_threshold_parameter(&sg_sysparam_t.threshold);
 	}
-	
+		
+	if(sg_sysoperate_t.save_flag.save_single_config == 1)
+	{
+		sg_sysoperate_t.save_flag.save_single_config = 0;
+		single_save_config_to_flash();
+	}
+		
 	/* 恢复出厂化：产品序列号不变 */
 	if(sg_sysoperate_t.save_flag.save_reset == 1)
 	{
@@ -761,6 +801,15 @@ void app_set_save_infor_function(uint8_t mode)
 			break;
 		case SAVE_THRESHOLD:
 			sg_sysoperate_t.save_flag.save_threshold = 1;
+			break;
+		case SAVE_SINGLE_CONFIG:
+			sg_sysoperate_t.save_flag.save_single_config = 1;
+			break;
+		case SAVE_SINGLE_TINE:
+			sg_sysoperate_t.save_flag.save_single_time = 1;
+			break;
+		case SAVE_SINGLE_CURRENT:
+			sg_sysoperate_t.save_flag.save_single_current = 1;
 			break;
 		default:
 			break;
@@ -1387,6 +1436,32 @@ void app_send_query_configuration_infor(void)
 {
 	sg_sysoperate_t.com_flag.query_configuration = 1;
 }
+
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_time_infor
+*	功能说明: 发送信号灯配时
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_time_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_time = 1;
+}
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_current_infor
+*	功能说明: 发送信号灯电流
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_current_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_current = 1;
+}
+
 
 /************************************************************
 *

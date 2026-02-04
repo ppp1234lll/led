@@ -34,9 +34,9 @@
 *	                             选择DMA，中断或者查询方式
 *********************************************************************************************************
 */
-#define USE_SPI_DMA    /* DMA方式  */
+//#define USE_SPI_DMA    /* DMA方式  */
 //#define USE_SPI_INT    /* 中断方式 */
-//#define USE_SPI_POLL   /* 查询方式 */
+#define USE_SPI_POLL   /* 查询方式 */
 
 
 /*

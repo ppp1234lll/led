@@ -136,6 +136,9 @@ void app_set_sys_opeare_function(uint8_t cmd, uint8_t data);
 void app_report_information_immediately(void);
 void app_send_once_heart_infor(void);
 void app_send_query_configuration_infor(void);
+void app_send_single_time_infor(void);
+void app_send_single_current_infor(void);
+
 
 uint8_t app_get_com_send_status_function(void);
 

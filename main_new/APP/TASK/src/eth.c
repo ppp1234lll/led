@@ -37,7 +37,7 @@ void eth_task_function(void)
 	{
 		eth_network_line_status_check();		 /* 网口检测函数 */
 		eth_udp_connect_control_function();  // 组播UDP连接		
-    eth_snmp_connect_control_function(); // SNMP控制	
+		eth_snmp_connect_control_function(); // SNMP控制	
 		
 #ifdef WIRELESS_PRIORITY_CONNECTION
 		if(app_get_network_mode() == 1) {
@@ -450,7 +450,7 @@ void eth_udp_connect_control_function(void)
 
 	if(g_lwipdev.udp_multicast_status == LWIP_UDP_NO_CONNECT) // 检测到UDP还未连接
 	{
-//		udp_multicast_start_function();  // 创建UDP服务器
+		udp_multicast_start_function();  // 创建UDP服务器
 		g_lwipdev.udp_multicast_status = LWIP_UDP_INIT_CONNECT;
 	}
 		

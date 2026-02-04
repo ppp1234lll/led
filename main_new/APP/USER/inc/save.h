@@ -80,6 +80,9 @@
 #define SAVE_CAREMA        (9) // 摄像机参数
 #define SAVE_THRESHOLD     (10) // 阈值
 #define SAVE_HTTP_OTA      (11) // 更新地址
+#define SAVE_SINGLE_CONFIG  (12) // 单灯配时
+#define SAVE_SINGLE_TINE    (13) // 单灯电流
+#define SAVE_SINGLE_CURRENT (14) // 单灯电流
 
 /* 函数声明 */
 void save_init_function(void);

@@ -316,7 +316,10 @@ ErrorCode_t single_check_phase_red_green_simultaneous(void);
 
 void single_current_times_recalculate(void);
 
-
+// 上报数据
+void single_report_timing_function(uint8_t *data, uint16_t *len);
+void single_report_current_function(uint8_t *data, uint16_t *len);
+void single_report_config_function(uint8_t *data, uint16_t *len);
 // 测试函数
 void single_light_channel_config_test(void);
 void single_ch2_light_timer_run(void);

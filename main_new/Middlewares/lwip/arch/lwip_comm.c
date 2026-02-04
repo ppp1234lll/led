@@ -168,31 +168,33 @@ uint8_t lwip_comm_init(void)
 
     if (netif_init_flag == NULL)
     {
-			g_lwipdev.init = 0;
-			return 1;     /* 网卡添加失败 */
+		g_lwipdev.init = 0;
+		return 1;     /* 网卡添加失败 */
     }
     else                                            /* 网口添加成功后,设置netif为默认值,并且打开netif网口 */
     {   
-			g_lwipdev.init = 1;
-			netif_set_default(&g_lwip_netif);           /* 设置netif为默认网口 */
-
+		g_lwipdev.init = 1;
+		netif_set_default(&g_lwip_netif);           /* 设置netif为默认网口 */
+		
 #if LWIP_NETIF_LINK_CALLBACK
-			/* 查询PHY连接状态任务 */
-			sys_thread_new("eth_link",
-										 lwip_link_thread,            /* 任务入口函数 */
-										 &g_lwip_netif,               /* 任务入口函数参数 */
-										 LWIP_LINK_STK_SIZE,          /* 任务栈大小 */
-										 LWIP_LINK_TASK_PRIO);        /* 任务的优先级 */
+		taskENTER_CRITICAL();           /* 进入临界区 */
+		/* 查询PHY连接状态任务 */
+		sys_thread_new("eth_link",
+										lwip_link_thread,            /* 任务入口函数 */
+										&g_lwip_netif,               /* 任务入口函数参数 */
+										LWIP_LINK_STK_SIZE,          /* 任务栈大小 */
+										LWIP_LINK_TASK_PRIO);        /* 任务的优先级 */
+		taskEXIT_CRITICAL();            /* 退出临界区 */	
 #endif
     }
     g_lwipdev.link_status = LWIP_LINK_OFF;          /* 链接标记为0 */
-		
-		/* 启动网络功能 */
-		igmp_init();
-		httpd_init();
-		icmp_pcb_init();
-		dns_init();
-		
+
+	/* 启动网络功能 */
+	igmp_init();
+	httpd_init();
+	icmp_pcb_init();
+	dns_init();
+
     return 0;                                       /* 操作OK. */
 }
 
@@ -243,6 +245,7 @@ void lwip_link_thread( void * argument )
 				netif_set_link_up(netif);
 			}
 		}
+		iwdg_feed(); 
 		vTaskDelay(100);
   }
 }

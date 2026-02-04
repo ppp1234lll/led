@@ -1463,12 +1463,12 @@ void single_led_fault_detection_task(void)
 		{
 			// 所有灯全灭，添加故障标志
 			app_report_information_immediately();
-			printf("led_all_off\n");
+			// printf("led_all_off\n");
 		}
 		else if (fault_flag.fault & (1<<LED_PART_NO_LIGHT))
 		{
 			app_report_information_immediately();
-			printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
+			// printf("led_dir_off: 0x%2x...0x%2x\n", fault_flag.type,fault_flag.dir);
 		}
 		else
 		{
@@ -1517,7 +1517,7 @@ void single_led_fault_detection_task(void)
 		if (fault_flag.fault & (1<<LED_SINGLE_NO_LIGHT))
 		{
 			// app_report_information_immediately();
-			printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
+			// printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
 		}
 	}
 	led_single_fault = fault_flag;
@@ -1745,13 +1745,13 @@ ErrorCode_t single_check_phase_red_green_simultaneous(void)
 					// 检查是否红绿同亮，排除绿灯电压变化后的1秒内
 					if (red_on && green_on && !green_voltage_state[type][dir][road][phase].changed)
 					{
-						// printf("led_phase_rg_simultaneous: %d,%d,%d,%d\n",type,dir,road,phase);
-						// // 打印电流地址、大小
-						// printf("red_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current, red_current);
-						// printf("green_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current, green_current);
-						// // 打印电压
-						// printf("red_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage, *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage);
-						// printf("green_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->voltage, green_voltage);
+						printf("led_phase_rg_simultaneous: %d,%d,%d,%d\n",type,dir,road,phase);
+						// 打印电流地址、大小
+						printf("red_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->current, red_current);
+						printf("green_current: %p, %f\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->current, green_current);
+						// 打印电压
+						printf("red_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage, *single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_RED]->p_params->voltage);
+						printf("green_voltage: %p, %d\n", single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[COLOR_GREEN]->p_params->voltage, green_voltage);
 						
 						TrafficFault_Set(TRAFFIC_RED_GREEN_SAME_LIGHT, type, dir, road, phase, 0);
 						
@@ -1945,10 +1945,10 @@ ErrorCode_t single_check_single_light_status(void)
 									// current_threshold 电流判断阈值小于阈值*25%为不亮，25%-60%为部分灯亮，60%以上为全灯亮
 									if ( current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.25f)
 									{
-										// printf("led_no_light: %d,%d,%d,%d,%d,%f,%d\n",type,dir,road,phase,color,current_value,voltage_value);
-										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										// printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										// printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
+										printf("led_no_light: %d,%d,%d,%d,%d,%f,%d\n",type,dir,road,phase,color,current_value,voltage_value);
+										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
+										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
+										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
 										error_code.fault |= 1<<LED_SINGLE_NO_LIGHT;
 										error_code.type |= 1<<type;
 										error_code.dir |= 1<<dir;
@@ -1960,10 +1960,10 @@ ErrorCode_t single_check_single_light_status(void)
 									}
 									else if (current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.6f)
 									{
-										// printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
-										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
-										// printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
-										// printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
+										printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
+										printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
+										printf("time: %d,%d\n",test_time[1],single_check_state[type][dir][road][phase][color].voltage_state.low_change_time);
+										printf("time: %d,%d\n",test_time[2],single_check_state[type][dir][road][phase][color].voltage_state.high_change_time);
 										error_code.fault |= 1<<LED_SINGLE_PART_LIGHT;
 										error_code.type |= 1<<type;
 										error_code.dir |= 1<<dir;

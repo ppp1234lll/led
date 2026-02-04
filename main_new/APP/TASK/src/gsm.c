@@ -162,7 +162,7 @@ void gsm_tcp_control_function(void)
 				/* 网络注册有问题,需要重启模块*/
 				gprs_module_restart_function();
 				gsm_set_module_reset_function();
-        led_control_function(LD_GPRS,LD_OFF);
+				led_control_function(LD_GPRS,LD_OFF);
 				return;
 			}
 			flag = 1;
@@ -199,7 +199,7 @@ void gsm_tcp_control_function(void)
 			}
 			else		 					  // 连接失败
 			{
-        led_control_function(LD_GPRS,LD_ON);
+				led_control_function(LD_GPRS,LD_ON);
 				sg_gsmoperate_t.tcp_status = 0;
 				sg_gsmoperate_t.tcp_error_cnt++;
 				if(sg_gsmoperate_t.tcp_error_cnt > GSM_TCP_CONNECT_TIME)

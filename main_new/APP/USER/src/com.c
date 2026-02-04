@@ -951,7 +951,8 @@ void com_deal_configure_single_voltage_ch(com_rec_data_t *buff)
 		                           (Color_e)buff->buff[6+i*5]);
 	}
 	// 保存配置
-	single_save_config_to_flash();
+	// single_save_config_to_flash();
+	app_set_save_infor_function(SAVE_SINGLE_CONFIG);
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
@@ -973,7 +974,8 @@ void com_deal_configure_single_current_ch(com_rec_data_t *buff)
 	                             (Phase_e)buff->buff[5],\
 	                             (Color_e)buff->buff[6]);
 		// 保存配置
-	single_save_config_to_flash();	
+	// single_save_config_to_flash();	
+	app_set_save_infor_function(SAVE_SINGLE_CONFIG);
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
@@ -1433,6 +1435,7 @@ int8_t com_deal_main_function(void)
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报
 			case CR_QUERY_SOFTWARE_VERSION: // 查询设备软件版本号
+			case CR_SINGLE_CONFIG: // 查询设备配置
 				sg_comqn_t.flag = 1;
 				com_query_processing_function(recdata_t.cmd,recdata_t.buff[0]-1);
 				break;

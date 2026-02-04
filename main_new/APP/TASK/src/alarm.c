@@ -9,10 +9,6 @@ typedef struct
 	uint8_t mcb;	  	
 }alarm_code_t;
 
-uint8_t direction[4];  // 4个方向
-uint8_t direction[4];
-uint8_t color[3];
-
 
 __attribute__((section (".RAM_D1")))  alarm_code_t sg_alarm_code_t	= {0}; 
 struct threshold_params  *sg_alarm_param_t; 
@@ -254,16 +250,16 @@ void alarm_elec_collection_param(void)
 	} 
 	else 
 	{
-		if((elec_normal & 0x40) == 0) 
+		if((elec_normal & 0x20) == 0) 
 		{
-			elec_normal |= 0x40;
-			elec_error  &=~0x40;
+			elec_normal |= 0x20;
+			elec_error  &=~0x20;
 			if(sg_alarm_code_t.miu == 2)
 			{
 				Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LEAKAGE);
 				sg_alarm_code_t.miu = 0;
 				app_report_information_immediately();
-				app_power_open_protection_function();  // 打开继电器
+//				app_power_open_protection_function();  // 打开继电器
 			}
 		}	
 	}	
@@ -272,10 +268,10 @@ void alarm_elec_collection_param(void)
 	{
 		if(det_get_vin220v_handler(0) < 50)
 		{
-			if((elec_error & 0x0800) == 0) 
+			if((elec_error & 0x40) == 0) 
 			{
-				elec_error  |= 0x0800;
-				elec_normal &=~0x0800;
+				elec_error  |= 0x40;
+				elec_normal &=~0x40;
 				sg_alarm_code_t.mcb = 2;
 				Error_Set(ERR_TYPE_ELEC,SENSOR_WATER_LEAK);				
 				app_report_information_immediately();
@@ -283,10 +279,10 @@ void alarm_elec_collection_param(void)
 		}
 		else
 		{
-			if((elec_normal & 0x0800) == 0) 
+			if((elec_normal & 0x40) == 0) 
 			{
-				elec_normal |= 0x0800;
-				elec_error  &=~0x0800;
+				elec_normal |= 0x40;
+				elec_error  &=~0x40;
 				Error_Clear(ERR_TYPE_ELEC,SENSOR_WATER_LEAK);
 				sg_alarm_code_t.mcb = 1;	
 				app_report_information_immediately();
