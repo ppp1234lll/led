@@ -106,8 +106,7 @@ static void update_check_function(void)
 	// 执行更新
 	printf("\n执行升级程序 ..... \n");
 	boot_update_param.is_update = false; // 关闭标志
-	write_boot_update_param(&boot_update_param); // 保存升级参数
-
+	
 	app_buff = (unsigned char *)mymalloc(SRAMIN, (boot_update_param.section_size + 64));
 
 	printf("\n执行升级参数,section_count: %u, section_size: %u\n", boot_update_param.section_count, boot_update_param.section_size);
@@ -130,7 +129,8 @@ static void update_check_function(void)
 	myfree(SRAMIN, (void *)app_buff);
 
 	iwdg_feed();
-
+	boot_update_param.is_update = 2; // 成功
+	write_boot_update_param(&boot_update_param); // 保存升级参数
 	printf("\n升级完毕！跳转 ...\n");
 	iap_load_app(MAIN_APP_ADDR); // 执行FLASH APP代码
 }

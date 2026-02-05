@@ -812,7 +812,23 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 		single_clear_timing_function();
 		return 0;
 	}
-		
+
+	/* «Â≥˝–≈∫≈µ∆≈‰÷√ */
+	if ( strcmp(pcValue[0] , "report_single_time")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_time_infor();
+		return 0;
+	}
+	if ( strcmp(pcValue[0] , "report_single_current")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_current_infor();
+		return 0;
+	}
+	if ( strcmp(pcValue[0] , "report_single_config")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_config_infor();
+		return 0;
+	}
 	if ( strcmp(pcValue[0] , "loginInit")==0 ) {
 		set_return_status_function(0,(uint8_t*)"[\"root\",\" \"]");
 		return 0;

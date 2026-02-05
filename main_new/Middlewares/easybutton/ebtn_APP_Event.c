@@ -88,7 +88,7 @@ void ebtn_APP_Event(struct ebtn_btn *btn, ebtn_evt_t evt)
             /* ----------------------------------- 4击时 ---------------------------------- */
             else if (btn->click_cnt == 4)
             {
-							det_set_key_value(RESET_K1,KEY_LWIP);
+							det_set_key_value(RESET_K1,KEY_RESET);
 							if(KEY_DEBUG)  printf("RESET_K1 4\n");
             }
             /* ----------------------------------- 6击时 ---------------------------------- */

@@ -32,7 +32,7 @@ void start_bsp_init(void)
 	bsp_InitRTC();								   // RTC初始化 (已测试)	
 	bsp_InitUsart1(115200);
 //	bsp_InitUsart2(115200);
-  bsp_InitRs485(115200);
+	bsp_InitRs485(115200);
 	bsp_InitUsart4(115200);
 	bsp_InitUart5(115200);
 	bsp_InitUsart6(9600);
@@ -168,7 +168,8 @@ void start_task(void *pvParameters)
 	save_init_function();
 	com_recevie_function_init();			// 初始化接收缓冲区
 	app_get_storage_param_function();	// 获取本地存储的数据
-	update_status_init();							// 更新检测
+	app_get_update_result_function();	// 获取更新结果
+	// update_status_init();	// 更新检测
  
 	if (lwip_comm_init() != 0)
 	{

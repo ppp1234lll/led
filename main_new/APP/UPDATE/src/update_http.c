@@ -1050,6 +1050,9 @@ RECONNECT:
 	ret = http_update_connect_server_by_gprs2(sg_http_update_param.http_host, sg_http_update_param.http_port);
 	if(ret)
 	{
+		vTaskDelay(3000);
+		printf("close15\n");
+		http_update_close_connect_by_gprs();		
 		connect_times++; // 连续连接失败的次数
 		if(connect_times > 10){ return(-1); }
 		goto RECONNECT;
@@ -1064,6 +1067,7 @@ RECONNECT:
 		ret = http_update_send_request_for_crcbin_data_by_gprs( sg_http_update_param.http_host, sg_http_update_param.http_port );
 		if(ret != GPRS_SEND_OK)
 		{
+			printf("close9:%d\n",ret);
 			http_update_close_connect_by_gprs();
 			goto RECONNECT;
 		}

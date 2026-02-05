@@ -29,7 +29,7 @@ void alarm_task_function(void)
 		alarm_elec_collection_param();  
 		alarm_net_collection_param();  
 		alarm_sensor_collection_param();  
-    iwdg_feed();	
+		iwdg_feed();	
 		vTaskDelay(10);
 	}
 }
@@ -222,7 +222,7 @@ void alarm_elec_collection_param(void)
 				app_report_information_immediately();
 			}
 		} 
-		else  if(det_get_vin220v_handler(1) >= 30)
+		else  if(det_get_vin220v_handler(1) >= 20)
 		{
 			if( (elec_normal & 0x10) == 0)
 			{
@@ -256,7 +256,7 @@ void alarm_elec_collection_param(void)
 			elec_error  &=~0x20;
 			if(sg_alarm_code_t.miu == 2)
 			{
-				Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LEAKAGE);
+				// Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LEAKAGE);
 				sg_alarm_code_t.miu = 0;
 				app_report_information_immediately();
 //				app_power_open_protection_function();  // ´ò¿ª¼ÌµçÆ÷

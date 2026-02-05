@@ -375,6 +375,9 @@
                     ["设备重启","reboot"],
 					["擦除存储芯片","eacres"],
                     ["清除信号灯","single_clear"],
+                    ["上报配时","report_single_time"],
+                    ["上报电流","report_single_current"],
+                    ["上报配置","report_single_config"],
                 ]
             }
         ]

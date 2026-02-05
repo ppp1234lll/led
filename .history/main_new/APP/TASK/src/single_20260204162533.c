@@ -1420,7 +1420,7 @@ void single_current_times_detect_task(void)
 			// 使用计数方式替代延时
 			delay_count++;
 			// 假设任务执行周期为10ms，100次就是1s
-			if (delay_count >= 100)
+			if (delay_count >= 10)
 			{
 				app_send_single_current_infor();
 				detect_state = 0;
@@ -1493,7 +1493,7 @@ void single_led_fault_detection_task(void)
 		led_rg_state = 0;
 		if (fault_flag.fault & (1<<LED_RED_GREEN_SAME_LIGHT))
 		{
-			app_report_information_immediately();
+			// app_report_information_immediately();
 			printf("rg_sim: 0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase);
 		}
 	}
@@ -1517,7 +1517,7 @@ void single_led_fault_detection_task(void)
 		led_single_state = 0;
 		if (fault_flag.fault & (1<<LED_SINGLE_NO_LIGHT))
 		{
-			app_report_information_immediately();
+			// app_report_information_immediately();
 			printf("single_no_light: 0x%02x...0x%02x...0x%02x...0x%02x...0x%02x\n", fault_flag.type,fault_flag.dir,fault_flag.road,fault_flag.phase,fault_flag.color);
 		}
 	}
@@ -1527,7 +1527,9 @@ void single_led_fault_detection_task(void)
 /*********************************************************************************************************
 * 函 数 名: single_check_signal_status
 * 功能描述: 检查所有信号灯状态-所有灯全灭、单方向信号灯不亮、单个相位灯不亮
-* 参    数: 
+* 参    数: fault_mask - 输出参数，用于存储有问题的方向掩码（每一位代表一个方向是否有问题）
+*           type_out - 输出参数，用于存储有问题的信号灯类型
+*           dir_out - 输出参数，用于存储有问题的方向（仅返回第一个发现的问题方向）
 * 返 回 值: ErrorCode_t - 错误码结构，包含故障类型、方向等信息
 *********************************************************************************************************/
 ErrorCode_t single_check_signal_status(void)
@@ -1830,9 +1832,6 @@ ErrorCode_t single_check_single_light_status(void)
 	uint32_t transition_time = 0;
 	ErrorCode_t error_code = {0};
 	float current_threshold[CTD_MAX] = {CURRENT_THRESHOLD_1, CURRENT_THRESHOLD_2}; // 电流判断阈值
-	uint8_t current_threshold_percent[2] = {35, 60};  // 百分比
-	current_threshold_percent[0] = app_get_threshold_led_bright_function(0);
-	current_threshold_percent[1] = app_get_threshold_led_bright_function(1);
 
 	uint32_t test_time[3] = {0};
 	
@@ -1945,7 +1944,7 @@ ErrorCode_t single_check_single_light_status(void)
 									current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type] = 
 										current_data.current[type][dir][road][phase][color][single_check_state[type][dir][road][phase][color].cur_ctd_type];
 									// current_threshold 电流判断阈值小于阈值*25%为不亮，25%-60%为部分灯亮，60%以上为全灯亮
-									if ( current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*current_threshold_percent[0]/100)
+									if ( current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.25f)
 									{
 										// printf("led_no_light: %d,%d,%d,%d,%d,%f,%d\n",type,dir,road,phase,color,current_value,voltage_value);
 										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
@@ -1960,7 +1959,7 @@ ErrorCode_t single_check_single_light_status(void)
 										TrafficFault_Set(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
 
 									}
-									else if (current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*current_threshold_percent[1]/100)
+									else if (current_value <= current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*0.6f)
 									{
 										// printf("led_part_light: %d,%f,%d\n",color,current_value,voltage_value);
 										// printf("time: %d,%d\n",test_time[0],single_check_state[type][dir][road][phase][color].pulse_state.detect_time);
@@ -1975,7 +1974,7 @@ ErrorCode_t single_check_single_light_status(void)
 										TrafficFault_Set(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
 
 									}
-									else 
+									else if (current_value > current_threshold[single_check_state[type][dir][road][phase][color].cur_ctd_type]*2)
 									{
 //										printf("led_light: %d,%f,%d\n",color,current_value,voltage_value);
 										TrafficFault_Clear(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
@@ -2183,10 +2182,6 @@ void single_report_current_function(uint8_t *data, uint16_t *len)
 		// 获取当前配置项
 		ConfigItem_t config_item = g_config_data.config_items[i];
 		
-		// 只处理电流通道配置
-		if(config_item.param_type != PARAM_CURRENT)
-			continue;
-		
 		// 获取配置项的类型、方向、道路、相位、颜色信息
 		uint8_t type = config_item.p_type;
 		uint8_t dir = config_item.p_dir;
@@ -2375,7 +2370,7 @@ void single_report_config_function(uint8_t *data, uint16_t *len)
 		
 		// 生成配置字符串
 		memset(str,0,sizeof(str));
-		sprintf((char*)str,"CF%d=%d%d%d%c%c%c%c%c;", 
+		sprintf((char*)str,"CF%d=%d%d%02d%c%c%c%c%c;", 
 				(i+1), // 索引从1开始
 				param_type, // 参数类型：电压=1, 电流=0
 				board_id, // 板号：0-3

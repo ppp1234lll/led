@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include <stdint.h>
 #include "./TASK/inc/app.h"
 
 /* 发送状态 */
@@ -1461,6 +1462,18 @@ void app_send_single_current_infor(void)
 {
 	sg_sysoperate_t.com_flag.single_current = 1;
 }
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_config_infor
+*	功能说明: 发送信号灯配置
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_config_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_config = 1;
+}
 
 
 /************************************************************
@@ -1609,6 +1622,19 @@ void app_set_threshold_param_function(struct threshold_params param)
 void *app_get_threshold_param_function(void)
 {
 	return (&sg_sysparam_t.threshold);
+}
+
+uint8_t app_get_threshold_led_bright_function(uint8_t id)
+{
+	switch(id) 
+	{
+		case 0:
+			return sg_sysparam_t.threshold.led_not_bright;
+		case 1:
+			return sg_sysparam_t.threshold.led_part_bright;
+		default:
+			return 0;
+	}
 }
 
 /************************************************************
@@ -1836,4 +1862,34 @@ void app_reboot_timer_run(void)
 		}
 	}
 }
+
+/*********************************************************************************************************
+* 函 数 名: app_get_update_result_function
+* 功能描述: 获取更新结果
+* 参    数: 
+* 返 回 值: 	
+*********************************************************************************************************/
+void app_get_update_result_function(void)
+{
+	struct BOOT_UPDATE_PARAM boot_update_param = {0};
+	sf_ReadBuffer((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+	// 判断升级标志
+	if(boot_update_param.is_update == 0) 
+	{
+		if(boot_update_param.section_count == 0)
+			sg_sysoperate_t.update.status = 0;
+		else
+			sg_sysoperate_t.update.status = 2; // 失败
+	}
+	else if(boot_update_param.is_update == 1) 
+	{
+		sg_sysoperate_t.update.status = 2; // 失败
+	}
+	else if(boot_update_param.is_update == 2) 
+	{
+		sg_sysoperate_t.update.status = 1; // 成功
+	}	
+}
+
+
 

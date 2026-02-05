@@ -411,11 +411,11 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	/* 过压、欠压、过流、倾斜度、漏电*/
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%d,%d,%d,%d,%d",threshol->volt_max,threshol->volt_min,threshol->current,threshol->angle,threshol->miu);
-  my_cjson_join_string_function(pdata,(uint8_t*)"opovc",(uint8_t*)temp,1);
+	my_cjson_join_string_function(pdata,(uint8_t*)"opovc",(uint8_t*)temp,1);
 
 	/* 更新结果 */  
 	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d",threshol->angle);
+	sprintf(temp,"%d",app_get_update_status_function());
 	my_cjson_join_string_function(pdata,(uint8_t*)"ur",(uint8_t*)temp,1);
 	
 	/* 签名校验 */
