@@ -334,11 +334,62 @@ void alarm_net_collection_param(void)
 	/* 检测主网与摄像头是否发送状态变化 */
 	if(det_main_network_and_camera_network() == 1) 
 	{
-		if((det_get_main_network_status() == 0)&&(det_get_main_network_sub_status() == 0))
-			Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
-		else if((det_get_main_network_status() == 1)||(det_get_main_network_sub_status() == 1))
+		if(com_report_get_main_network_status(0) == 0)
+		{
 			Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
-		app_report_information_immediately();
+			Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+		}
+		else 
+		{
+			if(com_report_get_main_network_status(1) == 0)
+			{
+				switch(com_report_get_main_network_status(0))
+				{		
+					case 2:
+						Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
+						break;
+					case 4:
+						Error_Set(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+						break;
+					default:
+						Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
+						Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);	
+						break;
+				}
+			}
+			else 
+			{
+				if((com_report_get_main_network_status(0)==1)&&(com_report_get_main_network_status(1)==1))
+				{
+					Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
+					Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);	
+				}
+				if((com_report_get_main_network_status(0)==2)||(com_report_get_main_network_status(1)==2))
+				{
+					Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
+				}
+				if((com_report_get_main_network_status(0)==4)||(com_report_get_main_network_status(1)==4))
+				{
+					Error_Set(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+				}
+
+			}
+		}
+
+		// 信号机网络
+		switch(com_report_get_main_network_status(2))
+		{
+			case 2:
+				Error_Set(ERR_TYPE_NET,NET_SINGLE_IP);
+				break;
+			case 4:
+				Error_Set(ERR_TYPE_NET,NET_SINGLE_IP_DELAY);
+				break;
+			default:
+				Error_Clear(ERR_TYPE_NET,NET_SINGLE_IP);
+				Error_Clear(ERR_TYPE_NET,NET_SINGLE_IP_DELAY);
+				break;
+		}
 	}	
 	
 

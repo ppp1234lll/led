@@ -761,19 +761,19 @@ void com_deal_configure_server_mode(com_rec_data_t *buff)
 void com_deal_update_system_function(com_rec_data_t *buff)
 {
 	/* 设置回传 */
-//	if( update_get_mode_function() != UPDATE_MODE_NULL) 
-//	{
-//		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
-//	} 
-//	else 
-//	{
-//		app_set_reply_parameters_function(buff->cmd,0x01);
-//		vTaskDelay(200);
-//		if(app_get_network_mode() == SERVER_MODE_GPRS)
-//			update_set_update_mode(UPDATE_MODE_GPRS); 
-//		else
-//			update_set_update_mode(UPDATE_MODE_LWIP); 
-//	}	
+	if( update_get_mode_function() != UPDATE_MODE_NULL) 
+	{
+		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
+	} 
+	else 
+	{
+		app_set_reply_parameters_function(buff->cmd,0x01);
+		vTaskDelay(200);
+		if(app_get_network_mode() == SERVER_MODE_GPRS)
+			update_set_update_mode(UPDATE_MODE_GPRS); 
+		else
+			update_set_update_mode(UPDATE_MODE_LWIP); 
+	}	
 }
 
 /************************************************************
@@ -1430,7 +1430,12 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_SINGLE_CURRENT: 		 
 				com_deal_configure_single_current(&recdata_t);
 				break;				
-			
+			case CR_SINGLE_DC12_CONTROL: 		 
+				single_clear_config_function();
+				single_clear_timing_function();
+				break;					
+
+
 			/* 查询指令 */
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报

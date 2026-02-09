@@ -80,7 +80,7 @@ void start_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define ALARM_TASK_PRIO     			10       
-#define ALARM_STK_SIZE      			512      
+#define ALARM_STK_SIZE      			1024      
 TaskHandle_t ALARM_Task_Handler;     
 void alarm_task(void *pvParameters); 
 
@@ -88,7 +88,7 @@ void alarm_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define APP_TASK_PRIO     				5       
-#define APP_STK_SIZE      				2048      
+#define APP_STK_SIZE      				4096      
 TaskHandle_t APP_Task_Handler;     
 void app_task(void *pvParameters); 
 
@@ -104,7 +104,7 @@ void eth_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define DET_TASK_PRIO           	4      
-#define DET_STK_SIZE            	512     
+#define DET_STK_SIZE            	1024     
 TaskHandle_t DET_Task_Handler;          
 void det_task(void *pvParameters);      
 

@@ -10,7 +10,7 @@ struct netbuf *sg_recvbuf = NULL;
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define TCPCLIENT_TASK_PRIO         	8        
-#define TCPCLIENT_STK_SIZE          	512      
+#define TCPCLIENT_STK_SIZE          	1024      
 TaskHandle_t TcpClient_Task_Handler;          
 void tcp_client_task(void *pvParameters);    
 

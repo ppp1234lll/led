@@ -19,15 +19,15 @@
 		
 
 // 间隔1h检测，每次检测10min
-#define SINGLE_C_T_RECAL_TIME  	1200 //3600 // 1H = 60min*60s
-#define SINGLE_C_T_SAVE_TIME		600 //3600 // 1H = 60min*60s
+#define SINGLE_C_T_RECAL_TIME  	1200  // 20min*60s
+#define SINGLE_C_T_SAVE_TIME		600   // 10min*60s
 
 // 开机后10min再检测，保证电流有数值
-#define STARTUP_CHECK_DELAY_MS	600  // 5MIN * 60S * 10
+#define STARTUP_CHECK_DELAY_MS	1200  // 2MIN * 60S * 10
 
 // 创建信号量
 SemaphoreHandle_t xSemaphore_CT_Recal;
-
+uint8_t g_ct_recal_start = 0;
 
 /*
 *********************************************************************************************************
@@ -170,7 +170,7 @@ void single_task_function(void)
 	xSemaphore_CT_Recal = xSemaphoreCreateBinary();
 	// 发送信号量
 	xSemaphoreGive(xSemaphore_CT_Recal);
-	
+	g_ct_recal_start = 1;
 	while(1)
 	{
 		for(index = 0;index<BOARD_MAX;index++)
@@ -475,7 +475,46 @@ void single_led_init_memory(void)
 		}
 	}
 }
-
+/*
+*********************************************************************************************************
+* 函 数 名: single_led_config_init
+* 功能描述: 初始化信号灯配置
+* 参    数: 无
+* 返 回 值: 无
+*********************************************************************************************************
+*/
+void single_led_config_init(void)
+{
+	Type_e type;
+	Direction_e dir;
+	RoadType_e road;
+	Phase_e phase;
+	Color_e color;
+	
+	// 遍历所有灯类型：远灯/近灯
+	for (type = FAR; type < Type_MAX; type++) 
+	{
+		for (dir = DIR_NORTH; dir < DIR_MAX; dir++) 
+		{
+			// 遍历所有道路类型：主道/辅道
+			for (road = ROAD_MAIN; road < ROAD_MAX; road++) 
+			{
+				// 遍历所有相位
+				for (phase = PHASE_LEFT; phase < PHASE_MAX; phase++) 
+				{
+					// 遍历所有颜色：红/绿/黄
+					for (color = COLOR_RED; color < COLOR_MAX; color++)
+					{
+						single_color_light[type][dir][road][phase][color].p_params->current = 0;
+						single_color_light[type][dir][road][phase][color].p_params->pulse = 0;
+						single_color_light[type][dir][road][phase][color].p_params->voltage = 0;
+						single_color_light[type][dir][road][phase][color].p_params->times = 0;
+					}
+				}
+			}
+		}
+	}
+}
 /*
 *********************************************************************************************************
 * 函 数 名: Single_Bind_InpuToTraffic
@@ -1090,6 +1129,7 @@ void single_clear_config_function(void)
 {
 	// 清空配置数据
 	memset(&g_config_data, 0, sizeof(ConfigData_t));
+	single_led_config_init();
 	single_save_config_to_flash();
 }
 
@@ -1104,7 +1144,7 @@ void single_clear_timing_function(void)
 {
 	// 清空配置数据
 	memset(&g_timing_data, 0, sizeof(TimingData_t));
-	single_save_config_to_flash();
+	single_save_timing_to_flash();
 }
 
 /*********************************************************************************************************
@@ -1350,16 +1390,17 @@ int single_load_current_from_flash(void)
 void single_current_times_recalculate(void)
 {
 	static uint16_t recal_time = 0;
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	// BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 	
 	recal_time++;
 	if(recal_time >= SINGLE_C_T_RECAL_TIME)	
 	{
 		recal_time= 0;
 		// 发送信号量
-		xSemaphoreGiveFromISR(xSemaphore_CT_Recal,&xHigherPriorityTaskWoken);
+		// xSemaphoreGiveFromISR(xSemaphore_CT_Recal,&xHigherPriorityTaskWoken);
 		// 如果发生了上下文切换，执行必要的上下文切换
-		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		// portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+		g_ct_recal_start = 1;
 	}
 }
 
@@ -1382,8 +1423,10 @@ void single_current_times_detect_task(void)
 	switch (detect_state)
 	{
 		case 0:
-			if (xSemaphoreTake(xSemaphore_CT_Recal, 0) == pdTRUE)
+			// if (xSemaphoreTake(xSemaphore_CT_Recal, 0) == pdTRUE)
+			if (g_ct_recal_start)
 			{
+				g_ct_recal_start = 0;
 				start_time = bsp_GetRunTime();
 				detect_time = 0;
 				detect_state = 1;
@@ -1618,7 +1661,7 @@ ErrorCode_t single_check_signal_status(void)
 	}
 	
 	// 全灭返回错误码
-	if (light_all_off)
+	if((light_all_off&& has_valid_channel))
 	{
 		error_code.fault |= 1<<LED_ALL_NO_LIGHT;
 		TrafficFault_Set(TRAFFIC_ALL_NO_LIGHT,0,0,0,0,0);
@@ -1849,7 +1892,9 @@ ErrorCode_t single_check_single_light_status(void)
 						if (single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->voltage == NULL ||
 							single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->current == NULL ||
 							single_light.p_light_type[type]->p_direction[dir]->p_road[road]->p_phase[phase]->p_color[color]->p_params->pulse == NULL)
-						{
+						{		
+							TrafficFault_Clear(TRAFFIC_SINGLE_NO_LIGHT, type, dir, road, phase, color);
+							TrafficFault_Clear(TRAFFIC_SINGLE_PART_LIGHT, type, dir, road, phase, color);
 							continue;
 						}
 

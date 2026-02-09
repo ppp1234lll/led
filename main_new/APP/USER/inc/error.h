@@ -44,6 +44,8 @@ typedef enum {
 #define NET_LAN_PORT				ERR_TYPE_NET_BASE | 1 << 20
 #define NET_MAIN_IP					ERR_TYPE_NET_BASE | 2 << 20
 #define NET_SINGLE_IP				ERR_TYPE_NET_BASE | 3 << 20
+#define NET_MAIN_IP_DELAY			ERR_TYPE_NET_BASE | 4 << 20
+#define NET_SINGLE_IP_DELAY			ERR_TYPE_NET_BASE | 5 << 20
 
 #define SENSOR_NORMAL             0
 #define SENSOR_TEMP_HIGH			ERR_TYPE_SENSOR_BASE | 1 << 20

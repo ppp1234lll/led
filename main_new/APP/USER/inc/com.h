@@ -39,6 +39,7 @@
 #define CR_POWER_RESETART                   (0xD9) // 电源重启
 
 #define CR_GPRS_NETWORK_V_RESET             (0xDE) // 断电重启4G模组
+#define CR_SINGLE_DC12_CONTROL              (0xD2) // 清除配置
 
 /* 控制命令 */
 #define CONTROL_FAN                         (0xC1) // 风扇启停控制

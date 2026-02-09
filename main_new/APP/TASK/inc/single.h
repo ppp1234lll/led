@@ -261,7 +261,7 @@ uint8_t single_deal_board_data(uint8_t id);
 
 void single_led_init_memory(void);
 void single_data_init(void);
-
+void single_led_config_init(void);
 void single_led_timer_init(void);
 void single_led_timer_run(void);
 
