@@ -60,7 +60,6 @@ extern uint8_t  Usart1Rx[10];
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim4;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 extern UART_HandleTypeDef huart1;
@@ -263,35 +262,17 @@ void TIM2_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM4 global interrupt.
-  */
-void TIM4_IRQHandler(void)
-{
-  /* USER CODE BEGIN TIM4_IRQn 0 */
-
-  /* USER CODE END TIM4_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim4);
-  /* USER CODE BEGIN TIM4_IRQn 1 */
-
-  /* USER CODE END TIM4_IRQn 1 */
-}
-
-/**
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	
-//	  uint32_t len;
-//	if(__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)==SET){
-//      __HAL_UART_CLEAR_IDLEFLAG(&huart1);
-//		  HAL_UART_DMAStop(&huart1);
-//		  len = 10 - hdma_usart1_rx.Instance->CNDTR;
-////		  Usart2type.Usart2DMArecLen = len;
-//		  HAL_UART_RxCpltCallback(&huart1);
-
-//	} 
+  if (USART1->SR & (1 << 8)) 
+			USART1->SR &= ~(1 << 8);
+	
+  if (USART1->SR & (1 << 3)) 
+			USART1->SR &= ~(1 << 3);
 
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
@@ -305,3 +286,4 @@ void USART1_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

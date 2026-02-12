@@ -11,7 +11,7 @@
 #include "appconfig.h"
 
 #define UDP_MULTICAST_PRIO        3      
-#define UDP_MULTICAST_STK_SIZE    128     
+#define UDP_MULTICAST_STK_SIZE    512     
 TaskHandle_t UDP_Multicast_Task_Handler;          
 void udp_multicast_task(void *pvParameters); 
 
@@ -157,7 +157,7 @@ void udp_multicast_stop_function(void)
 	{
 		closesocket(udp_sock);
 	}
-
+	
 	g_lwipdev.udp_multicast_status = LWIP_UDP_NO_CONNECT;
 	
 	taskENTER_CRITICAL();	/*进入临界区*/

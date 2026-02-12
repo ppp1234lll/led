@@ -1,4 +1,5 @@
 #include "appconfig.h"
+#include <stdint.h>
 #include "./TASK/inc/app.h"
 
 /* 发送状态 */
@@ -30,16 +31,22 @@ typedef struct
 		uint8_t save_remote_network; 	// 保存远端网络参数
 		uint8_t save_update_addr;    	// 保存更新地址
 		uint8_t com_parameter;			 	// 通信相关参数
-		uint8_t save_threshold;       // 阈值
+		uint8_t save_threshold;       	// 阈值
 		uint8_t save_reset;		     		// 恢复出厂化
+		uint8_t save_single_config;			// 单灯配时
+		uint8_t save_single_time;			// 单灯配时
+		uint8_t save_single_current;			// 单灯电流
 	} save_flag;
 	struct
 	{
-		uint8_t report_normally;	   // 正常上报
-		uint8_t query_configuration; // 查询配置上传
-		uint8_t heart_pack;			     // 心跳包
-		uint8_t version;			       // 版本信息
-		uint8_t config_return;		   // 配置回复
+		uint8_t report_normally;		// 正常上报
+		uint8_t query_configuration;	// 查询配置上传
+		uint8_t heart_pack;				// 心跳包
+		uint8_t version;				// 版本信息
+		uint8_t config_return;			// 配置回复
+		uint8_t single_time;			// 信号灯配时
+		uint8_t single_current;			// 信号灯电流
+		uint8_t single_config;			// 单灯配时
 	} com_flag;
 	struct
 	{
@@ -132,6 +139,9 @@ void app_set_com_send_flag_function(uint8_t cmd, uint8_t data)
 		case CR_QUERY_SOFTWARE_VERSION:
 			sg_sysoperate_t.com_flag.version = 1;
 			break;
+		case CR_SINGLE_CONFIG:
+			sg_sysoperate_t.com_flag.single_config = 1;
+			break;
 
 	}
 }
@@ -221,6 +231,23 @@ void app_deal_com_flag_function(void)
 		sg_sysoperate_t.com.repeat   = 0; 		// 重启一次正常上报计时   
 	}
 	
+	/* 立即上报设备状态 */
+	if(sg_sysoperate_t.com_flag.single_time == 1)
+	{
+		sg_sysoperate_t.com_flag.single_time = 0;
+		memset(sg_send_buff,0,sizeof(sg_send_buff));
+		single_report_timing_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
+		sg_sysoperate_t.com.send_cmd = CR_SINGLE_TIME;
+	}
+	/* 立即上报设备状态 */
+	if(sg_sysoperate_t.com_flag.single_current == 1)
+	{
+		sg_sysoperate_t.com_flag.single_current = 0;
+		memset(sg_send_buff,0,sizeof(sg_send_buff));
+		single_report_current_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
+		sg_sysoperate_t.com.send_cmd = CR_SINGLE_CURRENT;
+	}
+
 	/* 直接发送，不需要检测回传 */
 	/* 查询配置当前参数设置 */
 	if(sg_sysoperate_t.com_flag.query_configuration == 1)
@@ -238,7 +265,15 @@ void app_deal_com_flag_function(void)
 		com_version_information(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
 	}
-		
+
+	/* 上报配置参数 */
+	if(sg_sysoperate_t.com_flag.single_config == 1)
+	{
+		sg_sysoperate_t.com_flag.single_config = 0;
+		single_report_config_function(sg_send_buff,&sg_send_size);
+		app_send_data_task_function();
+	}
+	
 	/* 回传信号 */
 	if(sg_sysoperate_t.com_flag.config_return == 1)
 	{
@@ -719,7 +754,13 @@ void app_task_save_function(void)
 		sg_sysoperate_t.save_flag.save_threshold = 0;
 		save_stroage_threshold_parameter(&sg_sysparam_t.threshold);
 	}
-	
+		
+	if(sg_sysoperate_t.save_flag.save_single_config == 1)
+	{
+		sg_sysoperate_t.save_flag.save_single_config = 0;
+		single_save_config_to_flash();
+	}
+		
 	/* 恢复出厂化：产品序列号不变 */
 	if(sg_sysoperate_t.save_flag.save_reset == 1)
 	{
@@ -761,6 +802,15 @@ void app_set_save_infor_function(uint8_t mode)
 			break;
 		case SAVE_THRESHOLD:
 			sg_sysoperate_t.save_flag.save_threshold = 1;
+			break;
+		case SAVE_SINGLE_CONFIG:
+			sg_sysoperate_t.save_flag.save_single_config = 1;
+			break;
+		case SAVE_SINGLE_TINE:
+			sg_sysoperate_t.save_flag.save_single_time = 1;
+			break;
+		case SAVE_SINGLE_CURRENT:
+			sg_sysoperate_t.save_flag.save_single_current = 1;
 			break;
 		default:
 			break;
@@ -929,7 +979,24 @@ void app_set_vol_current_param(uint16_t *data)
 	sg_sysparam_t.threshold.current  = data[2];
 	sg_sysparam_t.threshold.angle    = data[3];
 	sg_sysparam_t.threshold.miu      = data[4];
+	
 	/* 保存 */
+	app_set_save_infor_function(SAVE_THRESHOLD);	/* 存储 */
+}
+
+/*
+*********************************************************************************************************
+*	函 数 名: app_set_single_current_param
+*	功能说明: 设置阈值
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_set_single_current_param(uint8_t *data)
+{
+	sg_sysparam_t.threshold.led_not_bright = data[0];
+	sg_sysparam_t.threshold.led_part_bright = data[1];
+
 	app_set_save_infor_function(SAVE_THRESHOLD);	/* 存储 */
 }
 /************************************************************
@@ -1371,6 +1438,44 @@ void app_send_query_configuration_infor(void)
 	sg_sysoperate_t.com_flag.query_configuration = 1;
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_time_infor
+*	功能说明: 发送信号灯配时
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_time_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_time = 1;
+}
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_current_infor
+*	功能说明: 发送信号灯电流
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_current_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_current = 1;
+}
+/*
+*********************************************************************************************************
+*	函 数 名: app_send_single_config_infor
+*	功能说明: 发送信号灯配置
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_send_single_config_infor(void)
+{
+	sg_sysoperate_t.com_flag.single_config = 1;
+}
+
+
 /************************************************************
 *
 * Function name	: app_get_com_time_infor
@@ -1497,11 +1602,13 @@ void app_set_threshold_param_function(struct threshold_params param)
 	sg_sysparam_t.threshold.volt_min = param.volt_min; 
 	sg_sysparam_t.threshold.current = param.current;
 	sg_sysparam_t.threshold.angle = param.angle;
-  sg_sysparam_t.threshold.miu = param.miu;	
+	sg_sysparam_t.threshold.miu = param.miu;	
 	sg_sysparam_t.threshold.humi_high = param.humi_high;
 	sg_sysparam_t.threshold.humi_low = param.humi_low; 
 	sg_sysparam_t.threshold.temp_high = param.temp_high;
 	sg_sysparam_t.threshold.temp_low = param.temp_low; 
+	sg_sysparam_t.threshold.led_not_bright = param.led_not_bright;
+	sg_sysparam_t.threshold.led_part_bright = param.led_part_bright;
 	save_stroage_threshold_parameter(&sg_sysparam_t.threshold); 
 }
 /************************************************************
@@ -1515,6 +1622,19 @@ void app_set_threshold_param_function(struct threshold_params param)
 void *app_get_threshold_param_function(void)
 {
 	return (&sg_sysparam_t.threshold);
+}
+
+uint8_t app_get_threshold_led_bright_function(uint8_t id)
+{
+	switch(id) 
+	{
+		case 0:
+			return sg_sysparam_t.threshold.led_not_bright;
+		case 1:
+			return sg_sysparam_t.threshold.led_part_bright;
+		default:
+			return 0;
+	}
 }
 
 /************************************************************
@@ -1742,4 +1862,34 @@ void app_reboot_timer_run(void)
 		}
 	}
 }
+
+/*********************************************************************************************************
+* 函 数 名: app_get_update_result_function
+* 功能描述: 获取更新结果
+* 参    数: 
+* 返 回 值: 	
+*********************************************************************************************************/
+void app_get_update_result_function(void)
+{
+	struct BOOT_UPDATE_PARAM boot_update_param = {0};
+	sf_ReadBuffer((uint8_t *)(&boot_update_param), UPDATA_PARAM_ADDR, sizeof(struct BOOT_UPDATE_PARAM));
+	// 判断升级标志
+	if(boot_update_param.is_update == 0) 
+	{
+		if(boot_update_param.section_count == 0)
+			sg_sysoperate_t.update.status = 0;
+		else
+			sg_sysoperate_t.update.status = 2; // 失败
+	}
+	else if(boot_update_param.is_update == 1) 
+	{
+		sg_sysoperate_t.update.status = 2; // 失败
+	}
+	else if(boot_update_param.is_update == 2) 
+	{
+		sg_sysoperate_t.update.status = 1; // 成功
+	}	
+}
+
+
 

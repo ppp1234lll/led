@@ -8,17 +8,6 @@
   *           + Initialization and de-initialization functions
   *           + IO operation functions
   *           + Peripheral State and Errors functions
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2016 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
   @verbatim
  ===============================================================================
                   ##### How to use this driver #####
@@ -186,7 +175,18 @@
            is in Master and used the PCM long synchronization mode.
 
   @endverbatim
-
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
+  *
+  ******************************************************************************
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -777,13 +777,14 @@ HAL_StatusTypeDef HAL_I2S_Transmit(I2S_HandleTypeDef *hi2s, uint16_t *pData, uin
     return  HAL_ERROR;
   }
 
-  if (hi2s->State != HAL_I2S_STATE_READY)
-  {
-    return HAL_BUSY;
-  }
-
   /* Process Locked */
   __HAL_LOCK(hi2s);
+
+  if (hi2s->State != HAL_I2S_STATE_READY)
+  {
+    __HAL_UNLOCK(hi2s);
+    return HAL_BUSY;
+  }
 
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_TX;
@@ -895,14 +896,15 @@ HAL_StatusTypeDef HAL_I2S_Receive(I2S_HandleTypeDef *hi2s, uint16_t *pData, uint
     return  HAL_ERROR;
   }
 
+  /* Process Locked */
+  __HAL_LOCK(hi2s);
+
   if (hi2s->State != HAL_I2S_STATE_READY)
   {
+    __HAL_UNLOCK(hi2s);
     return HAL_BUSY;
   }
 
-  /* Process Locked */
-  __HAL_LOCK(hi2s);
-  
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_RX;
   hi2s->ErrorCode = HAL_I2S_ERROR_NONE;
@@ -992,13 +994,14 @@ HAL_StatusTypeDef HAL_I2S_Transmit_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     return  HAL_ERROR;
   }
 
-  if (hi2s->State != HAL_I2S_STATE_READY)
-  {
-    return HAL_BUSY;
-  }
-
   /* Process Locked */
   __HAL_LOCK(hi2s);
+
+  if (hi2s->State != HAL_I2S_STATE_READY)
+  {
+    __HAL_UNLOCK(hi2s);
+    return HAL_BUSY;
+  }
 
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_TX;
@@ -1018,8 +1021,6 @@ HAL_StatusTypeDef HAL_I2S_Transmit_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     hi2s->TxXferCount = Size;
   }
 
-  __HAL_UNLOCK(hi2s);
-
   /* Enable TXE and ERR interrupt */
   __HAL_I2S_ENABLE_IT(hi2s, (I2S_IT_TXE | I2S_IT_ERR));
 
@@ -1030,6 +1031,7 @@ HAL_StatusTypeDef HAL_I2S_Transmit_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     __HAL_I2S_ENABLE(hi2s);
   }
 
+  __HAL_UNLOCK(hi2s);
   return HAL_OK;
 }
 
@@ -1058,13 +1060,14 @@ HAL_StatusTypeDef HAL_I2S_Receive_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, u
     return  HAL_ERROR;
   }
 
-  if (hi2s->State != HAL_I2S_STATE_READY)
-  {
-    return HAL_BUSY;
-  }
-
   /* Process Locked */
   __HAL_LOCK(hi2s);
+
+  if (hi2s->State != HAL_I2S_STATE_READY)
+  {
+    __HAL_UNLOCK(hi2s);
+    return HAL_BUSY;
+  }
 
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_RX;
@@ -1084,8 +1087,6 @@ HAL_StatusTypeDef HAL_I2S_Receive_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, u
     hi2s->RxXferCount = Size;
   }
 
-  __HAL_UNLOCK(hi2s);
-
   /* Enable RXNE and ERR interrupt */
   __HAL_I2S_ENABLE_IT(hi2s, (I2S_IT_RXNE | I2S_IT_ERR));
 
@@ -1096,6 +1097,7 @@ HAL_StatusTypeDef HAL_I2S_Receive_IT(I2S_HandleTypeDef *hi2s, uint16_t *pData, u
     __HAL_I2S_ENABLE(hi2s);
   }
 
+  __HAL_UNLOCK(hi2s);
   return HAL_OK;
 }
 
@@ -1122,13 +1124,14 @@ HAL_StatusTypeDef HAL_I2S_Transmit_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData,
     return  HAL_ERROR;
   }
 
-  if (hi2s->State != HAL_I2S_STATE_READY)
-  {
-    return HAL_BUSY;
-  }
-
   /* Process Locked */
   __HAL_LOCK(hi2s);
+
+  if (hi2s->State != HAL_I2S_STATE_READY)
+  {
+    __HAL_UNLOCK(hi2s);
+    return HAL_BUSY;
+  }
 
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_TX;
@@ -1171,7 +1174,12 @@ HAL_StatusTypeDef HAL_I2S_Transmit_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData,
     return HAL_ERROR;
   }
 
-  __HAL_UNLOCK(hi2s);
+  /* Check if the I2S is already enabled */
+  if (HAL_IS_BIT_CLR(hi2s->Instance->I2SCFGR, SPI_I2SCFGR_I2SE))
+  {
+    /* Enable I2S peripheral */
+    __HAL_I2S_ENABLE(hi2s);
+  }
 
   /* Check if the I2S Tx request is already enabled */
   if (HAL_IS_BIT_CLR(hi2s->Instance->CR2, SPI_CR2_TXDMAEN))
@@ -1180,13 +1188,7 @@ HAL_StatusTypeDef HAL_I2S_Transmit_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData,
     SET_BIT(hi2s->Instance->CR2, SPI_CR2_TXDMAEN);
   }
 
-  /* Check if the I2S is already enabled */
-  if (HAL_IS_BIT_CLR(hi2s->Instance->I2SCFGR, SPI_I2SCFGR_I2SE))
-  {
-    /* Enable I2S peripheral */
-    __HAL_I2S_ENABLE(hi2s);
-  }
-
+  __HAL_UNLOCK(hi2s);
   return HAL_OK;
 }
 
@@ -1213,13 +1215,14 @@ HAL_StatusTypeDef HAL_I2S_Receive_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     return  HAL_ERROR;
   }
 
-  if (hi2s->State != HAL_I2S_STATE_READY)
-  {
-    return HAL_BUSY;
-  }
-
   /* Process Locked */
   __HAL_LOCK(hi2s);
+
+  if (hi2s->State != HAL_I2S_STATE_READY)
+  {
+    __HAL_UNLOCK(hi2s);
+    return HAL_BUSY;
+  }
 
   /* Set state and reset error code */
   hi2s->State = HAL_I2S_STATE_BUSY_RX;
@@ -1268,7 +1271,12 @@ HAL_StatusTypeDef HAL_I2S_Receive_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     return HAL_ERROR;
   }
 
-  __HAL_UNLOCK(hi2s);
+  /* Check if the I2S is already enabled */
+  if (HAL_IS_BIT_CLR(hi2s->Instance->I2SCFGR, SPI_I2SCFGR_I2SE))
+  {
+    /* Enable I2S peripheral */
+    __HAL_I2S_ENABLE(hi2s);
+  }
 
   /* Check if the I2S Rx request is already enabled */
   if (HAL_IS_BIT_CLR(hi2s->Instance->CR2, SPI_CR2_RXDMAEN))
@@ -1277,13 +1285,7 @@ HAL_StatusTypeDef HAL_I2S_Receive_DMA(I2S_HandleTypeDef *hi2s, uint16_t *pData, 
     SET_BIT(hi2s->Instance->CR2, SPI_CR2_RXDMAEN);
   }
 
-  /* Check if the I2S is already enabled */
-  if (HAL_IS_BIT_CLR(hi2s->Instance->I2SCFGR, SPI_I2SCFGR_I2SE))
-  {
-    /* Enable I2S peripheral */
-    __HAL_I2S_ENABLE(hi2s);
-  }
-
+  __HAL_UNLOCK(hi2s);
   return HAL_OK;
 }
 
@@ -1874,3 +1876,4 @@ static HAL_StatusTypeDef I2S_WaitFlagStateUntilTimeout(I2S_HandleTypeDef *hi2s, 
 
 #endif /* HAL_I2S_MODULE_ENABLED */
 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

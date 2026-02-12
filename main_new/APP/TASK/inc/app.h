@@ -69,8 +69,9 @@ struct threshold_params {
 	int8_t   temp_low;	// 
 	int8_t   humi_high;		// 
 	int8_t   humi_low;  // 
- 
 	uint16_t miu;         //漏电阈值
+	uint8_t  led_not_bright; // 不亮
+	uint8_t  led_part_bright; // 部分亮
 };
 
 
@@ -135,6 +136,11 @@ void app_set_sys_opeare_function(uint8_t cmd, uint8_t data);
 void app_report_information_immediately(void);
 void app_send_once_heart_infor(void);
 void app_send_query_configuration_infor(void);
+void app_send_single_time_infor(void);
+void app_send_single_current_infor(void);
+void app_send_single_config_infor(void);
+
+
 
 uint8_t app_get_com_send_status_function(void);
 
@@ -167,6 +173,8 @@ void app_set_com_time_param_function(uint32_t *time,uint8_t mode);
 void app_set_threshold_param_function(struct threshold_params param);
 void app_set_update_status_function(uint8_t flag);
 void app_set_http_ota_function(struct update_addr param);
+void app_set_single_current_param(uint8_t *data);
+
 
 
 void *app_get_local_network_function(void);
@@ -192,7 +200,8 @@ void *app_get_threshold_param_function(void);
 void *app_get_backups_param_function(void);
 uint8_t app_get_update_status_function(void);
 void *app_get_http_ota_function(void);
-
+uint8_t app_get_update_status_function(void);
+uint8_t app_get_threshold_led_bright_function(uint8_t id);
 
 int8_t app_match_password_function(char *password);
 int8_t app_match_set_code_function(void);
@@ -203,6 +212,6 @@ void app_send_data_task_function(void);
 void app_system_softreset(uint32_t time);
 void System_SoftReset(void);
 void app_reboot_timer_run(void);
-
+void app_get_update_result_function(void);
 
 #endif

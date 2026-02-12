@@ -132,7 +132,7 @@ low_level_init(struct netif *netif)
 
     /* 网卡状态信息标志位，是很重要的控制字段，它包括网卡功能使能、广播 */
     /* 使能、 ARP 使能等等重要控制位 */
-    netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP;
+    netif->flags |= NETIF_FLAG_BROADCAST | NETIF_FLAG_ETHARP | NETIF_FLAG_LINK_UP| NETIF_FLAG_IGMP;//添加IGMP;
     
     for (idx = 0; idx < ETH_RX_DESC_CNT; idx ++)
     {

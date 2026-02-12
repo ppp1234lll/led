@@ -6,12 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2016 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2016 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                       opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
   */
@@ -68,7 +69,7 @@ typedef enum
 typedef struct __PCCARD_HandleTypeDef
 #else
 typedef struct
-#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS */
+#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS  */
 {
   FSMC_PCCARD_TypeDef           *Instance;              /*!< Register base address for PCCARD device          */
 
@@ -82,7 +83,7 @@ typedef struct
   void (* MspInitCallback)(struct __PCCARD_HandleTypeDef *hpccard);               /*!< PCCARD Msp Init callback              */
   void (* MspDeInitCallback)(struct __PCCARD_HandleTypeDef *hpccard);             /*!< PCCARD Msp DeInit callback            */
   void (* ItCallback)(struct __PCCARD_HandleTypeDef *hpccard);                    /*!< PCCARD IT callback                    */
-#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS */
+#endif
 } PCCARD_HandleTypeDef;
 
 #if (USE_HAL_PCCARD_REGISTER_CALLBACKS == 1)
@@ -100,7 +101,7 @@ typedef enum
   * @brief  HAL PCCARD Callback pointer definition
   */
 typedef void (*pPCCARD_CallbackTypeDef)(PCCARD_HandleTypeDef *hpccard);
-#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS */
+#endif
 /**
   * @}
   */
@@ -122,7 +123,7 @@ typedef void (*pPCCARD_CallbackTypeDef)(PCCARD_HandleTypeDef *hpccard);
                                                              } while(0)
 #else
 #define __HAL_PCCARD_RESET_HANDLE_STATE(__HANDLE__) ((__HANDLE__)->State = HAL_PCCARD_STATE_RESET)
-#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS */
+#endif
 /**
   * @}
   */
@@ -137,8 +138,7 @@ typedef void (*pPCCARD_CallbackTypeDef)(PCCARD_HandleTypeDef *hpccard);
   */
 /* Initialization/de-initialization functions  **********************************/
 HAL_StatusTypeDef  HAL_PCCARD_Init(PCCARD_HandleTypeDef *hpccard, FSMC_NAND_PCC_TimingTypeDef *ComSpaceTiming,
-                                   FSMC_NAND_PCC_TimingTypeDef *AttSpaceTiming,
-                                   FSMC_NAND_PCC_TimingTypeDef *IOSpaceTiming);
+                                   FSMC_NAND_PCC_TimingTypeDef *AttSpaceTiming, FSMC_NAND_PCC_TimingTypeDef *IOSpaceTiming);
 HAL_StatusTypeDef  HAL_PCCARD_DeInit(PCCARD_HandleTypeDef *hpccard);
 void HAL_PCCARD_MspInit(PCCARD_HandleTypeDef *hpccard);
 void HAL_PCCARD_MspDeInit(PCCARD_HandleTypeDef *hpccard);
@@ -166,7 +166,7 @@ HAL_StatusTypeDef  HAL_PCCARD_RegisterCallback(PCCARD_HandleTypeDef *hpccard, HA
                                                pPCCARD_CallbackTypeDef pCallback);
 HAL_StatusTypeDef  HAL_PCCARD_UnRegisterCallback(PCCARD_HandleTypeDef *hpccard,
                                                  HAL_PCCARD_CallbackIDTypeDef CallbackId);
-#endif /* USE_HAL_PCCARD_REGISTER_CALLBACKS */
+#endif
 /**
   * @}
   */
@@ -280,3 +280,5 @@ HAL_PCCARD_StatusTypeDef HAL_PCCARD_ReadStatus(PCCARD_HandleTypeDef *hpccard);
 #endif
 
 #endif /* STM32F1xx_HAL_PCCARD_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

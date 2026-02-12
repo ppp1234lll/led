@@ -16,7 +16,7 @@ void start_bsp_init(void)
 {
 	cJSON_Hooks hook;                // 初始化JSON 
 
-	iwdg_init(IWDG_PRESCALER_64, 1000);// 初始化看门狗(硬件、软件2s)
+	iwdg_init(IWDG_PRESCALER_128, 1600);// 初始化看门狗(硬件、软件2s)
 	start_get_device_id_function();    // 获取本机ID
 	my_mem_init(SRAMIN);              // 内存初始化
 	
@@ -32,7 +32,7 @@ void start_bsp_init(void)
 	bsp_InitRTC();								   // RTC初始化 (已测试)	
 	bsp_InitUsart1(115200);
 //	bsp_InitUsart2(115200);
-  bsp_InitRs485(115200);
+	bsp_InitRs485(115200);
 	bsp_InitUsart4(115200);
 	bsp_InitUart5(115200);
 	bsp_InitUsart6(9600);
@@ -46,15 +46,16 @@ void start_bsp_init(void)
 	
 	bsp_InitTimers(TIM2,1000,2,0);
 	bsp_InitTimers(TIM3,1000,2,0);
-	bsp_InitTimers(TIM4,1000,2,0);
-	bsp_InitTimers(TIM5,1000,2,0);
-	bsp_InitTimers(TIM6,1000,2,0);
+	bsp_InitTimers(TIM4,1,2,0);
+	bsp_InitTimers(TIM5,1,2,0);
+	bsp_InitTimers(TIM6,1,2,0);
 	
 	hal_lis3dh_init(true);
 	aht20_init_function();
 	aht201_init_function();
 	
 	bl0906_init_function();
+	
 	bl0939_init_function();
 
 	bsp_InitSPIBus();	/* 配置SPI总线 */		
@@ -79,7 +80,7 @@ void start_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define ALARM_TASK_PRIO     			10       
-#define ALARM_STK_SIZE      			256      
+#define ALARM_STK_SIZE      			1024      
 TaskHandle_t ALARM_Task_Handler;     
 void alarm_task(void *pvParameters); 
 
@@ -87,7 +88,7 @@ void alarm_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define APP_TASK_PRIO     				5       
-#define APP_STK_SIZE      				512      
+#define APP_STK_SIZE      				4096      
 TaskHandle_t APP_Task_Handler;     
 void app_task(void *pvParameters); 
 
@@ -95,7 +96,7 @@ void app_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define ETH_TASK_PRIO           	8      
-#define ETH_STK_SIZE            	256     
+#define ETH_STK_SIZE            	1024     
 TaskHandle_t ETH_Task_Handler;          
 void eth_task(void *pvParameters);      
 
@@ -103,7 +104,7 @@ void eth_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define DET_TASK_PRIO           	4      
-#define DET_STK_SIZE            	256     
+#define DET_STK_SIZE            	1024     
 TaskHandle_t DET_Task_Handler;          
 void det_task(void *pvParameters);      
 
@@ -111,7 +112,7 @@ void det_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define GSM_TASK_PRIO           	8      
-#define GSM_STK_SIZE            	256     
+#define GSM_STK_SIZE            	1024     
 TaskHandle_t GSM_Task_Handler;          
 void gsm_task(void *pvParameters);      
 
@@ -119,13 +120,13 @@ void gsm_task(void *pvParameters);
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
 #define PRINT_TASK_PRIO           2      
-#define PRINT_STK_SIZE            256    
+#define PRINT_STK_SIZE            512    
 TaskHandle_t PRINT_Task_Handler;         
 void print_task(void *pvParameters);     
 
 /* 检测板 */
 #define SINGLE_TASK_PRIO		      9
-#define SINGLE_TASK_STK_SIZE 		  256
+#define SINGLE_TASK_STK_SIZE 		  2048
 TaskHandle_t Single_Task_Handler;
 void single_task(void *p_arg);
 /******************************************************************************************************/
@@ -167,8 +168,8 @@ void start_task(void *pvParameters)
 	save_init_function();
 	com_recevie_function_init();			// 初始化接收缓冲区
 	app_get_storage_param_function();	// 获取本地存储的数据
-	update_status_init();							// 更新检测
-  printf("run here!!\n");
+	app_get_update_result_function();	// 获取更新结果
+	// update_status_init();	// 更新检测
  
 	if (lwip_comm_init() != 0)
 	{
@@ -177,7 +178,8 @@ void start_task(void *pvParameters)
 		printf("Retrying...       \n");
 		delay_ms(500);
 	}
-  iwdg_feed();  
+	printf("run here!!\n");
+	iwdg_feed();  
 	taskENTER_CRITICAL();           /* 进入临界区 */
 
 	xTaskCreate((TaskFunction_t )alarm_task,
@@ -193,7 +195,7 @@ void start_task(void *pvParameters)
 							(void *         )NULL,
 							(UBaseType_t    )APP_TASK_PRIO,
 							(TaskHandle_t * )&APP_Task_Handler);
-
+	
 	xTaskCreate((TaskFunction_t )eth_task,
 							(const char *   )"eth_task",
 							(uint16_t       )ETH_STK_SIZE,
@@ -229,8 +231,7 @@ void start_task(void *pvParameters)
 							(UBaseType_t    )SINGLE_TASK_PRIO,
 							(TaskHandle_t * )&Single_Task_Handler);
 //	freertos_demo();		
-
-
+	iwdg_feed();  
 	printf("Free heap: %d bytes\n", xPortGetFreeHeapSize());			/*打印剩余堆栈大小*/
 	vTaskDelete(StartTask_Handler); /* 删除开始任务 */
 	taskEXIT_CRITICAL();            /* 退出临界区 */					 
@@ -368,11 +369,10 @@ void gsm_task(void *pvParameters)
 */
 void print_task(void *pvParameters)
 {
-	while(1){
-
-		vTaskDelay(500);
-	}	
-//	print_task_function();
+	// while(1){
+	// 	vTaskDelay(500);
+	// }	
+	print_task_function();
 }	
 
 /*

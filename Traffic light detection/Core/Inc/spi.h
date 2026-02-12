@@ -1,4 +1,3 @@
-/* USER CODE BEGIN Header */
 /**
   ******************************************************************************
   * @file    spi.h
@@ -7,16 +6,16 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
+  * All rights reserved.</center></h2>
   *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software component is licensed by ST under BSD 3-Clause license,
+  * the "License"; You may not use this file except in compliance with the
+  * License. You may obtain a copy of the License at:
+  *                        opensource.org/licenses/BSD-3-Clause
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __SPI_H__
 #define __SPI_H__
@@ -33,9 +32,7 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern SPI_HandleTypeDef hspi1;
-
 extern SPI_HandleTypeDef hspi2;
-
 extern SPI_HandleTypeDef hspi3;
 
 /* USER CODE BEGIN Private defines */
@@ -74,3 +71,4 @@ void hardSPI_3_Write_Multi_Byte(uint8_t *buff, uint16_t len);
 
 #endif /* __SPI_H__ */
 
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

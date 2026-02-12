@@ -1,0 +1,1 @@
+{"version":"FN-JTTY-PY-1.0.1.20251214";"url":"http://47.104.98.214:8989/FN-JTTY-PY/FN-JTTY-PY-1.0.1.20251214_crc.bin";}

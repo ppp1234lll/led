@@ -9,10 +9,6 @@ typedef struct
 	uint8_t mcb;	  	
 }alarm_code_t;
 
-uint8_t direction[4];  // 4个方向
-uint8_t direction[4];
-uint8_t color[3];
-
 
 __attribute__((section (".RAM_D1")))  alarm_code_t sg_alarm_code_t	= {0}; 
 struct threshold_params  *sg_alarm_param_t; 
@@ -33,7 +29,7 @@ void alarm_task_function(void)
 		alarm_elec_collection_param();  
 		alarm_net_collection_param();  
 		alarm_sensor_collection_param();  
-    iwdg_feed();	
+		iwdg_feed();	
 		vTaskDelay(10);
 	}
 }
@@ -226,7 +222,7 @@ void alarm_elec_collection_param(void)
 				app_report_information_immediately();
 			}
 		} 
-		else  if(det_get_vin220v_handler(1) >= 30)
+		else  if(det_get_vin220v_handler(1) >= 20)
 		{
 			if( (elec_normal & 0x10) == 0)
 			{
@@ -254,16 +250,16 @@ void alarm_elec_collection_param(void)
 	} 
 	else 
 	{
-		if((elec_normal & 0x40) == 0) 
+		if((elec_normal & 0x20) == 0) 
 		{
-			elec_normal |= 0x40;
-			elec_error  &=~0x40;
+			elec_normal |= 0x20;
+			elec_error  &=~0x20;
 			if(sg_alarm_code_t.miu == 2)
 			{
-				Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LEAKAGE);
+				// Error_Clear(ERR_TYPE_ELEC,ELEC_AC_LEAKAGE);
 				sg_alarm_code_t.miu = 0;
 				app_report_information_immediately();
-				app_power_open_protection_function();  // 打开继电器
+//				app_power_open_protection_function();  // 打开继电器
 			}
 		}	
 	}	
@@ -272,10 +268,10 @@ void alarm_elec_collection_param(void)
 	{
 		if(det_get_vin220v_handler(0) < 50)
 		{
-			if((elec_error & 0x0800) == 0) 
+			if((elec_error & 0x40) == 0) 
 			{
-				elec_error  |= 0x0800;
-				elec_normal &=~0x0800;
+				elec_error  |= 0x40;
+				elec_normal &=~0x40;
 				sg_alarm_code_t.mcb = 2;
 				Error_Set(ERR_TYPE_ELEC,SENSOR_WATER_LEAK);				
 				app_report_information_immediately();
@@ -283,10 +279,10 @@ void alarm_elec_collection_param(void)
 		}
 		else
 		{
-			if((elec_normal & 0x0800) == 0) 
+			if((elec_normal & 0x40) == 0) 
 			{
-				elec_normal |= 0x0800;
-				elec_error  &=~0x0800;
+				elec_normal |= 0x40;
+				elec_error  &=~0x40;
 				Error_Clear(ERR_TYPE_ELEC,SENSOR_WATER_LEAK);
 				sg_alarm_code_t.mcb = 1;	
 				app_report_information_immediately();
@@ -338,11 +334,62 @@ void alarm_net_collection_param(void)
 	/* 检测主网与摄像头是否发送状态变化 */
 	if(det_main_network_and_camera_network() == 1) 
 	{
-		if((det_get_main_network_status() == 0)&&(det_get_main_network_sub_status() == 0))
-			Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
-		else if((det_get_main_network_status() == 1)||(det_get_main_network_sub_status() == 1))
+		if(com_report_get_main_network_status(0) == 0)
+		{
 			Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
-		app_report_information_immediately();
+			Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+		}
+		else 
+		{
+			if(com_report_get_main_network_status(1) == 0)
+			{
+				switch(com_report_get_main_network_status(0))
+				{		
+					case 2:
+						Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
+						break;
+					case 4:
+						Error_Set(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+						break;
+					default:
+						Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
+						Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);	
+						break;
+				}
+			}
+			else 
+			{
+				if((com_report_get_main_network_status(0)==1)&&(com_report_get_main_network_status(1)==1))
+				{
+					Error_Clear(ERR_TYPE_NET,NET_MAIN_IP);
+					Error_Clear(ERR_TYPE_NET,NET_MAIN_IP_DELAY);	
+				}
+				if((com_report_get_main_network_status(0)==2)||(com_report_get_main_network_status(1)==2))
+				{
+					Error_Set(ERR_TYPE_NET,NET_MAIN_IP);
+				}
+				if((com_report_get_main_network_status(0)==4)||(com_report_get_main_network_status(1)==4))
+				{
+					Error_Set(ERR_TYPE_NET,NET_MAIN_IP_DELAY);
+				}
+
+			}
+		}
+
+		// 信号机网络
+		switch(com_report_get_main_network_status(2))
+		{
+			case 2:
+				Error_Set(ERR_TYPE_NET,NET_SINGLE_IP);
+				break;
+			case 4:
+				Error_Set(ERR_TYPE_NET,NET_SINGLE_IP_DELAY);
+				break;
+			default:
+				Error_Clear(ERR_TYPE_NET,NET_SINGLE_IP);
+				Error_Clear(ERR_TYPE_NET,NET_SINGLE_IP_DELAY);
+				break;
+		}
 	}	
 	
 

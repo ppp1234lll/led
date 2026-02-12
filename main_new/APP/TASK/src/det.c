@@ -51,11 +51,11 @@ void det_get_key_status_function(void)
 		sf_EraseChip(); 
 		app_system_softreset(1000);
 	}
-	else if(sg_datacollec_t.key_s[RESET_K1] == KEY_LWIP)	 // ≤¡≥˝FLASH
+	else if(sg_datacollec_t.key_s[RESET_K1] == KEY_RESET)	 // ÷ÿ÷√Õ¯¬Á
 	{
 		det_set_key_value(RESET_K1,KEY_NONE);
 		led_control_function(LD_GPRS,LD_ON); 
-		eth_reset_function(); 
+		app_system_softreset(1000); 
 	}
 	
 	for(i=0; i< KEY_MAX;i++ )

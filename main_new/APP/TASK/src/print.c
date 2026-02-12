@@ -88,7 +88,7 @@ void print_task_function(void)
 	{
 		print_buff_deal_function(); 	// 处理接收数据
 		print_udp_send_function();    // 数据发送
-    iwdg_feed();	
+		iwdg_feed();	
 		vTaskDelay(100);
 	}
 }
@@ -363,7 +363,6 @@ void print_search_ack_function(uint8_t *pdata, uint16_t *len,uint8_t ack,uint8_t
 	struct local_ip_t   	*local  = app_get_local_network_function();
 	struct remote_ip    	*remote = app_get_remote_network_function();
 	char  temp[30] 	= {0};
-	char  str[5] 	= {0};
 	
 	my_cjson_create_function(pdata,0); // 开始
 	my_cjson_info_create_function(pdata,0); // 开始	

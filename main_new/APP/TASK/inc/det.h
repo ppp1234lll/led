@@ -8,8 +8,9 @@ typedef enum
 {
 	KEY_NONE  = 0,     // 无事件
 	KEY_EVNT,          // 事件触发
-  KEY_ERASE,         // 擦除
-  KEY_LWIP,         //  
+	KEY_ERASE,         // 擦除
+	KEY_LWIP,         //  
+	KEY_RESET,         //  
 }KEY_VALUE_E;
 
 typedef struct {

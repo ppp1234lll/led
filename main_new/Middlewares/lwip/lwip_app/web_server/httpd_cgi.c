@@ -1,4 +1,4 @@
-#include "./web_server/httpd_cgi_ssi.h"
+#include "web_server/httpd_cgi_ssi.h"
 #include "appconfig.h"
 
 
@@ -219,6 +219,14 @@ static int8_t Setting_threshold_parameter_function(char *pcParam[], char *pcValu
 	if (strcmp(pcParam[i] , "W")==0) // ¬©µÁ
 	{
 		param.miu = atoi(pcValue[i]);
+	}
+	if (strcmp(pcParam[i] , "ad")==0) // –≈∫≈µ∆≤ª¡¡
+	{
+		param.led_not_bright = atoi(pcValue[i]);
+	}
+	if (strcmp(pcParam[i] , "ae")==0) // –≈∫≈µ∆≤ø∑÷¡¡
+	{
+		param.led_part_bright = atoi(pcValue[i]);
 		app_set_threshold_param_function(param);
 	}
 	
@@ -792,11 +800,35 @@ int8_t httpd_cgi_system_function(int iNumParams, char *pcParam[], char *pcValue[
 	if (strcmp(pcValue[0] , "eacres")==0)
 	{
 		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
-//		W25QXX_Erase_Chip();
+		sf_EraseChip();
 		app_system_softreset(1000);
 		return 0;
 	}
-	
+		
+	/* «Â≥˝–≈∫≈µ∆≈‰÷√ */
+	if ( strcmp(pcValue[0] , "single_clear")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		single_clear_config_function();
+		single_clear_timing_function();
+		return 0;
+	}
+
+	/* «Â≥˝–≈∫≈µ∆≈‰÷√ */
+	if ( strcmp(pcValue[0] , "report_single_time")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_time_infor();
+		return 0;
+	}
+	if ( strcmp(pcValue[0] , "report_single_current")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_current_infor();
+		return 0;
+	}
+	if ( strcmp(pcValue[0] , "report_single_config")==0 ) {
+		set_return_status_function(0,(uint8_t*)"\"SUCCESS!\"");
+		app_send_single_config_infor();
+		return 0;
+	}
 	if ( strcmp(pcValue[0] , "loginInit")==0 ) {
 		set_return_status_function(0,(uint8_t*)"[\"root\",\" \"]");
 		return 0;

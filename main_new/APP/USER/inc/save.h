@@ -3,6 +3,7 @@
 
 #include "./TASK/inc/app.h"
 #include "./TASK/inc/det.h"
+#include "./TASK/inc/single.h"
 
 /* 默认参数 */
 #define DEFALUT_LOCAL_IP0 (192)
@@ -54,6 +55,9 @@
 #define DEFALUT_TIME_DOWN0 (12) 
 #define DEFALUT_TIME_DOWN1 (00)
 
+#define DEFALUT_LED_NOT_BRIGHT (65)  // 不亮
+#define DEFALUT_LED_PART_BRIGHT (30) // 部分亮
+
 #define DEFALUT_PASSWORD   ("88888888")
 
 #define DEFALUT_HEART			    (90*1000)
@@ -76,6 +80,9 @@
 #define SAVE_CAREMA        (9) // 摄像机参数
 #define SAVE_THRESHOLD     (10) // 阈值
 #define SAVE_HTTP_OTA      (11) // 更新地址
+#define SAVE_SINGLE_CONFIG  (12) // 单灯配时
+#define SAVE_SINGLE_TINE    (13) // 单灯电流
+#define SAVE_SINGLE_CURRENT (14) // 单灯电流
 
 /* 函数声明 */
 void save_init_function(void);
@@ -116,10 +123,20 @@ int8_t save_stroage_http_ota_function(struct update_addr *param);
 int8_t save_read_http_ota_function(struct update_addr *param);
 void save_read_default_http_ota(struct update_addr *param);
 
-// 20241101 用电量
-int8_t save_stroage_electricity_function(electricity_t param);
-int8_t save_read_electricity_function(electricity_t *param);
-void save_read_default_electricity(electricity_t *param);
+// 20241101 信号灯配置信息
+int8_t save_stroage_single_led_blind_function(ConfigData_t param);
+int8_t save_read_single_led_blind_function(ConfigData_t *param);
+void save_read_default_single_led_blind(ConfigData_t *param);
+
+// 20241101 信号灯电流信息
+int8_t save_stroage_single_led_current_function(CurrentData_t param);
+int8_t save_read_single_led_current_function(CurrentData_t *param);
+void save_read_default_single_led_current(CurrentData_t *param);
+
+// 20241101 信号灯配时信息
+int8_t save_stroage_single_led_timing_function(TimingData_t param);
+int8_t save_read_single_led_timing_function(TimingData_t *param);
+void save_read_default_single_led_timing(TimingData_t *param);
 
 
 #endif

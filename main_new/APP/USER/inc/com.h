@@ -19,24 +19,33 @@
 
 #define CONFIGURE_DEVICE_NAME               (0xA3)
 #define CONFIGURE_THRESHOLD_PARAMS          (0xA4) // 配置阈值      	     20230721
-#define CONFIGURE_SINGLE_IP                 (0xAA) // 信号机IP地址
+
+#define CONFIGURE_SINGLE_IP                 (0xA7) // 信号机IP地址
+#define CONFIGURE_SINGLE_VOLTAGE_CH         (0xA9) // 配置阈值      	     20230721
+#define CONFIGURE_SINGLE_CURRENT_CH         (0xA8) // 信号机IP地址
+#define CONFIGURE_SINGLE_CURRENT            (0xAA) // 信号机电流
+
 
 /* 服务器查询指令 */
 #define CR_QUERY_CONFIG                     (0xE1) // 查询设备当前参数设置 - 对应上传查询配置
 #define CR_QUERY_INFO                       (0xE2) // 立即上报设备状态	    - 正常上报
 #define CR_QUERY_SOFTWARE_VERSION           (0xE3) // 查询设备软件版本号	 
+#define CR_SINGLE_TIME                      (0xE4) // 查询设备配时	
+#define CR_SINGLE_CURRENT                   (0xE5) // 查询设备电流	
+#define CR_SINGLE_CONFIG                    (0xE6) // 查询设备配置	
 
 /* 重启指令 */
 #define CR_SINGLE_CAMERA_CONTROL            (0xDA) // 单路摄像头供电重启
 #define CR_POWER_RESETART                   (0xD9) // 电源重启
 
 #define CR_GPRS_NETWORK_V_RESET             (0xDE) // 断电重启4G模组
+#define CR_SINGLE_DC12_CONTROL              (0xD2) // 清除配置
 
 /* 控制命令 */
 #define CONTROL_FAN                         (0xC1) // 风扇启停控制
 #define CONTROL_FILL_LIGHT                  (0xC2) // 补光灯启停控制
 #define CONTROL_HEATING                     (0xC3) // 加热器启停控制
-#define CTRL_RELAY_POWER                    (0xC4) // 单路输出供电控制（关闭。、打开）
+#define CTRL_RELAY_POWER                    (0xC4) // 单路输出供电控制（关闭、打开）
 
 /* 更新命令 */
 #define CONFIGURE_UPDATE_SYSTEM             (0xB3) // 更新系统
@@ -134,5 +143,11 @@ void com_deal_fan_temp_parmaeter(com_rec_data_t *buff);
 void com_deal_fan_humi_param(com_rec_data_t *buff);
 
 void com_set_work_time(com_rec_data_t *buff,uint8_t mode);  // 补光灯时间
+
+void com_deal_configure_single_voltage_ch(com_rec_data_t *buff);
+void com_deal_configure_single_current_ch(com_rec_data_t *buff);
+void com_deal_configure_single_current(com_rec_data_t *buff);
+
+
 
 #endif

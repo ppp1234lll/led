@@ -5,7 +5,7 @@
 #include "lwip/ip_addr.h"
 
 #define UPDATE_CHUNK_SIZE       (1024 + 2)
-#define UPDATA_SPIFLASH_ADDR    (3*1024*1024) // W25Q128升级文件存储地址
+#define UPDATA_SPIFLASH_ADDR    (15*1024*1024) // W25Q128升级文件存储地址
 #define UPDATA_PARAM_ADDR (UPDATA_SPIFLASH_ADDR + (1*1024*1024) - (1*1024)) // 系统升级参数存储地址
 
 

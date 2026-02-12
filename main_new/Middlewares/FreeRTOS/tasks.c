@@ -5480,6 +5480,11 @@ void TaskTcbPrintf(void)
 }
 
 
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) 
+{
+	printf("task %s overflow\n", pcTaskName);
+}
+
 /*-----------------------------------------------------------*/
 
 

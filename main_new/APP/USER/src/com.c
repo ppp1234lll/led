@@ -157,10 +157,10 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	strcat((char*)data,(char*)str);
 	/** 湿度、温度 **/
 	memset(str,0,sizeof(str));
-	sprintf((char*)str, "H=%.2f;", det_get_inside_humi(0)); 
+	sprintf((char*)str, "H=%.2f,%.2f;", det_get_inside_humi(0), det_get_inside_humi(1)); 
 	strcat((char*)data,(char*)str);
 	memset(str,0,sizeof(str));
-	sprintf((char*)str, "T=%.2f;", det_get_inside_temp(1)); 
+	sprintf((char*)str, "T=%.2f,%.2f;", det_get_inside_temp(0), det_get_inside_temp(1)); 
 	strcat((char*)data,(char*)str);	
 	/** 门状态、箱体姿态、防雷状态 **/
 	memset(str,0,sizeof(str));
@@ -224,40 +224,6 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 	memset(str,0,sizeof(str));
 	sprintf((char*)str,"MIU=%d;",alarm_get_miu_protec_status());
 	strcat((char*)data,(char*)str);
-
-	/** 交换机信息 **/
-//	snmp_t *switch_data = snmp_get_switch_data();
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"MODEL=%s;UPTIME=%d;",
-//										switch_data->device_model,switch_data->uptime_ticks);
-//	strcat((char*)data,(char*)str);  
-//	
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_STATUS=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_status[0],switch_data->port_status[1],\
-//											switch_data->port_status[2],switch_data->port_status[3],\
-//											switch_data->port_status[4],switch_data->port_status[5],\
-//											switch_data->port_status[6],switch_data->port_status[7],\
-//											switch_data->port_status[8],switch_data->port_status[9]);
-//	strcat((char*)data,(char*)str);
-
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_SPEED=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_speed[0],switch_data->port_speed[1],\
-//											switch_data->port_speed[2],switch_data->port_speed[3],\
-//											switch_data->port_speed[4],switch_data->port_speed[5],\
-//											switch_data->port_speed[6],switch_data->port_speed[7],\
-//											switch_data->port_speed[8],switch_data->port_speed[9]);
-//	strcat((char*)data,(char*)str);
-	
-//	memset(str,0,sizeof(str));
-//	sprintf((char*)str,"PORT_POE=%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d,%01d;",\
-//											switch_data->port_poe[0],switch_data->port_poe[1],\
-//											switch_data->port_poe[2],switch_data->port_poe[3],\
-//											switch_data->port_poe[4],switch_data->port_poe[5],\
-//											switch_data->port_poe[6],switch_data->port_poe[7],\
-//											switch_data->port_poe[8],switch_data->port_poe[9]);
-//	strcat((char*)data,(char*)str);	
 	
 	/** 北斗定位信息只包含经纬度即可 */
 	atgm336h_data_t *gnss_data = atgm336h_get_gnss_data();
@@ -266,6 +232,10 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 										fabs(gnss_data->latitude),fabs(gnss_data->longitude));
 	strcat((char*)data,(char*)str);
 
+	uint8_t error_buf_str[1024] = {0};
+	Error_Get_Codesbuf(error_buf_str);
+	strcat((char*)data,(char*)error_buf_str);
+		
 	strcat((char*)data,"&&");
 	
 	/* 数据长度 */
@@ -441,11 +411,11 @@ void com_query_configuration_function(uint8_t *pdata, uint16_t *len)
 	/* 过压、欠压、过流、倾斜度、漏电*/
 	memset(temp,0,sizeof(temp));
 	sprintf(temp,"%d,%d,%d,%d,%d",threshol->volt_max,threshol->volt_min,threshol->current,threshol->angle,threshol->miu);
-  my_cjson_join_string_function(pdata,(uint8_t*)"opovc",(uint8_t*)temp,1);
+	my_cjson_join_string_function(pdata,(uint8_t*)"opovc",(uint8_t*)temp,1);
 
 	/* 更新结果 */  
 	memset(temp,0,sizeof(temp));
-	sprintf(temp,"%d",threshol->angle);
+	sprintf(temp,"%d",app_get_update_status_function());
 	my_cjson_join_string_function(pdata,(uint8_t*)"ur",(uint8_t*)temp,1);
 	
 	/* 签名校验 */
@@ -791,19 +761,19 @@ void com_deal_configure_server_mode(com_rec_data_t *buff)
 void com_deal_update_system_function(com_rec_data_t *buff)
 {
 	/* 设置回传 */
-//	if( update_get_mode_function() != UPDATE_MODE_NULL) 
-//	{
-//		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
-//	} 
-//	else 
-//	{
-//		app_set_reply_parameters_function(buff->cmd,0x01);
-//		vTaskDelay(200);
-//		if(app_get_network_mode() == SERVER_MODE_GPRS)
-//			update_set_update_mode(UPDATE_MODE_GPRS); 
-//		else
-//			update_set_update_mode(UPDATE_MODE_LWIP); 
-//	}	
+	if( update_get_mode_function() != UPDATE_MODE_NULL) 
+	{
+		app_set_reply_parameters_function(buff->cmd,0x77);  // 错误，正在更新
+	} 
+	else 
+	{
+		app_set_reply_parameters_function(buff->cmd,0x01);
+		vTaskDelay(200);
+		if(app_get_network_mode() == SERVER_MODE_GPRS)
+			update_set_update_mode(UPDATE_MODE_GPRS); 
+		else
+			update_set_update_mode(UPDATE_MODE_LWIP); 
+	}	
 }
 
 /************************************************************
@@ -957,7 +927,76 @@ void com_deal_configure_single_ip(com_rec_data_t *buff)
 	app_set_send_result_function(SR_OK);
 	app_set_reply_parameters_function(buff->cmd,0x01);
 }
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_voltage_ch
+*	功能说明: 配置电压对应通道
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_voltage_ch(com_rec_data_t *buff)
+{
+	uint8_t ch_num = 0;
+	
+	ch_num = (buff->size - 2) / 5; // 获取对应通道数量
+	
+	for(uint8_t i=0;i<ch_num;i++)  // 配置关联通道
+	{
+		Single_Bind_InpuToTraffic( PARAM_VOLTAGE,buff->buff[0],buff->buff[1],
+		                           (Type_e)buff->buff[2+i*5], \
+		                           (Direction_e)buff->buff[3+i*5],\
+		                           (RoadType_e)buff->buff[4+i*5], \
+		                           (Phase_e)buff->buff[5+i*5], \
+		                           (Color_e)buff->buff[6+i*5]);
+	}
+	// 保存配置
+	// single_save_config_to_flash();
+	app_set_save_infor_function(SAVE_SINGLE_CONFIG);
+	app_set_send_result_function(SR_OK);
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_current_ch
+*	功能说明: 配置电流对应通道
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_current_ch(com_rec_data_t *buff)
+{
+	// 配置关联通道
+    Single_Bind_InpuToTraffic( PARAM_CURRENT,buff->buff[0],buff->buff[1],
+	                             (Type_e)buff->buff[2],\
+	                             (Direction_e)buff->buff[3],\
+	                             (RoadType_e)buff->buff[4],\
+	                             (Phase_e)buff->buff[5],\
+	                             (Color_e)buff->buff[6]);
+		// 保存配置
+	// single_save_config_to_flash();	
+	app_set_save_infor_function(SAVE_SINGLE_CONFIG);
+	app_set_send_result_function(SR_OK);
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
 
+/*
+*********************************************************************************************************
+*	函 数 名: com_deal_configure_single_current_ch
+*	功能说明: 设置阈值
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void com_deal_configure_single_current(com_rec_data_t *buff)
+{	
+	uint8_t data[2] = {0};
+	
+	data[0] = (buff->buff[0]); // 不亮
+	data[1] = (buff->buff[1]); // 部分亮
+	app_set_single_current_param(data);	/* 存储 */
+	app_set_reply_parameters_function(buff->cmd,0x01);
+}
 
 /************************************************************
 *
@@ -1335,7 +1374,7 @@ int8_t com_deal_main_function(void)
 		recdata_t.size    = rec_buff[15];
 		/* 获取内容 */
 		recdata_t.buff    = &rec_buff[16];
-		
+		 
 		/* 根据命令解析数据 */
 		switch(recdata_t.cmd)
 		{
@@ -1379,14 +1418,29 @@ int8_t com_deal_main_function(void)
 			case CONFIGURE_THRESHOLD_PARAMS:	// 配置阈值  20230721
 				com_set_threshold_params_function(&recdata_t);
 				break;
-			case CONFIGURE_SINGLE_IP: 			// CONFIGURE_SINGLE_IP
+			case CONFIGURE_SINGLE_IP: 			 
 				com_deal_configure_single_ip(&recdata_t);
 				break;
-	
+			case CONFIGURE_SINGLE_VOLTAGE_CH: 		 
+				com_deal_configure_single_voltage_ch(&recdata_t);
+				break;
+			case CONFIGURE_SINGLE_CURRENT_CH: 		 
+				com_deal_configure_single_current_ch(&recdata_t);
+				break;			
+			case CONFIGURE_SINGLE_CURRENT: 		 
+				com_deal_configure_single_current(&recdata_t);
+				break;				
+			case CR_SINGLE_DC12_CONTROL: 		 
+				single_clear_config_function();
+				single_clear_timing_function();
+				break;					
+
+
 			/* 查询指令 */
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报
 			case CR_QUERY_SOFTWARE_VERSION: // 查询设备软件版本号
+			case CR_SINGLE_CONFIG: // 查询设备配置
 				sg_comqn_t.flag = 1;
 				com_query_processing_function(recdata_t.cmd,recdata_t.buff[0]-1);
 				break;

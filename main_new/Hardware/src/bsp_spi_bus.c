@@ -34,9 +34,9 @@
 *	                             选择DMA，中断或者查询方式
 *********************************************************************************************************
 */
-#define USE_SPI_DMA    /* DMA方式  */
+//#define USE_SPI_DMA    /* DMA方式  */
 //#define USE_SPI_INT    /* 中断方式 */
-//#define USE_SPI_POLL   /* 查询方式 */
+#define USE_SPI_POLL   /* 查询方式 */
 
 
 /*
@@ -372,10 +372,10 @@ void bsp_spiTransfer(void)
 #ifdef USE_SPI_DMA
 	wTransferState = TRANSFER_WAIT;
 	
-if(HAL_SPI_TransmitReceive_DMA(&hspi, (uint8_t*)g_spiTxBuf, (uint8_t *)g_spiRxBuf, g_spiLen) != HAL_OK)	
-{
-	Error_Handler(__FILE__, __LINE__);
-}
+	if(HAL_SPI_TransmitReceive_DMA(&hspi, (uint8_t*)g_spiTxBuf, (uint8_t *)g_spiRxBuf, g_spiLen) != HAL_OK)	
+	{
+		Error_Handler(__FILE__, __LINE__);
+	}
 	
 	while (wTransferState == TRANSFER_WAIT)
 	{
