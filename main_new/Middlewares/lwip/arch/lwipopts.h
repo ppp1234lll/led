@@ -28,7 +28,7 @@
 #define MEM_ALIGNMENT                   4
 
 /* 堆内存的大小，如果需要更大的堆内存，那么设置高一点 */
-#define MEM_SIZE                        (20*1024)
+#define MEM_SIZE                        (24*1024)
 
 /* MEMP_NUM_PBUF: 设置内存池的数量  */
 #define MEMP_NUM_PBUF                   15
@@ -183,7 +183,7 @@ The STM32F4x7 allows computing and verifying the IP, UDP, TCP and ICMP checksums
 */
 
 #define TCPIP_THREAD_NAME               "TCP/IP"
-#define TCPIP_THREAD_STACKSIZE          2048
+#define TCPIP_THREAD_STACKSIZE          4096
 #define TCPIP_MBOX_SIZE                 6
 #define DEFAULT_UDP_RECVMBOX_SIZE       6
 #define DEFAULT_TCP_RECVMBOX_SIZE       6

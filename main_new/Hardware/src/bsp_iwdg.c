@@ -15,7 +15,7 @@
 
 IWDG_HandleTypeDef g_iwdg_handle;                       /* 独立看门狗句柄 */
 
-#define SOFT_IWDG_ENABLE  0  // 软件看门狗
+#define SOFT_IWDG_ENABLE  1  // 软件看门狗
 #define HARD_IWDG_ENABLE  0  // 硬件看门狗
 
 /**

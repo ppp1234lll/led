@@ -146,6 +146,8 @@ int main(void)
 	bl0910_init_function();
 //	bl0910_test();
 	bl0910_2_init_function();
+//	bl0910_2_test();
+	
 	bl0906_init_function();
 //	bl0906_test();
 
@@ -185,7 +187,7 @@ int main(void)
 				HAL_UART_Transmit(&huart1, send_buffer, buffer_len, 1000);
 			}
 			index++;
-			if(index >= 30)
+			if(index >= 50)
 			{
 				index = 0;
 				seng_state1 = 0;

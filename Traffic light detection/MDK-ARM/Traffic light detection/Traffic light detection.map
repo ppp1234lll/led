@@ -104,8 +104,8 @@ Section Cross References
     bl0910_2.o(i.bl0910_2_set_gain_function) refers to stm32f1xx_hal.o(i.HAL_Delay) for HAL_Delay
     bl0910_2.o(i.bl0910_2_set_mode_function) refers to bl0910_2.o(i.bl0910_2_write_reg_function) for bl0910_2_write_reg_function
     bl0910_2.o(i.bl0910_2_test) refers to bl0910_2.o(i.bl0910_2_read_reg_function) for bl0910_2_read_reg_function
-    bl0910_2.o(i.bl0910_2_test) refers to bl0910_2.o(i.bl0910_2_analysis_data_function) for bl0910_2_analysis_data_function
     bl0910_2.o(i.bl0910_2_test) refers to stm32f1xx_hal.o(i.HAL_Delay) for HAL_Delay
+    bl0910_2.o(i.bl0910_2_test) refers to bl0910_2.o(i.bl0910_2_analysis_data_function) for bl0910_2_analysis_data_function
     bl0910_2.o(i.bl0910_2_work_process_function) refers to bl0910_2.o(i.bl0910_2_analysis_data_function) for bl0910_2_analysis_data_function
     bl0910_2.o(i.bl0910_2_work_process_function) refers to bl0910_2.o(i.bl0910_2_send_data_function) for bl0910_2_send_data_function
     bl0910_2.o(i.bl0910_2_write_enable_function) refers to bl0910_2.o(i.bl0910_2_write_reg_function) for bl0910_2_write_reg_function
@@ -795,7 +795,7 @@ Removing Unused input sections from the image.
     Removing bl0910_2.o(i.bl0910_2_reset_numreg_function), (34 bytes).
     Removing bl0910_2.o(i.bl0910_2_set_ch_function), (34 bytes).
     Removing bl0910_2.o(i.bl0910_2_set_eng_rst_function), (32 bytes).
-    Removing bl0910_2.o(i.bl0910_2_test), (24 bytes).
+    Removing bl0910_2.o(i.bl0910_2_test), (122 bytes).
     Removing bl0906.o(.rev16_text), (4 bytes).
     Removing bl0906.o(.revsh_text), (4 bytes).
     Removing bl0906.o(.rrx_text), (6 bytes).
@@ -1240,7 +1240,7 @@ Removing Unused input sections from the image.
     Removing system_stm32f1xx.o(.rrx_text), (6 bytes).
     Removing system_stm32f1xx.o(i.SystemCoreClockUpdate), (104 bytes).
 
-461 unused section(s) (total 29862 bytes) removed from the image.
+461 unused section(s) (total 29960 bytes) removed from the image.
 
 ==============================================================================
 

@@ -60,7 +60,7 @@
 
 #define COM_SEND_MAX_NUM			 (3)       // 重复发生3次
 
-#define COM_SEND_MAX_TIME			 (10*1000) // 10s超时
+#define COM_SEND_MAX_TIME			 (20*1000) // 10s超时
 
 #define COM_MALLOC_SIZE				 (300)	   // 内存数据申请
 

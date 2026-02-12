@@ -174,7 +174,7 @@ void app_set_threshold_param_function(struct threshold_params param);
 void app_set_update_status_function(uint8_t flag);
 void app_set_http_ota_function(struct update_addr param);
 void app_set_single_current_param(uint8_t *data);
-
+void app_set_com_send_single_param_function(uint8_t data);
 
 
 void *app_get_local_network_function(void);

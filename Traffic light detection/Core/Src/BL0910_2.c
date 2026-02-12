@@ -646,20 +646,20 @@ void bl0910_2_reset_numreg_function(void)
 ************************************************************/
 void bl0910_2_test(void)
 {
-//	bl0910_2_read_reg_function(TPS_CTRL,0);  // 默认值是0x07FF
-//	delay_ms(200);	
-//	bl0910_2_read_reg_function(SAGLVL_LINECYC,0);  // 默认值是0x100009
-//	delay_ms(200);	
-//	bl0910_2_read_reg_function(ADC_PD_CTRL,0);  // 默认值是0x100009
-//	delay_ms(200);
-//	bl0910_2_read_reg_function(GAIN1_REG,0);  // 默认值是0x100009
-//	delay_ms(200);	
-//	bl0910_2_read_reg_function(GAIN2_REG,0);  // 默认值是0x100009
-//	delay_ms(200);	
-//	bl0910_2_read_reg_function(RST_ENG,0);  // 默认值是0x100009
-//	delay_ms(200);		
-//	bl0910_2_read_reg_function(MODE3_REG,0);  // 默认值是0x100009
-//	delay_ms(200);
+	bl0910_2_read_reg_function(TPS_CTRL,0);  // 默认值是0x07FF
+	HAL_Delay(200);	
+	bl0910_2_read_reg_function(SAGLVL_LINECYC,0);  // 默认值是0x100009
+	HAL_Delay(200);	
+	bl0910_2_read_reg_function(ADC_PD_CTRL,0);  // 默认值是0x100009
+	HAL_Delay(200);
+	bl0910_2_read_reg_function(GAIN1_REG,0);  // 默认值是0x100009
+	HAL_Delay(200);	
+	bl0910_2_read_reg_function(GAIN2_REG,0);  // 默认值是0x100009
+	HAL_Delay(200);	
+	bl0910_2_read_reg_function(RST_ENG,0);  // 默认值是0x100009
+	HAL_Delay(200);		
+	bl0910_2_read_reg_function(MODE3_REG,0);  // 默认值是0x100009
+	HAL_Delay(200);
 	while(1)
 	{
 		bl0910_2_read_reg_function(0x94,0);

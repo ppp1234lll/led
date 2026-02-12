@@ -170,6 +170,11 @@
           <WinNumber>1</WinNumber>
           <ItemText>test_pluse</ItemText>
         </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>sg_bl0910_2_buff</ItemText>
+        </Ww>
       </WatchWindow1>
       <Tracepoint>
         <THDelay>0</THDelay>

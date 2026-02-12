@@ -232,7 +232,7 @@ void com_report_normally_function(uint8_t *data, uint16_t *len, uint8_t cmd)
 										fabs(gnss_data->latitude),fabs(gnss_data->longitude));
 	strcat((char*)data,(char*)str);
 
-	uint8_t error_buf_str[1024] = {0};
+	uint8_t error_buf_str[512] = {0};
 	Error_Get_Codesbuf(error_buf_str);
 	strcat((char*)data,(char*)error_buf_str);
 		
@@ -1440,13 +1440,19 @@ int8_t com_deal_main_function(void)
 			case CR_QUERY_CONFIG: 			// 查询设备当前参数设置 - 对应上传查询配置
 			case CR_QUERY_INFO:   			// 立即上报设备状态	    - 正常上报
 			case CR_QUERY_SOFTWARE_VERSION: // 查询设备软件版本号
+			case CR_SINGLE_TIME: // 查询设备时间
+			case CR_SINGLE_CURRENT: // 查询设备电流
 			case CR_SINGLE_CONFIG: // 查询设备配置
 				sg_comqn_t.flag = 1;
 				com_query_processing_function(recdata_t.cmd,recdata_t.buff[0]-1);
 				break;
 			
-			/* 操作指令 */
+			/* 用于信号灯 */
 			case CR_SINGLE_CAMERA_CONTROL:
+				app_set_com_send_single_param_function(recdata_t.buff[0]);
+				break;
+
+
 			case CR_POWER_RESETART:
 			case CR_GPRS_NETWORK_V_RESET:
 				app_set_sys_opeare_function(recdata_t.cmd,recdata_t.buff[0]);
@@ -1454,7 +1460,7 @@ int8_t com_deal_main_function(void)
 			
 			/* 开关控制 */
 			case CTRL_RELAY_POWER:
-        app_set_relay_switch(recdata_t.cmd,recdata_t.buff[0],recdata_t.buff[1]);
+				app_set_relay_switch(recdata_t.cmd,recdata_t.buff[0],recdata_t.buff[1]);
 				break;
 			
 			default:

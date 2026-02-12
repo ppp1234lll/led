@@ -139,13 +139,42 @@ void app_set_com_send_flag_function(uint8_t cmd, uint8_t data)
 		case CR_QUERY_SOFTWARE_VERSION:
 			sg_sysoperate_t.com_flag.version = 1;
 			break;
+		case CR_SINGLE_TIME:
+			sg_sysoperate_t.com_flag.single_time = 1;
+			break;
+		case CR_SINGLE_CURRENT:
+			sg_sysoperate_t.com_flag.single_current = 1;
+			break;
 		case CR_SINGLE_CONFIG:
 			sg_sysoperate_t.com_flag.single_config = 1;
 			break;
 
 	}
 }
+/*
+*********************************************************************************************************
+*	函 数 名: app_set_com_send_flag_function
+*	功能说明: 设置发送函数 
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void app_set_com_send_single_param_function(uint8_t data)
+{
+	switch(data)
+	{
+		case 1:
+			sg_sysoperate_t.com_flag.single_time = 1;
+			break;
+		case 2:
+			sg_sysoperate_t.com_flag.single_current = 1;
+			break;
+		case 3:
+			sg_sysoperate_t.com_flag.single_config = 1;
+			break;
 
+	}
+}
 /************************************************************
 *
 * Function name	: app_set_reply_parameters_function
@@ -231,7 +260,7 @@ void app_deal_com_flag_function(void)
 		sg_sysoperate_t.com.repeat   = 0; 		// 重启一次正常上报计时   
 	}
 	
-	/* 立即上报设备状态 */
+	/* 上报单灯时间 */
 	if(sg_sysoperate_t.com_flag.single_time == 1)
 	{
 		sg_sysoperate_t.com_flag.single_time = 0;
@@ -239,13 +268,22 @@ void app_deal_com_flag_function(void)
 		single_report_timing_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
 		sg_sysoperate_t.com.send_cmd = CR_SINGLE_TIME;
 	}
-	/* 立即上报设备状态 */
+	/* 上报单灯电流 */
 	if(sg_sysoperate_t.com_flag.single_current == 1)
 	{
 		sg_sysoperate_t.com_flag.single_current = 0;
 		memset(sg_send_buff,0,sizeof(sg_send_buff));
 		single_report_current_function(sg_send_buff,&sg_send_size);		/* 发送正常上报数据 */
 		sg_sysoperate_t.com.send_cmd = CR_SINGLE_CURRENT;
+	}
+
+	/* 上报配置参数 */
+	if(sg_sysoperate_t.com_flag.single_config == 1)
+	{
+		sg_sysoperate_t.com_flag.single_config = 0;
+		memset(sg_send_buff,0,sizeof(sg_send_buff));
+		single_report_config_function(sg_send_buff,&sg_send_size);
+		sg_sysoperate_t.com.send_cmd = CR_SINGLE_CONFIG;
 	}
 
 	/* 直接发送，不需要检测回传 */
@@ -263,14 +301,6 @@ void app_deal_com_flag_function(void)
 	{
 		sg_sysoperate_t.com_flag.version = 0;
 		com_version_information(sg_send_buff,&sg_send_size);
-		app_send_data_task_function();
-	}
-
-	/* 上报配置参数 */
-	if(sg_sysoperate_t.com_flag.single_config == 1)
-	{
-		sg_sysoperate_t.com_flag.single_config = 0;
-		single_report_config_function(sg_send_buff,&sg_send_size);
 		app_send_data_task_function();
 	}
 	

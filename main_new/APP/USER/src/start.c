@@ -87,7 +87,7 @@ void alarm_task(void *pvParameters);
 /* APP线程 任务 配置
  * 包括: 任务句柄 任务优先级 堆栈大小 创建任务
  */
-#define APP_TASK_PRIO     				5       
+#define APP_TASK_PRIO     				15       
 #define APP_STK_SIZE      				4096      
 TaskHandle_t APP_Task_Handler;     
 void app_task(void *pvParameters); 
@@ -126,7 +126,7 @@ void print_task(void *pvParameters);
 
 /* 检测板 */
 #define SINGLE_TASK_PRIO		      9
-#define SINGLE_TASK_STK_SIZE 		  2048
+#define SINGLE_TASK_STK_SIZE 		  4096
 TaskHandle_t Single_Task_Handler;
 void single_task(void *p_arg);
 /******************************************************************************************************/
