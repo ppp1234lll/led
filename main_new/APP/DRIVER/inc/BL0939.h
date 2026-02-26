@@ -58,7 +58,7 @@ void bl0939_run_timer_function(void);
 void bl0939_work_process_function(void);
 void bl0939_get_rec_data_function(uint8_t *buff, uint16_t len);
 void bl0939_write_enable_function(uint8_t cmd);
-
+void bl0939_set_WA_CREEP_function(void);
 void bl0939_set_mode_function(void);
 
 void bl0939_reset_numreg_function(void);

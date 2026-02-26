@@ -72,12 +72,15 @@ float ld_current;
 #define bl0939_INIT() 							bsp_InitSPI2()
 #define bl0939_SEND_STR(buff,len) 	HSPI2_Send_Data(buff,len)
 #define bl0939_ReadByte(tx,rx,len)  HSPI2_Read_Data(tx,rx,len)
+
+//#define bl0939_INIT() 							bsp_InitSSPI1()
+//#define bl0939_SEND_STR(buff,len) 	SSPI1_Write_Multi_Byte(buff,len)
 //#define bl0939_ReadByte()           SSPI1_ReadByte()
 
 /* 宏定义数据 */
-#define bl0939_DET_NUM   			4  		  // 采集次数 
+#define bl0939_DET_NUM   			2  		  // 采集次数 
 #define bl0939_TIME_OUT  			200 		// 超时时间 200ms
-#define bl0939_AUTO_TIME   		2000 	  // 2s (采集18次，每次100ms)
+#define bl0939_AUTO_TIME   		1000 	  // 2s (采集18次，每次100ms)
 #define bl0939_SEND_TIME   		100 	  // 发送时间 100ms
 /* 数据 */
 #define bl0939_REC_STA  sg_bl0939_rec_sta
@@ -100,8 +103,9 @@ void bl0939_init_function(void)
 		
 	/* 写命令使能 */
 	bl0939_write_enable_function(1);
-	bl0939_reset_numreg_function();
-	bl0939_set_mode_function();
+//	bl0939_reset_numreg_function();
+//	bl0939_set_mode_function();
+	bl0939_set_WA_CREEP_function();
 	/* 写命令失能 */
 	bl0939_write_enable_function(0);
 }
@@ -287,7 +291,7 @@ void bl0939_read_reg_function(uint8_t reg, uint8_t mode)
 //	for(uint8_t index=0; index < 4; index++) {
 //		bl0939_REC_BUFF[index] = bl0939_ReadByte();
 //	}
-	
+//	
 	bl0939_ReadByte(buff,bl0939_REC_BUFF,6);
 	bl0939_REC_BUFF[0] = bl0939_REC_BUFF[2];
 	bl0939_REC_BUFF[1] = bl0939_REC_BUFF[3];
@@ -314,8 +318,8 @@ void bl0939_send_data_function(void)
 		{
 			switch(sg_bl0939data_t.flag)
 			{	
-				case 1: bl0939_read_reg_function(BL0939_IA_RMS,0);  break; // 电流 A
-				case 2: bl0939_read_reg_function(BL0939_V_RMS,0);   break;  // 电压
+				case 2: bl0939_read_reg_function(BL0939_IA_RMS,0);  break; // 电流 A
+				case 1: bl0939_read_reg_function(BL0939_V_RMS,0);   break;  // 电压
 
 				default: break;			
 			}
@@ -453,6 +457,23 @@ void bl0939_set_mode_function(void)
 	bl0939_write_reg_function(BL0939_MODE,mode_buff,3,0);
 }
 
+/*
+*********************************************************************************************************
+*	函 数 名: bl0939_set_WA_CREEP_function
+*	功能说明: 设置模式
+*	形    参: 无
+*	返 回 值: 无
+*********************************************************************************************************
+*/
+void bl0939_set_WA_CREEP_function(void)
+{
+	uint8_t mode_buff[3] = {0};
+	
+	mode_buff[0] = 0x00;  // 
+	mode_buff[1] = 0x00;  //  
+	mode_buff[2] = 0x00;  // 	
+	bl0939_write_reg_function(BL0939_WA_CREEP,mode_buff,3,0);
+}
 /*
 *********************************************************************************************************
 *	函 数 名: bl0939_reset_numreg_function

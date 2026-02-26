@@ -23,6 +23,8 @@ uint8_t *udp_send_buf = NULL;				// UDP发送
 uint16_t udp_flag;
 
 int udp_sock = -1;  // SOCKET
+uint8_t test_udp_buff[20] = {"01234567d89asdfghjk"};
+
 
 //udp任务函数
 static void udp_multicast_task(void *pvParameters)
@@ -53,7 +55,7 @@ static void udp_multicast_task(void *pvParameters)
 																						 local->multicast_ip[2],local->multicast_ip[3]);
 				multicast_port = local->multicast_port;
 				local_addr.sin_family = AF_INET;
-				local_addr.sin_addr.s_addr = inet_addr(ip_param); /*<! 待与 socket 绑定的本地网络接口 IP */   
+				local_addr.sin_addr.s_addr = htonl(INADDR_ANY); /*<! 接收组播需绑定到任意地址 */   
 				local_addr.sin_port = htons(multicast_port); /*<! 待与 socket 绑定的本地端口号 */   
 
 				ret = bind(udp_sock, (struct sockaddr*)&local_addr, sizeof(local_addr));		// 将 Socket 与本地某网络接口绑定 
@@ -77,7 +79,7 @@ static void udp_multicast_task(void *pvParameters)
 		}
 		else if(g_lwipdev.udp_multicast_status == LWIP_UDP_CONNECT) // 连接成功
 		{				
-//			udp_socket_send_api(udp_sock,udp_send_buf,len,multicast_addr,multicast_port);		
+//			udp_socket_send_api(udp_sock,(char*)test_udp_buff,20,multicast_addr,multicast_port);		
 			if((udp_flag & UDP_MULTICAST_DATA) == UDP_MULTICAST_DATA) //有数据要发送
 			{
 				if(udp_socket_send_api(udp_sock,(char*)udp_send_buf,(udp_flag & 0x3fff),multicast_addr,multicast_port) < 0)

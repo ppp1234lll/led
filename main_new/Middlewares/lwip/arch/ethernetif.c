@@ -147,6 +147,12 @@ low_level_init(struct netif *netif)
     TxConfig.ChecksumCtrl = ETH_CHECKSUM_IPHDR_PAYLOAD_INSERT_PHDR_CALC;
     TxConfig.CRCPadCtrl = ETH_CRC_PAD_INSERT;
     
+		// ¹Ø±ÕMAC²ãµÄ×é²¥¹ýÂË£º
+		ETH_MACFilterConfigTypeDef pFilterConfig;
+		HAL_ETH_GetMACFilterConfig(&g_eth_handler, &pFilterConfig);
+		pFilterConfig.ReceiveAllMode = ENABLE;
+		pFilterConfig.PassAllMulticast = ENABLE;
+		HAL_ETH_SetMACFilterConfig(&g_eth_handler, &pFilterConfig);
     
     /* create a binary semaphore used for informing ethernetif of frame reception */
     g_rx_semaphore = xSemaphoreCreateBinary();
@@ -206,7 +212,8 @@ low_level_init(struct netif *netif)
     HAL_ETH_GetMACConfig(&g_eth_handler, &g_eth_macconfig_handler);
     g_eth_macconfig_handler.DuplexMode = duplex;
     g_eth_macconfig_handler.Speed = speed;
-    HAL_ETH_SetMACConfig(&g_eth_handler,&g_eth_macconfig_handler);    
+    HAL_ETH_SetMACConfig(&g_eth_handler,&g_eth_macconfig_handler);  
+		
     HAL_ETH_Start(&g_eth_handler);
     /* ¿ªÆôÐéÄâÍø¿¨ */
     netif_set_up(netif);

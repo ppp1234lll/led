@@ -64,10 +64,10 @@ struct bl0906_data_t sg_bl0906data_t = {0};
 //#define BL0910_READ_STR							SSPI0_ReadByte
 
 /* 宏定义数据 */
-#define BL0906_DET_NUM   			20  		// 采集次数 
-#define BL0906_TIME_OUT  			100     // 超时时间 20ms
-#define BL0906_AUTO_TIME   		4000 	  // 2s (采集18次，每次100ms)
-#define BL0906_SEND_TIME   		50 	    // 发送时间 10ms
+#define BL0906_DET_NUM   			6  		// 采集次数 
+#define BL0906_TIME_OUT  			200     // 超时时间 20ms
+#define BL0906_AUTO_TIME   		2000 	  // 2s (采集18次，每次100ms)
+#define BL0906_SEND_TIME   		100 	    // 发送时间 10ms
 
 /* 数据 */
 #define BL0906_REC_STA  sg_bl0906_rec_sta

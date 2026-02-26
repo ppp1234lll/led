@@ -93,39 +93,11 @@ int32_t eth_chip_init(eth_chip_object_t *pobj)
                     Register 3    0x8201 */
     pobj->io.readreg(addr, PHY_REGISTER2, &regvalue);
     
-    switch (regvalue)
-    {
-        case YT8512C_AND_RTL8201BL_PHYREGISTER2:
-            pobj->io.readreg(addr, PHY_REGISTER3, &regvalue);
-    
-            if (regvalue == 0x128)
-            {
-                ETH_CHIP_PHYSCSR  = ((uint16_t)0x11);
-                ETH_CHIP_SPEED_STATUS = ((uint16_t)0x4010);
-                ETH_CHIP_DUPLEX_STATUS = ((uint16_t)0x2000);
-                PHY_TYPE = YT8512C;
-            }
-            else
-            {
-                ETH_CHIP_PHYSCSR  = ((uint16_t)0x10);
-                ETH_CHIP_SPEED_STATUS = ((uint16_t)0x0022);
-                ETH_CHIP_DUPLEX_STATUS = ((uint16_t)0x0004);
-                PHY_TYPE = RTL8201;
-            }
-            break;
-        case SR8201F_PHYREGISTER2:
-            ETH_CHIP_PHYSCSR  = ((uint16_t)0x00);
-            ETH_CHIP_SPEED_STATUS = ((uint16_t)0x2020);
-            ETH_CHIP_DUPLEX_STATUS = ((uint16_t)0x0100);
-            PHY_TYPE = SR8201F;
-            break;
-        case LAN8720A_PHYREGISTER2:
-            ETH_CHIP_PHYSCSR  = ((uint16_t)0x1F);
-            ETH_CHIP_SPEED_STATUS = ((uint16_t)0x0004);
-            ETH_CHIP_DUPLEX_STATUS = ((uint16_t)0x0010);
-            PHY_TYPE = LAN8720;
-            break;
-    }
+		ETH_CHIP_PHYSCSR  = ((uint16_t)0x1F);
+		ETH_CHIP_SPEED_STATUS = ((uint16_t)0x0004);
+		ETH_CHIP_DUPLEX_STATUS = ((uint16_t)0x0010);
+		PHY_TYPE = LAN8720;
+
 #endif
     
     if (pobj->is_initialized == 0)

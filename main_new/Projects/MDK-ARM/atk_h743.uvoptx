@@ -183,57 +183,57 @@
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>fault_detection_started</ItemText>
+          <ItemText>g_err_item_count</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_err_item_count[ERR_MAX]</ItemText>
+          <ItemText>single_light</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_err_item_count</ItemText>
+          <ItemText>g_singleboard_t</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
           <WinNumber>1</WinNumber>
-          <ItemText>single_light</ItemText>
+          <ItemText>current_test_watch</ItemText>
         </Ww>
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>str</ItemText>
+          <ItemText>current_data</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_singleboard_t</ItemText>
+          <ItemText>current_sum_data,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>current_test_watch</ItemText>
+          <ItemText>single_current_state</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>current_data</ItemText>
+          <ItemText>g_timing_data</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>current_sum_data,0x0A</ItemText>
+          <ItemText>sg_bl0939_buff</ItemText>
         </Ww>
         <Ww>
           <count>12</count>
           <WinNumber>1</WinNumber>
-          <ItemText>single_current_state</ItemText>
+          <ItemText>g_lwipdev</ItemText>
         </Ww>
         <Ww>
           <count>13</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_timing_data</ItemText>
+          <ItemText>udp_recv_buf</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -787,7 +787,7 @@
 
   <Group>
     <GroupName>Hardware</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

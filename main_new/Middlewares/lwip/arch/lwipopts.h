@@ -79,6 +79,10 @@
 
 
 #define LWIP_IGMP 				              1	// 开启组播功能
+/*----- Default Value for LWIP_LOOPIF_MULTICAST: 0 ---*/
+#define LWIP_LOOPIF_MULTICAST 1
+
+
 #define LWIP_RAW                        1
 #define LWIP_DNS                        1
 

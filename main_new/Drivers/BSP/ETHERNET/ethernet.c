@@ -195,23 +195,11 @@ void HAL_ETH_MspInit(ETH_HandleTypeDef *heth)
     uint32_t regval;
 
     sys_intx_disable();                                     /* 关闭所有中断，复位过程不能被打断！ */
-    /* 判断开发板是否是旧版本(老板卡板载的是LAN8720A，而新板卡板载的是YT8512C) */
-    regval = ethernet_read_phy(2);
-    
-    if (regval && 0xFFF == 0xFFF)                           /* 旧板卡（LAN8720A）引脚复位 */
-    {
-      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
-      delay_ms(100);
-      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
-      delay_ms(100);
-    }
-    else                                                    /* 新板卡（YT8512C）引脚复位 */
-    {
-      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
-      delay_ms(100);
-      HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
-      delay_ms(100);
-    }
+
+		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
+		delay_ms(100);
+		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
+		delay_ms(100);
     
     sys_intx_enable();                                      /* 开启所有中断 */
     
@@ -264,16 +252,9 @@ void ethernet_write_phy(uint16_t reg, uint16_t value)
  */
 uint8_t ethernet_chip_get_speed(void)
 {
-    uint8_t speed;
-    if(PHY_TYPE == LAN8720) 
-    speed = ~((ethernet_read_phy(ETH_CHIP_PHYSCSR) & ETH_CHIP_SPEED_STATUS));         /* 从LAN8720的31号寄存器中读取网络速度和双工模式 */
-    else if(PHY_TYPE == SR8201F)
-    speed = ((ethernet_read_phy(ETH_CHIP_PHYSCSR) & ETH_CHIP_SPEED_STATUS) >> 13);    /* 从SR8201F的0号寄存器中读取网络速度和双工模式 */
-    else if(PHY_TYPE == YT8512C)
-    speed = ((ethernet_read_phy(ETH_CHIP_PHYSCSR) & ETH_CHIP_SPEED_STATUS) >> 14);    /* 从YT8512C的17号寄存器中读取网络速度和双工模式 */
-    else if(PHY_TYPE == RTL8201)
-    speed = ((ethernet_read_phy(ETH_CHIP_PHYSCSR) & ETH_CHIP_SPEED_STATUS) >> 1);     /* 从RTL8201的16号寄存器中读取网络速度和双工模式 */
-    return speed;
+	uint8_t speed;
+	speed = ~((ethernet_read_phy(ETH_CHIP_PHYSCSR) & ETH_CHIP_SPEED_STATUS));         /* 从LAN8720的31号寄存器中读取网络速度和双工模式 */
+	return speed;
 }
 
 /************************************************************
@@ -289,24 +270,12 @@ void eth_reset_function(void)
 	uint32_t regval;
 
 	sys_intx_disable();                                     /* 关闭所有中断，复位过程不能被打断！ */
-	/* 判断开发板是否是旧版本(老板卡板载的是LAN8720A，而新板卡板载的是YT8512C) */
-	regval = ethernet_read_phy(2);
-	
-	if (regval && 0xFFF == 0xFFF)                           /* 旧板卡（LAN8720A）引脚复位 */
-	{
-		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
-		delay_ms(100);
-		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
-		delay_ms(100);
-	}
-	else                                                    /* 新板卡（YT8512C）引脚复位 */
-	{
-		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
-		delay_ms(100);
-		HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
-		delay_ms(100);
-	}
-	
+
+	HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_RESET); /* 硬件复位 */
+	delay_ms(100);
+	HAL_GPIO_WritePin(ETH_RESET_GPIO_PORT, ETH_RESET_GPIO_PIN, GPIO_PIN_SET); /* 复位结束 */
+	delay_ms(100);
+
 	sys_intx_enable();                                      /* 开启所有中断 */
 
 }

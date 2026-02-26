@@ -57,6 +57,7 @@ void start_bsp_init(void)
 	bl0906_init_function();
 	
 	bl0939_init_function();
+//bl0939_test();
 
 	bsp_InitSPIBus();	/* 配置SPI总线 */		
 	bsp_InitSFlash();	/* 初始化SPI 串行Flash */	
